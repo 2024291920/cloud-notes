@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>06 Zabbix 监控 - 云计算运维课程笔记</title>
+  <link rel="stylesheet" href="common.css">
+
+</head>
+<body>
+
+<div class="topbar">
+  
+  <span class="title"><span class="num" style="background:linear-gradient(90deg,#f59e0b,#eab308)">06</span>Zabbix 监控</span>
+  <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
+    <div class="nav-btns">
+      <a href="05-deployment.html">&#8592;</a>
+      <a href="07-docker.html">&#8594;</a>
+  </div>
+</div>
+
+<div class="page-header">
+  <h1>06 Zabbix 监控</h1>
+  <p class="desc">Zabbix 组件构成、主动/被动模式、服务端部署、手动添加主机、自动发现、自动注册</p>
+</div>
+
+<div class="page-wrap">
+  <nav class="sidebar" id="sidebar">
+    <div class="side-title">本页导航</div>
+    <ul>
+      <li><a href="#sec-zabbix-intro">Zabbix 监控介绍</a></li>
+      <li><a href="#sec-zabbix-deploy">部署 Zabbix</a></li>
+      <li><a href="#sec-manual-host">手动添加主机</a></li>
+      <li><a href="#sec-auto-discovery">自动发现主机</a></li>
+      <li><a href="#sec-auto-registration">自动注册</a></li>
+    </ul>
+  </nav>
+  <div class="content">
+
+  <!-- ==================== Zabbix监控介绍 ==================== -->
+  <div class="file-card" id="sec-zabbix-intro">
+    <div class="file-card-header">
+      <h3>Zabbix 监控介绍</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>监控系统简介</h4>
+      <p>Zabbix 是一个基于 Web 界面提供的分布式系统监控，可以提供网络监控的功能，是一个企业级开源监控套件。</p>
+
+      <h4>Zabbix 的监控对象</h4>
+      <ul>
+        <li>Linux、Windows 等等主机系统</li>
+        <li>路由器、交换机等网络设备</li>
+      </ul>
+
+      <h4>Zabbix 的版本</h4>
+      <ul>
+        <li>Zabbix 是 2001 年发布的首个 GPL 版本</li>
+        <li>官方在后期不断的维护、升级、性能完善等等</li>
+        <li>目前最新的 zabbix 6.*</li>
+        <li>目前市场大范围使用的：<strong>5.* LTS 版本</strong>
+          <ul>
+            <li>LTS：长期维护</li>
+            <li>GPL：开源</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>Zabbix 五大组件</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>组件</th><th>端口</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Zabbix Server</strong></td><td>10051</td><td>Zabbix 的核心组件，server 内部存储了所有配置信息、统计信息、操作信息</td></tr>
+            <tr><td><strong>Database</strong></td><td>-</td><td>Zabbix 数据库内存储配置信息、统计信息、操作信息</td></tr>
+            <tr><td><strong>Zabbix Web</strong></td><td>-</td><td>Web 界面也是 Zabbix 的一部分，一般和 Zabbix Server 部署在一个机器上（特殊情况可分开）。Web 页面提供直观的监控信息，方便维护管理</td></tr>
+            <tr><td><strong>Zabbix Agent</strong></td><td>10050</td><td>部署在被监控端，主要用于主动监控本地资源和应用程序，把监控到的数据发送给 Zabbix Server</td></tr>
+            <tr><td><strong>Zabbix Proxy</strong></td><td>10051</td><td>Proxy 可根据生产环境决定是否采用。架构较大可采用 Proxy；企业设备跨网段、跨机房，Server 和 Agent 无法直接连接时可采用 Proxy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Zabbix 的工作原理</h4>
+      <ul>
+        <li>Zabbix Server 通过 Zabbix Agent 获取被监控的信息</li>
+        <li>Server 计算信息是否满足触发条件来判断是否给用户发通知</li>
+        <li>Server 收取到信息都会存储到数据库内</li>
+        <li>数据库给 Zabbix Web 提供信息，Web 生成操作界面，显示相应的信息</li>
+      </ul>
+
+      <h4>Zabbix 监控的两个模式</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>特性</th><th>主动模式</th><th>被动模式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>定义</td><td>客户端主动向服务器建立连接，发送数据</td><td>服务器指定向客户端请求数据</td></tr>
+            <tr><td>工作流程</td><td>Agent 每隔一段时间，主动向 Server 发起连接请求；Server 接收到请求后，查询客户端需要的信息，发送给客户端，由客户端授权数据发送给服务器</td><td>客户端需要开启端口 10050，等待服务器来收集数据，客户端把收集到的数据发送给服务器</td></tr>
+            <tr><td>端口</td><td>Server 端口 10051（Agent 连入）</td><td>Agent 端口 10050（Server 连入）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="key-box">
+        <strong>主动模式使用场景：</strong>当服务器监控的主机到达了一定的数量的时候，就可以让 Server 收集信息。
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 部署Zabbix ==================== -->
+  <div class="file-card" id="sec-zabbix-deploy">
+    <div class="file-card-header">
+      <h3>部署 Zabbix</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>1. 准备基础环境</h4>
+      <pre><code>IP: 192.168.10.128
+DNS: 8.8.8.8 或者 114.114.114.114
+
+防火墙：关闭
+内核：关闭</code></pre>
+
+      <h4>2. 安装 Zabbix</h4>
+      <p>Zabbix 提供两种安装方式：官网打包下载（<a href="https://www.zabbix.com/cn/download" target="_blank" rel="noopener">https://www.zabbix.com/cn/download</a>）和命令式安装。以下为命令式安装。</p>
+
+      <h4>2.1 获取官方的安装源</h4>
+      <pre><code>[root@zabbix-server ~]# rpm -Uvh https://mirrors.aliyun.com/zabbix/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm</code></pre>
+
+      <h4>查看安装源</h4>
+      <pre><code>[root@zabbix-server ~]# ls /etc/yum.repos.d/
+CentOS-Base.repo       CentOS-Media.repo          epel.repo
+CentOS-CR.repo         CentOS-Sources.repo        epel-testing.repo
+CentOS-Debuginfo.repo  CentOS-Vault.repo          zabbix.repo
+CentOS-fasttrack.repo  CentOS-x86_64-kernel.repo</code></pre>
+
+      <h4>修改仓库地址（可做可不做）</h4>
+      <pre><code>[root@zabbix-server ~]# sed -i 's#http://repo.zabbix.com#https://mirrors.aliyun.com/zabbix#' /etc/yum.repos.d/zabbix.repo
+[root@zabbix-server ~]# yum clean all</code></pre>
+
+      <h4>安装 Zabbix 的 Server、数据库和 Agent</h4>
+      <pre><code>[root@zabbix-server ~]# yum -y install zabbix-server-mysql zabbix-agent</code></pre>
+
+      <h4>安装软件集合</h4>
+      <pre><code>[root@zabbix-server ~]# yum -y install centos-release-scl</code></pre>
+
+      <h4>修改 Zabbix 的前端源</h4>
+      <pre><code>[root@zabbix-server ~]# vim /etc/yum.repos.d/zabbix.repo
+enabled=1</code></pre>
+
+      <h4>安装前端环境</h4>
+      <pre><code>[root@zabbix-server ~]# yum -y install zabbix-web-mysql-scl zabbix-apache-conf-scl</code></pre>
+
+      <h4>安装 Zabbix 需要的数据库</h4>
+      <pre><code>[root@zabbix-server ~]# yum -y install mariadb-server</code></pre>
+
+      <h4>初始化数据库</h4>
+      <pre><code>[root@zabbix-server ~]# mysql_secure_installation
+
+# 输入 root 用户密码登录，没有密码的话直接回车
+Enter current password for root (enter for none):
+
+# 提示是否要修改 root 用户的密码：y
+Set root password? [Y/n] y
+New password:        # 设置密码
+Re-enter new password:    # 确认密码
+
+# 后面所有的提示，全部输入 y
+# 是否删除匿名用户：y
+# 是否禁止 root 远程登录：y
+# 是否删除测试库：y
+# 重新加载权限列表：y</code></pre>
+
+      <h4>配置数据库</h4>
+      <pre><code>[root@zabbix-server ~]# mysql -uroot -p123456
+
+MariaDB [(none)]> create database zabbix character set utf8 collate utf8_bin;
+Query OK, 1 row affected (0.00 sec)
+
+MariaDB [(none)]> create user zabbix@localhost identified by '123456';
+Query OK, 0 rows affected (0.00 sec)
+
+MariaDB [(none)]> grant all privileges on zabbix.* to zabbix@localhost;
+Query OK, 0 rows affected (0.00 sec)
+
+MariaDB [(none)]> flush privileges;
+Query OK, 0 rows affected (0.00 sec)</code></pre>
+
+      <h4>导入 Zabbix 数据库</h4>
+      <pre><code>[root@zabbix-server ~]# zcat /usr/share/doc/zabbix-server-mysql-5.0.42/create.sql.gz | mysql -uzabbix -p zabbix
+Enter password:</code></pre>
+
+      <h4>设置 Zabbix Web 连接数据库的密码</h4>
+      <pre><code>[root@zabbix-server ~]# cp /etc/zabbix/zabbix_server.conf{,.bak}
+[root@zabbix-server ~]# vim /etc/zabbix/zabbix_server.conf
+
+# 124 行，删除 # 注释，顶头写
+DBPassword=123456</code></pre>
+
+      <h4>设置监控网站的时区</h4>
+      <pre><code>[root@zabbix-server ~]# vim /etc/opt/rh/rh-php72/php-fpm.d/zabbix.conf
+# 在这个文件内，分号是注释的意思
+# 取消注释，顶头写，将时区修改为上海
+php_value[date.timezone] = Asia/Shanghai</code></pre>
+
+      <h4>启动服务并开机自启</h4>
+      <pre><code>[root@zabbix-server ~]# systemctl start zabbix-server zabbix-agent httpd rh-php72-php-fpm
+[root@zabbix-server ~]# systemctl enable zabbix-server zabbix-agent httpd rh-php72-php-fpm</code></pre>
+
+      <h4>Zabbix 初始化</h4>
+      <p>浏览器访问：<code>http://192.168.10.128/zabbix</code></p>
+      <p>按照 Web 向导完成初始化设置。</p>
+
+      <div class="key-box">
+        <strong>关键信息汇总：</strong><br>
+        版本：Zabbix 5.0 LTS<br>
+        数据库：MariaDB，库名 zabbix，字符集 utf8 / utf8_bin<br>
+        Zabbix 数据库用户：zabbix@localhost，密码 123456<br>
+        Web 前端：Apache（httpd）+ rh-php72<br>
+        访问地址：http://192.168.10.128/zabbix
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 手动添加主机 ==================== -->
+  <div class="file-card" id="sec-manual-host">
+    <div class="file-card-header">
+      <h3>手动添加主机</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>主机添加方式对比</h4>
+      <ul>
+        <li><strong>手动添加主机</strong>：简单、方便，但是不适合批量添加</li>
+        <li><strong>自动注册</strong>：方便，可以用于批量添加，但是需要配置元数据信息</li>
+        <li><strong>自动发现</strong>
+          <ul>
+            <li>自动网络发现</li>
+            <li>客户端主动注册</li>
+            <li>低级别的发现</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>准备基础环境（被监控端）</h4>
+      <p>要求可以连接外网，防火墙、内核关闭、永久关闭。</p>
+
+      <h4>安装 Zabbix 源</h4>
+      <pre><code>[root@localhost ~]# rpm -Uvh https://mirrors.aliyun.com/zabbix/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+获取 https://mirrors.aliyun.com/zabbix/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+警告：/var/tmp/rpm-tmp.HniUZR: 头 V4 RSA/SHA512 Signature, 密钥 ID a14fe591: NOKEY
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:zabbix-release-5.0-1.el7         ################################# [100%]
+
+[root@localhost ~]# yum clean all</code></pre>
+
+      <h4>安装监控工具</h4>
+      <pre><code>[root@localhost ~]# yum -y install zabbix-agent</code></pre>
+
+      <h4>修改配置文件</h4>
+      <pre><code>[root@localhost ~]# cp /etc/zabbix/zabbix_agentd.conf{,.bak}
+[root@localhost ~]# vim /etc/zabbix/zabbix_agentd.conf
+……
+Server=192.168.10.128  # 改成 zabbix-server 的 IP 地址，允许他获取本机的数据
+……
+ServerActive=192.168.10.128    # 主动模式，现在没有开启，默认是被动模式
+# 默认是被动模式，如果需要开启主动模式，142 行取消注释，顶头写
+# StartAgents=3
+……
+Hostname=host1    # 修改主机名称</code></pre>
+
+      <h4>启动 &amp; 开机自启</h4>
+      <pre><code>[root@localhost ~]# systemctl start zabbix-agent
+[root@localhost ~]# systemctl enable zabbix-agent</code></pre>
+
+      <p>被监控端部署完成。</p>
+
+      <h4>Web 界面手动添加主机</h4>
+      <p>在 Zabbix Web 界面中修改网页语言为中文后，手动添加主机：</p>
+      <ul>
+        <li>Configuration → Hosts → Create host</li>
+        <li>填写 Host name、选择 Templates、配置 Agent interfaces（IP + 10050 端口）</li>
+        <li>手动添加监控模板（策略）</li>
+      </ul>
+
+      <div class="key-box">
+        <strong>如果监控失败了，排查思路：</strong><br>
+        手动添加主机的时候，IP、名称都核对对应了吗；在选择监控模板的时候，是否选择出错；始终是红色，IP\名称、防火墙、内核，agent（10050）端口正常运行。
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 自动发现主机 ==================== -->
+  <div class="file-card" id="sec-auto-discovery">
+    <div class="file-card-header">
+      <h3>自动发现主机</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>网络主动发现</h4>
+      <ul>
+        <li>Zabbix 会周期性的扫描：网络发现规则定义 IP 网段</li>
+        <li>网络发现主要由两个部分组成：<strong>发现</strong>和<strong>动作</strong></li>
+      </ul>
+
+      <h4>3.1 准备一个部署完成的被监控端</h4>
+      <p>被监控端的准备基础环境、安装 Zabbix 源、安装 zabbix-agent、修改配置文件、启动等步骤与"手动添加主机"完全一致（<code>Server=192.168.10.128</code>、<code>ServerActive=192.168.10.128</code>、<code>Hostname=host1</code>）。</p>
+
+      <h4>监控端和被监控端时间同步</h4>
+      <pre><code>yum -y install ntpdate
+[root@zabbix-server ~]# ntpdate ntp1.aliyun.com</code></pre>
+
+      <h4>3.2 创建发现规则</h4>
+      <p>在 Zabbix Web 界面创建发现规则：</p>
+      <ul>
+        <li>Configuration → Discovery → Create discovery rule</li>
+        <li>配置 IP range（扫描网段）、Delay（发现频率）</li>
+        <li>Checks：Check type = Zabbix agent，Port range = 10050</li>
+      </ul>
+
+      <div class="key-box">
+        <strong>关键点：</strong>Zabbix 服务器会自动扫描地址段内的所有 IP，通过 <code>system.uname</code> 键值查询是否可以获取数据，如果可以获取数据，就会把主机添加到规则内。
+      </div>
+
+      <h4>3.3 添加动作</h4>
+      <p>在 Zabbix Web 界面添加触发条件以及处理动作：</p>
+      <ul>
+        <li>Configuration → Actions → Discovery actions → Create action</li>
+        <li>配置 Action 名称、Conditions（发现规则 + 服务类型）</li>
+        <li>配置 Operations：Add host、Add to host group、Link to templates、Enable host</li>
+      </ul>
+
+      <p>至此自动发现部署完成：配置自动发现规则，添加触发条件以及处理动作。</p>
+
+    </div>
+  </div>
+
+  <!-- ==================== 自动注册 ==================== -->
+  <div class="file-card" id="sec-auto-registration">
+    <div class="file-card-header">
+      <h3>自动注册</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>自动注册原理</h4>
+      <ul>
+        <li>Zabbix Server 等着 Zabbix Agent 来上报</li>
+        <li>缺点：有时候 Agent 找不到 Server</li>
+        <li>自动注册和自动发现是相反的</li>
+      </ul>
+
+      <h4>一、基础环境</h4>
+      <pre><code>教师机 IP: 192.168.10.140
+配置 DNS：8.8.8.8 或者 114.114.114.114
+举例：
+DNS1=8.8.8.8
+
+关闭防火墙和内核机制
+setenforce 0         # 临时关闭
+vi /etc/selinux/config    # 永久关闭
+SELINUX=disable
+
+systemctl stop firewalld
+systemctl disable firewalld
+
+设置完成后重启
+[root@localhost ~]# init 6</code></pre>
+
+      <h4>二、官网直接打包下载</h4>
+      <p>参考了解：<a href="https://www.zabbix.com/cn/download" target="_blank" rel="noopener">https://www.zabbix.com/cn/download</a></p>
+
+      <h4>准备基础环境</h4>
+      <p>要求可以连接外网，防火墙、内核关闭、永久关闭。</p>
+
+      <h4>安装 Zabbix 源</h4>
+      <pre><code>[root@localhost ~]# rpm -Uvh https://mirrors.aliyun.com/zabbix/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+获取 https://mirrors.aliyun.com/zabbix/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+警告：/var/tmp/rpm-tmp.HniUZR: 头 V4 RSA/SHA512 Signature, 密钥 ID a14fe591: NOKEY
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:zabbix-release-5.0-1.el7         ################################# [100%]
+
+[root@localhost ~]# yum clean all</code></pre>
+
+      <h4>安装监控工具</h4>
+      <pre><code>[root@localhost ~]# yum -y install zabbix-agent</code></pre>
+
+      <h4>修改配置文件</h4>
+      <pre><code>[root@localhost ~]# cp /etc/zabbix/zabbix_agentd.conf{,.bak}
+[root@localhost ~]# vim /etc/zabbix/zabbix_agentd.conf
+……
+Server=192.168.10.128  # 改成 zabbix-server 的 IP 地址，允许他获取本机的数据
+……
+ServerActive=192.168.10.128    # 主动模式，现在没有开启，默认是被动模式
+# 默认是被动模式，如果需要开启主动模式，142 行取消注释，顶头写
+# StartAgents=3
+……
+Hostname=host2    # 修改主机名称
+
+……
+193 行下方添加元数据
+# 可以给多个元数据，使用空格隔开即可
+HostMetadat=my02 asd zxc wwh bwf</code></pre>
+
+      <div class="key-box">
+        <strong>注意：</strong>原始笔记中配置项写为 <code>HostMetadat</code>（少了一个 a），实际正确配置项应为 <code>HostMetadata</code>。元数据内容为 <code>my02 asd zxc wwh bwf</code>，使用空格隔开多个元数据。
+      </div>
+
+      <h4>启动 &amp; 开机自启</h4>
+      <pre><code>[root@localhost ~]# systemctl start zabbix-agent
+[root@localhost ~]# systemctl enable zabbix-agent</code></pre>
+
+      <h4>监控端和被监控端时间同步</h4>
+      <pre><code>yum -y install ntpdate
+ntpdate ntp1.aliyun.com</code></pre>
+
+      <h4>Server 端配置 Action</h4>
+      <p>在 Zabbix Web 界面配置 Autoregistration actions：</p>
+      <ul>
+        <li>Configuration → Actions → Autoregistration actions → Create action</li>
+        <li>Conditions：Host metadata like（匹配 Agent 端配置的元数据）</li>
+        <li>Operations：Add host、Add to host group、Link to templates、Enable host</li>
+      </ul>
+
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<script src="common.js"></script>
+
+</body>
+</html>

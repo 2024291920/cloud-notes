@@ -1,0 +1,2884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01 Linux 核心 - 云计算运维课程笔记</title>
+  <link rel="stylesheet" href="common.css">
+
+</head>
+<body>
+  <div class="topbar">
+    
+    <span class="title"><span class="num" style="background:linear-gradient(90deg,#f59e0b,#f97316)">01</span>Linux 核心</span>
+    <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
+    <div class="nav-btns">
+      <a href="08-k8s.html">&#8592;</a>
+      <a href="02-linux-service.html">&#8594;</a>
+    </div>
+  </div>
+  <div class="page-header">
+    <h1>01 Linux 核心</h1>
+    <p class="desc">涵盖计算机原理、Linux文件管理、磁盘管理、权限管理、用户和用户组管理、vim编辑器、文件打包和压缩、find查找、正则表达式、软件包管理、重定向、Samba服务等核心知识点</p>
+  </div>
+  <div class="page-wrap">
+    <nav class="sidebar" id="sidebar">
+      <div class="side-title">本页导航</div>
+      <ul>
+        <li><a href="#sec-computer">计算机原理</a></li>
+        <li><a href="#sec-file-mgmt">Linux 文件管理</a></li>
+        <li><a href="#sec-disk-mgmt">Linux 磁盘管理</a></li>
+        <li><a href="#sec-permission">文件权限管理</a></li>
+        <li><a href="#sec-user-mgmt">用户和用户组管理</a></li>
+        <li><a href="#sec-vim">vim 编辑器</a></li>
+        <li><a href="#sec-archive">文件打包和压缩</a></li>
+        <li><a href="#sec-find">find 文件查找</a></li>
+        <li><a href="#sec-regex">正则表达式</a></li>
+        <li><a href="#sec-package">软件包管理</a></li>
+        <li><a href="#sec-redirect">重定向</a></li>
+        <li><a href="#sec-samba">Linux Samba</a></li>
+      </ul>
+    </nav>
+    <div class="content">
+
+    <!-- 计算机原理 -->
+    <div class="file-card" id="sec-computer">
+      <div class="card-header">
+        <span class="card-icon">&#128187;</span>
+        <h3>计算机原理</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>安装的软件</h4>
+        <ul>
+          <li>远程工具：用于远程连接虚拟机</li>
+          <li>笔记工具：用于记录笔记（Typora 类工具）</li>
+          <li>虚拟机：VMware</li>
+          <li>镜像：centos-7</li>
+        </ul>
+
+        <h4>笔记工具基本使用</h4>
+        <ul>
+          <li>一级目录 ctrl+1，六级目录 ctrl+6</li>
+          <li>打开代码块：英文格式三个顿号</li>
+          <li>ctrl+J：打开目录大纲</li>
+          <li>shift+8：开启无序列表</li>
+          <li>CTRL+shift+t：创建表格</li>
+        </ul>
+        <pre><code>useradd zhangsan</code></pre>
+
+        <h4>一、计算机的原理</h4>
+        <p><strong>1.1 什么是计算机？</strong></p>
+        <ul>
+          <li>计算机一般称为"电脑"，通俗理解就是通电的大脑</li>
+          <li>电脑：人类对计算机的最终期望，希望它可erland以向人脑一样为人们工作</li>
+        </ul>
+
+        <p><strong>1.2 计算机的五大组成部分</strong></p>
+        <ul>
+          <li>运算器</li>
+          <li>控制器</li>
+          <li>存储器</li>
+          <li>输入设备</li>
+          <li>输出设备</li>
+        </ul>
+
+        <p><strong>1.3 CPU</strong></p>
+        <ul>
+          <li>控制器：作用是计算机的指挥系统，负责管理计算机其他组件的工作</li>
+          <li>运算器：作用包含数学运算、逻辑运算</li>
+          <li>总结：控制器和运算器本质上不是硬件，是抽象的概念</li>
+          <li>CPU就是安装控制器和运算器的标准制作的一个硬件，所以 CPU 又被称为计算机大脑</li>
+        </ul>
+
+        <p><strong>1.4 存储器</strong></p>
+        <p>存储器主要是：内存和硬盘</p>
+        <ul>
+          <li>内存：基于电工作，通电就能存取数据
+            <ul>
+              <li>优势：存取速度很快</li>
+              <li>劣势：断电之后数据会丢失</li>
+            </ul>
+          </li>
+          <li>硬盘（外存）：基于磁工作
+            <ul>
+              <li>优势：断电数据不会丢失，可以永久保存</li>
+              <li>劣势：存取速度偏慢</li>
+            </ul>
+          </li>
+        </ul>
+        <ul>
+          <li>输入设备：向计算机内输入内容（鼠标、键盘、麦克风）</li>
+          <li>输出设备：计算机向外输出数据（显示器、音响、打印机）</li>
+        </ul>
+
+        <h4>二、操作系统</h4>
+        <p><strong>2.1 操作系统的由来</strong></p>
+        <ul>
+          <li>不管编写什么软件，最终的目的就是操控硬件；所有的硬件设备都是需要软件进行支配</li>
+          <li>实现步骤：
+            <ul>
+              <li>第一步：必须要开发一个控制系统，通过控制系统来控制计算机硬件基本运行</li>
+              <li>第二步：然后开发编辑工具的功能，但凡涉及到了硬件，就调用控制系统</li>
+              <li>第三步：最后由操作系统来控制计算机硬件</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p><strong>2.2 什么是操作系统</strong></p>
+        <ul>
+          <li>控制系统别名：操作系统（OS），是在应用软件和硬件之间的桥梁</li>
+          <li>也是一个协调、管理、控制计算机硬件资源、软件资源的一个控制对象</li>
+          <li>日常所使用的 windows 包括 IOS 系统或者安卓系统都是属于桌面或者个人系统</li>
+          <li>服务器操作系统</li>
+        </ul>
+
+        <p><strong>2.3 Linux 系统</strong></p>
+        <ul>
+          <li>Linux 和 windows 一样都是操作系统，但是 Linux 有两层含义：
+            <ul>
+              <li>一种是 Linux 编写了开源操作系统的内核</li>
+              <li>第二种就是广义上的操作系统</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p><strong>Linux 发展史</strong></p>
+        <p>自由软件之父：</p>
+        <ul>
+          <li>理查德.M.斯托曼发起了 GNU 组织</li>
+          <li>主要项目：
+            <ul>
+              <li>copyleft：无版权</li>
+              <li>copyright：有版权</li>
+              <li>opensource：开放源代码，软件谁都可以使用，可以进行二次开发</li>
+              <li>free：免费，未必开源</li>
+              <li>GPL：通过版权许可证协议。如果软件打上了 GPL，那么任何人都可以对他进行修改，但是修改完成之后必须将源码发布出来，开源为了更好的传承</li>
+            </ul>
+          </li>
+          <li>Linux 的软件打了 GPL 将近 80%</li>
+          <li>自由软件运动的口号：团结就是力量</li>
+        </ul>
+        <p>Linux 系统之父：</p>
+        <ul>
+          <li>linux Torvalds 在 19 岁的时候写出了 Linux 内核</li>
+          <li>操作系统的核心叫做内核，但是内核并不等于操作系统</li>
+          <li>内核主要是提供系统级别的服务</li>
+          <li>操作系统的构成：内核 + 操作系统框架 + 软件</li>
+          <li>总结：内核是无法单独工作，必须要套上操作系统的框架，还要有 GNU 组织更正应用程序</li>
+          <li>其实 Linux 官方叫 GNU/Linux</li>
+        </ul>
+
+        <p><strong>Linux 系统的发行</strong></p>
+        <ul>
+          <li>Linux 的发行主要分为两类：商业公司维护发行版本；社区组织维护的发行版本</li>
+          <li>Redhat：企业级操作系统，Linux 内核进行编译，安装相应的软件，测试之后发行</li>
+          <li>Ubuntu：社区维护，主要用于手机系统或者车载、电脑桌面系统</li>
+          <li>Centos：社区企业级操作系统，redhat 的开源版</li>
+        </ul>
+        <p><strong>为什么要使用 centos</strong></p>
+        <ul>
+          <li>Centos 兼具了社区和企业两种特点</li>
+          <li>Centos 稳定、长期维护、开源免费、可扩展性强等等</li>
+        </ul>
+
+        <h4>三、Linux 系统的安装和配置</h4>
+        <p><strong>配置系统 IP</strong>：修改网卡配置文件</p>
+        <pre><code>#修改系统配置文件，设置IP地址
+vi /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static    #修改网卡协议为静态
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=ens33
+UUID=eae9127f-18d4-4304-943b-6c40d0770906
+DEVICE=ens33
+ONBOOT=yes    #开启网卡
+IPADDR=192.168.10.128    #设置IP
+NETMASK=255.255.255.0    #设置子网掩码
+GATEWAY=192.168.10.2        #设置网关
+DNS1=8.8.8.8    #设置dns
+
+#修改完成后 esc 然后输入冒号再次输入 wq 保存退出</code></pre>
+        <p>重启网卡配置文件：</p>
+        <pre><code>systemctl  restart network</code></pre>
+        <p>测试网络：</p>
+        <pre><code>ping baidu.com</code></pre>
+
+        <p><strong>拍摄快照</strong>：关机然后选择快照管理，拍摄快照并且填写描述信息。</p>
+        <p><strong>远程工具链接虚拟机</strong>：使用远程工具连接虚拟机进行操作。</p>
+      </div>
+    </div>
+
+    <!-- Linux 文件管理 -->
+    <div class="file-card" id="sec-file-mgmt">
+      <div class="card-header">
+        <span class="card-icon">&#128193;</span>
+        <h3>Linux 文件管理</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、文件管理概述</h4>
+        <ul>
+          <li>Linux 内对文件进行的操作：创建、删除、复制、移动、查看、编辑、压缩等等</li>
+        </ul>
+
+        <p><strong>1.1 系统目录的结构</strong></p>
+        <ul>
+          <li>所有的操作系统都是有自己的目录结构，在一个目录下存放子目录和文件</li>
+          <li>windows 系统内是多根；Linux 的命令是单根：/</li>
+        </ul>
+        <ul>
+          <li>/bin：存放系统命令</li>
+          <li>/sbin：管理员可以使用的命令</li>
+          <li>/etc：存放系统配置文件</li>
+          <li>/home：用户家目录（普通用户）</li>
+          <li>/root：管理员的家目录</li>
+          <li>/opt：存放第三方软件</li>
+          <li>/lib：存放系统库文件</li>
+          <li>/run：存放系统运行时的文件</li>
+          <li>/srv：存放服务数据</li>
+          <li>/tmp：存放临时文件</li>
+          <li>/usr：存放用户程序和文件</li>
+          <li>/var：存放系统日志和缓存文件</li>
+        </ul>
+
+        <p><strong>1.1.1 命令相关的目录</strong></p>
+        <ul>
+          <li>/bin 存放普通用户可以使用的命令（这里是个链接，指向 /usr/bin）</li>
+          <li>/sbin 存放管理员可以使用的命令（这里是个链接，指向 /usr/sbin）</li>
+        </ul>
+        <pre><code>[root@localhost ~]# which  useradd
+/usr/sbin/useradd</code></pre>
+
+        <p><strong>1.1.2 用户的家目录</strong></p>
+        <ul>
+          <li>/home：普通用户的家目录，默认为 /home/用户名</li>
+          <li>/root：超级管理员的 root 家目录，普通用户是无权操作的</li>
+        </ul>
+
+        <p><strong>1.1.3 系统文件目录 /usr</strong></p>
+        <ul>
+          <li>/usr/bin</li>
+          <li>/usr/sbin</li>
+        </ul>
+
+        <p><strong>1.1.4 系统启动目录 /boot</strong></p>
+        <ul><li>存放系统启动时内核引导菜单</li></ul>
+
+        <p><strong>1.1.5 配置文件目录 /etc</strong></p>
+        <ul>
+          <li>该目录存放系统配置文件目录，以及后续安装的服务的配置文件都在这个位置</li>
+          <li>/etc/sysconfig/network-scripts/ifcfg-ens33 网卡配置文件</li>
+        </ul>
+
+        <p><strong>1.1.6 设备相关目录 /dev</strong></p>
+        <ul>
+          <li>dev 目录存放设备文件的目录：比如：打印机、硬盘、硬盘分区、软驱等等</li>
+          <li>/dev/null 黑洞文件</li>
+        </ul>
+
+        <p><strong>1.1.7 可变目录 /var</strong></p>
+        <ul>
+          <li>/var 存放一些实时变化的信息</li>
+          <li>/var/log 存放日志信息文件</li>
+          <li>/var/tmp 进程产生时的临时文件</li>
+        </ul>
+
+        <p><strong>1.1.8 虚拟化系统目录 /proc</strong></p>
+        <ul>
+          <li>虚拟的文件系统，反应当前系统正在运行进程的状态</li>
+        </ul>
+
+        <p><strong>1.2 文件路径定位</strong></p>
+        <ul>
+          <li>绝对路径：只要是从 "/" 开始的，都是绝对路径</li>
+          <li>相对路径：相对于当前目录而言的路径</li>
+        </ul>
+        <pre><code>mkdir 创建目录的命令，只接受绝对路径创建目录
+mkdir zhangsan  ---&gt;  mkdir /opt/zhangsan</code></pre>
+        <pre><code>cd 路径   切换到指定路径下
+cd     返回用户家目录
+cd ~    返回用户家目录（普通用户和管理员的家目录是不一样）
+cd ..     返回上一级目录
+cd -    返回上一次所在的位置</code></pre>
+
+        <h4>二、文件管理命令</h4>
+        <p><strong>2.1.1 文件创建 touch</strong></p>
+        <pre><code>#创建一个文件
+touch file
+
+#连续性的创建文件，空格进行隔开
+touch file1 file2 file3 ……
+
+#集合创建
+touch  file{a,b,c,d,e,f}   --&gt; touch filea fileb filec……
+
+#集合创建（范围型）
+touch file{1..30}</code></pre>
+
+        <p><strong>2.1.2 mkdir 目录创建</strong></p>
+        <ul>
+          <li>-v 显示详细信息</li>
+          <li>-p 递归创建目录</li>
+        </ul>
+        <pre><code>#递归创建目录
+[root@localhost zhangsan]# mkdir -pv a/b/c/d
+mkdir: 已创建目录 "a/b"
+mkdir: 已创建目录 "a/b/c"
+mkdir: 已创建目录 "a/b/c/d"
+
+#递归创建多个目录（使用了集合）
+[root@localhost zhangsan]# mkdir -pv abc/{1..3}
+mkdir: 已创建目录 "abc"
+mkdir: 已创建目录 "abc/1"
+mkdir: 已创建目录 "abc/2"
+mkdir: 已创建目录 "abc/3"</code></pre>
+
+        <p><strong>2.1.3 tree 显示目录结构</strong></p>
+        <ul><li>以树形结构显示当前目录下所有的目录和子目录以及文件</li></ul>
+        <pre><code>#centos最小化默认是没有这个命令，需要安装的
+yum -y install tree
+
+[root@localhost zhangsan]# tree
+.
+├── 1.txt
+├── a
+│   └── b
+│       └── c
+│           └── d
+├── aa
+│   └── bb
+│       └── cc
+│           └── dd
+│               └── ee
+├── aa1
+├── aa10
+├── aa11
+├── aa12</code></pre>
+
+        <p><strong>2.1.4 cp 文件或者目录复制</strong></p>
+        <ul><li>cp 是 copy 的缩写，功能：复制文件或者是目录</li></ul>
+        <pre><code>-i    覆盖已有文件之前，提示用户确认，是否进行覆盖
+-r    递归复制目录，复制目录下文件和子目录
+-p    复制文件的时候，保持文件的所有者、权限信息、时间属性
+-d    如果复制的源文件是符号链接，那么复制的就是符号链接本身，而且还保持符号链接指向的目标文件或者目录
+
+-a    是-p -d -r三个选项的结合
+-v    显示详情</code></pre>
+        <pre><code>cp 1.txt 111.txt  在同一目录下复制需要修改文件名
+cp 1.txt  a/1.txt  复制到不同目录下可以不修改文件名
+cp -r a bbb 复制目录必须要使用-r做递归</code></pre>
+        <ul>
+          <li>如果想要强制覆盖：取消别名（不建议，容易造成风险）；使用原生 cp 命令</li>
+        </ul>
+        <pre><code>[root@localhost zhangsan]# /bin/cp -rf 1111.txt a</code></pre>
+
+        <p><strong>2.1.5 mv 文件移动</strong></p>
+        <ul>
+          <li>mv 是 move 简写，作用：移动文件、重命名文件</li>
+          <li>移动文件：就是将一个文件移动到另一个目录下</li>
+          <li>重命名：就是在同一个目录下移动文件就相当于是重命名</li>
+        </ul>
+        <pre><code>#将1.txt移动到a目录下
+mv 1.txt  a
+
+#在移动的时候重命名
+mv aa10 a/abc123
+
+#同时移动多个文件到指定目录
+mv aa1 aa2 aa3 aa4 a
+
+#重命名
+mv 1111.txt 1.txt</code></pre>
+
+        <p><strong>2.1.6 rm 文件或者目录的删除</strong></p>
+        <ul><li>rm 是 remove 缩写，作用：删除文件或者是目录</li></ul>
+        <pre><code>-r    递归
+-f    强制
+-v    显示详情</code></pre>
+        <pre><code>#删除一个文件
+[root@localhost zhangsan]# rm 1.txt
+rm：是否删除普通空文件 "1.txt"？y
+
+#强制删除一个文件
+[root@localhost zhangsan]# rm -f aa11
+
+#强制删除一个目录
+[root@localhost zhangsan]# rm -rf aaaa/
+
+#强制删除所有file开头的文件
+#  * 匹配所有字符
+[root@localhost zhangsan]# rm -rf file*</code></pre>
+
+        <p><strong>2.2.1 cat 命令</strong></p>
+        <ul>
+          <li>查看文件内容且不要使用任何文本编辑工具打开文件</li>
+          <li>另一个用法就是把多个文件串联到一个文件内</li>
+        </ul>
+        <pre><code>-n    显示行号（空行也编号）
+-s    合并多行空行为一行
+-b    显示行号（空行不编号）
+-e    每行的结束显示$
+--help    帮助信息
+--version     显示版本信息</code></pre>
+        <pre><code>cat 1.txt  显示文件全文
+cat -n 1.txt   显示文件并且编号
+cat -b 1.txt  显示文件内容并且显示行号（空行不编号）
+cat -s 1.txt  显示文件内容并且将文件内连续的空行显示为一个空行
+cat -e 1.txt    显示文件内容并且在每一行的末尾添加$符号</code></pre>
+
+        <p><strong>2.2.2 wget 命令</strong></p>
+        <ul><li>Linux 系统内可以从 web 下载文件的命令工具，最小化系统默认也是没有的，需要下载</li></ul>
+        <pre><code>yum -y install wget
+wget http://mirrors.aliyun.com/repo/Centos-7.repo    #默认存在当前目录下
+
+#通过-O 以其他的名称保存文件
+wget -O 1.txt  http://mirrors.aliyun.com/repo/Centos-7.repo</code></pre>
+
+        <p><strong>2.2.3 curl 命令</strong></p>
+        <ul><li>主要就是请求 web 服务器，也可以用来下载</li></ul>
+        <pre><code>curl baidu.com    #请求服务器
+
+#链接web服务器进行下载并且存放到zhangsan/1.txt
+curl  -o zhangsan/1.txt http://mirrors.aliyun.com/repo/Centos-7.repo</code></pre>
+
+        <p><strong>2.2.4 查询文件</strong></p>
+        <ul>
+          <li>which：查询文件路径以及别名</li>
+          <li>whereis：显示目录文件路径和帮助手册，显示内容更加丰富</li>
+        </ul>
+        <pre><code>[root@localhost opt]# which ls
+alias ls='ls --color=auto'
+        /usr/bin/ls
+[root@localhost opt]# whereis ls
+ls: /usr/bin/ls /usr/share/man/man1/ls.1.gz</code></pre>
+      </div>
+    </div>
+
+    <!-- Linux 磁盘管理 -->
+    <div class="file-card" id="sec-disk-mgmt">
+      <div class="card-header">
+        <span class="card-icon">&#128190;</span>
+        <h3>Linux 磁盘管理</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、虚拟机添加硬盘步骤</h4>
+        <p>添加磁盘后，重启虚拟机让系统可以识别到磁盘。</p>
+        <pre><code>查询磁盘分区
+[root@localhost ~]# fdisk -l
+
+磁盘 /dev/sda：85.9 GB, 85899345920 字节，167772160 个扇区
+Units = 扇区 of 1 * 512 = 512 bytes
+扇区大小(逻辑/物理)：512 字节 / 512 字节
+I/O 大小(最小/最佳)：512 字节 / 512 字节
+磁盘标签类型：dos
+磁盘标识符：0x000a4e39
+
+   设备 Boot      Start         End      Blocks   Id  System
+/dev/sda1   *        2048     2099199     1048576   83  Linux
+/dev/sda2         2099200   167772159    82836480   8e  Linux LVM
+
+磁盘 /dev/sdb：21.5 GB, 21474836480 字节，41943040 个扇区
+...</code></pre>
+
+        <h4>二、磁盘介绍</h4>
+        <p><strong>2.1 什么是磁盘</strong></p>
+        <ul>
+          <li>硬盘是电脑永久存储数据的硬件：文件、视频、音频等等</li>
+          <li>每个硬盘中心都是一摞高速运转的圆盘，在圆盘上附着一圈金属颗粒，每个金属颗粒都会有自己的磁化程度，主要存储 0 和 1</li>
+        </ul>
+
+        <p><strong>2.2 磁盘物理结构</strong></p>
+        <ul>
+          <li><strong>盘片</strong>：硬盘一般是由一个或者多个盘片组成的，每个盘片都是可以有两面，打开一个盘片正面 0 面，背面 1 面后面盘片以此类推</li>
+          <li><strong>磁道（track）</strong>：盘片在出厂的时候被划分了多个不同直径圆环，数据就存储在这样圆环，圆环又被称为磁道</li>
+          <li><strong>扇区</strong>：硬盘出厂的时候对磁盘进行磁道划分，划分成若干个弧段，每个弧段都被称为扇区，扇区也是硬盘上的物理存储单位，每个扇区可以存储 512 字节</li>
+          <li><strong>柱面</strong>：柱面是抽象的逻辑上的概念，出于同一个垂直一个区域的磁道被称为柱面。作用：主要为了通过算法检测磁头的寻磁时间</li>
+          <li><strong>磁头</strong>：读取磁盘上金属颗粒，主要负责读取或者写入数据</li>
+        </ul>
+
+        <p><strong>2.3 磁盘的接口类型</strong></p>
+        <ul>
+          <li>IDE-SCSI：比较旧的硬盘接口</li>
+          <li>SATA-SAS：SATA III 和 SAS</li>
+          <li>MSATA-M2：MSATA 接口主要是为超极本设计的；M2 是 inter 推出的一种条带 MSTATA 接口规范</li>
+        </ul>
+
+        <h4>三、磁盘命名</h4>
+        <p><strong>3.1 真实物理机（虚拟机）</strong></p>
+        <ul>
+          <li>/dev/sda 第一块磁盘</li>
+          <li>/dev/sda1 第一块磁盘的第一个分区</li>
+          <li>/dev/sdc3 第三块磁盘的第三个分区</li>
+          <li>/dev/sdc5 第三块磁盘的第一个逻辑分区</li>
+        </ul>
+        <p><strong>3.2 虚拟服务器</strong></p>
+        <ul>
+          <li>阿里云主机或者 KVM 虚拟化主机</li>
+          <li>/dev/vda 第一块虚拟磁盘</li>
+          <li>/dev/vda1 第一块虚拟磁盘第一个分区</li>
+        </ul>
+
+        <h4>四、分区管理</h4>
+        <p><strong>4.1 为什么要分区</strong></p>
+        <p>Linux 系统初始化的时候，跟 MBR 识别硬盘设备。</p>
+        <ul>
+          <li>MBR：硬盘主引导记录，占据磁盘的 0 磁道的第一个扇区</li>
+          <li>MBR 表内：用来载入操作系统的可执行代码，引导代码用来告诉计算机如何处理分区表，如何定位操作系统等等；分区用来管理硬盘的分区情况，是一个有效的引导记录扇区</li>
+        </ul>
+        <div class="key-box"><strong>MBR 占据 0 磁道的第一个扇区，占据了 512 字节</strong>：
+          <ul>
+            <li>第一部分：预启动区：占用 446 字节</li>
+            <li>第二部分：分区表，占用 64 字节</li>
+            <li>第三部分：幻数 占用 2 字节，固定 55AA</li>
+          </ul>
+        </div>
+        <p>常见的分区号：</p>
+        <ul>
+          <li>0x5 可扩占分区</li>
+          <li>0x82 Linux 交换分区</li>
+          <li>0x83 普通 Linux 分区</li>
+          <li>0x8e Linux 逻辑卷管理分区</li>
+          <li>0xfd Linux 的 raid 分区</li>
+        </ul>
+        <p>为什么要创建分区：</p>
+        <ul>
+          <li>方便管理和控制</li>
+          <li>提高系统的效率：分区后减少系统读写和磁盘的磁头移动距离；使用磁盘的分配额的功能区限制用户使用的磁盘容量；便于恢复和备份</li>
+        </ul>
+
+        <h4>五、磁盘分区</h4>
+        <p><strong>5.1 磁盘分区命令 fdisk</strong></p>
+        <pre><code>[root@localhost ~]# fdisk -l
+
+磁盘 /dev/sda：85.9 GB, 85899345920 字节，167772160 个扇区
+Units = 扇区 of 1 * 512 = 512 bytes
+...
+   设备 Boot      Start         End      Blocks   Id  System
+/dev/sda1   *        2048     2099199     1048576   83  Linux
+/dev/sda2         2099200   167772159    82836480   8e  Linux LVM</code></pre>
+
+        <p><strong>5.2 fdisk 分区</strong></p>
+        <ul>
+          <li>MBR 内有一个占用 64 字节的分区表：保存的是分区表信息</li>
+          <li>由于每一个分区会占用 16 个字节，最多可以做 4 个分区（四个主分区）</li>
+          <li>为了解决分区不足的，就可以将分区表的 16 个字节存储另外一个信息（扩展分区）</li>
+          <li>总结：硬盘的分区分为三种：主分区、扩展分区、逻辑分区</li>
+        </ul>
+        <p>对于一个硬盘来说，分区方案：</p>
+        <ul>
+          <li>它最少是有一个主分区，最多时有 4 个主分区</li>
+          <li>三个主分区+一个扩展分区+若干逻辑分区
+            <ul>
+              <li>如果没有扩展分区是不能创建逻辑分区</li>
+              <li>扩展分区也不是真正存储数据的地方，逻辑分区才是存储数据的地方</li>
+            </ul>
+          </li>
+          <li>一个主分区+一个扩展分区和若干逻辑分区
+            <ul>
+              <li>不管前面有多少个主分区或扩展分区，逻辑分区永远是从 5 开始的</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p>分区操作示例：</p>
+        <pre><code>[root@localhost ~]# fdisk  /dev/sdb
+欢迎使用 fdisk (util-linux 2.23.2)。
+
+更改将停留在内存中，直到您决定将更改写入磁盘。
+使用写入命令前请三思。
+
+Device does not contain a recognized partition table
+使用磁盘标识符 0xebc8aaa6 创建新的 DOS 磁盘标签。
+
+命令(输入 m 获取帮助)：p    #打印分区列表
+...
+命令(输入 m 获取帮助)：n  新建分区
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+分区号 (1-4，默认 1)：    #分区号
+起始 扇区 (2048-41943039，默认为 2048)：
+将使用默认值 2048
+Last 扇区, +扇区 or +size{K,M,G} (2048-41943039，默认为 41943039)：+6G
+分区 1 已设置为 Linux 类型，大小设为 6 GiB
+
+命令(输入 m 获取帮助)：w            #保存退出
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+正在同步磁盘。</code></pre>
+
+        <p>创建扩展分区：</p>
+        <pre><code>命令(输入 m 获取帮助)：n
+Partition type:
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended
+Select (default p): e
+分区号 (2-4，默认 2)：3
+...
+分区 3 已设置为 Extended 类型，大小设为 14 GiB</code></pre>
+
+        <p>创建逻辑分区：</p>
+        <pre><code>命令(输入 m 获取帮助)：n
+Partition type:
+   p   primary (1 primary, 1 extended, 2 free)
+   l   logical (numbered from 5)
+Select (default p): l
+添加逻辑分区 5
+...
+Last 扇区, +扇区 or +size{K,M,G} (12587008-41943039，默认为 41943039)：+3G
+分区 5 已设置为 Linux 类型，大小设为 3 GiB</code></pre>
+
+        <p>fdisk 命令参数：</p>
+        <ul>
+          <li>a 设置可引导标记</li>
+          <li>b 表示 bsd 磁盘标签</li>
+          <li>c 设置 docs 操作系统兼容标记</li>
+          <li>d 删除分区</li>
+          <li>l 显示系统类型</li>
+          <li>m 显示帮助菜单</li>
+          <li>n 新建分区</li>
+          <li>p 显示分区列表</li>
+          <li>q 不保存退出</li>
+          <li>s 新建 sun 磁盘标签</li>
+          <li>t 改变分区的系统 ID</li>
+          <li>u 改变显示记录单位</li>
+          <li>w 保存退出</li>
+          <li>V 验证分区表</li>
+        </ul>
+
+        <h4>六、文件系统结构</h4>
+        <ul>
+          <li>磁盘可以被划分两个区域：一类是存储元数据区（inode），另一类就是存储真实数据的（date block）
+            <ul>
+              <li>inode 内划分了多个 inode block，每个大小 128b（字节）</li>
+              <li>data 划分多个 date block，每个大小为 4K（千字节）</li>
+            </ul>
+          </li>
+          <li>磁盘在存储数据的时候，至少是占用一个 inode 和一个 block</li>
+          <li>如果要寻找的数据的时候，做全盘扫描的话，性能低下
+            <ul>
+              <li>inode bitmap 记录哪些 inode 被使用或者未被使用</li>
+              <li>date block bitmap 记录哪些 date block 被使用或者未被使用</li>
+            </ul>
+          </li>
+        </ul>
+        <ul>
+          <li><strong>文件删除</strong>：删除目录下文件名称，然后把存储文件的 inode 和 date block 改成可被修改的状态，但是文件内容没有删除的，是可以恢复</li>
+          <li><strong>文件移动</strong>：只是将文件名称从一个目录移动到另一个目录，并不会修改 inode 和 block</li>
+        </ul>
+
+        <p><strong>6.1 Linux 格式化 mkfs</strong></p>
+        <ul>
+          <li>分区之后，不格式写入文件系统，是不能正常使用，就需要对磁盘做格式化</li>
+        </ul>
+        <pre><code>[root@localhost ~]# mkfs -t ext4 /dev/sdb1
+mke2fs 1.42.9 (28-Dec-2013)
+文件系统标签=
+OS type: Linux
+块大小=4096 (log=2)
+分块大小=4096 (log=2)
+Stride=0 blocks, Stripe width=0 blocks
+393216 inodes, 1572864 blocks
+78643 blocks (5.00%) reserved for the super user
+第一个数据块=0
+...
+Allocating group tables: 完成
+正在写入inode表: 完成
+Creating journal (32768 blocks): 完成
+Writing superblocks and filesystem accounting information: 完成</code></pre>
+
+        <p><strong>6.2 linux 格式化 mke2fs</strong></p>
+        <ul>
+          <li>和 mkfs 的区别在于：mkfs 不能调整 block 的大小，如果 mke2fs 是可以调整 block 大小</li>
+        </ul>
+        <pre><code>mke2fs -t ext4 -b 2048 /dev/sdf3</code></pre>
+
+        <h4>七、挂载 mount</h4>
+        <ul><li>硬盘分区之后 → 格式化 → 挂载才能使用</li></ul>
+        <p>临时挂载：</p>
+        <pre><code>[root@localhost ~]# mkdir /guazai
+[root@localhost ~]# mount /dev/sdb1 /guazai/  #将/dev/sdb1挂载到/guazai目录
+[root@localhost ~]# df -Th        #查询挂载情况
+文件系统                类型      容量  已用  可用 已用% 挂载点
+...
+/dev/sdb1               ext4      5.8G   24M  5.5G    1% /guazai</code></pre>
+        <p>永久挂载：</p>
+        <pre><code>[root@localhost ~]# vim /etc/fstab
+#末行添加
+/dev/sdb1 /guazai ext4 defaults 0 0</code></pre>
+
+        <h4>八、Linux 虚拟内存和物理内存</h4>
+        <ul>
+          <li>物理内存：内存条的容量</li>
+          <li>虚拟内存：首先 Linux 系统时不时进行页面交换操作，尽量保持有较多的空闲物理内存。在系统内设置一部分虚拟内存，本质就是设置在磁盘上的一部分空间</li>
+        </ul>
+        <p><strong>8.1 虚拟内存设置</strong></p>
+        <ul>
+          <li>如果物理内存较小，4G，一般设置的时候 swap 分区大小为内存的两倍</li>
+          <li>如果物理内存 4G &lt; x &lt; 16GB，可以设置虚拟内存大小等于物理内存</li>
+          <li>如果物理内存大于 16G，swap 不建议给 0，可以创建 2G 左右的虚拟内存</li>
+        </ul>
+        <p><strong>8.2 创建虚拟内存</strong></p>
+        <p>修改分区 ID，变成 swap 分区：</p>
+        <pre><code>命令(输入 m 获取帮助)：t    修改ID
+分区号 (1,3,5，默认 5)：5    选择要修改的分区
+Hex 代码(输入 L 列出所有代码)：82    指定修改的分区代码
+已将分区"Linux"的类型更改为"Linux swap / Solaris"</code></pre>
+        <p>格式化分区：</p>
+        <pre><code>[root@localhost ~]# mkswap /dev/sdb5
+mkswap: /dev/sdb5: warning: wiping old ext4 signature.
+正在设置交换空间版本 1，大小 = 2097148 KiB
+无标签，UUID=1618b389-dd94-495f-b32d-c20e69b76ec0</code></pre>
+        <p>使用 free 命令查询交换分区情况：</p>
+        <pre><code>[root@localhost ~]# free
+              total        used        free      shared  buff/cache   available
+Mem:        1863028      178056     1495444        9792      189528     1532072
+Swap:       2097148           0     2097148</code></pre>
+        <p>使用 swapon 命令将新建的 swap 分区加入到系统虚拟内存：</p>
+        <pre><code>[root@localhost ~]# swapon /dev/sdb5
+[root@localhost ~]# free
+              total        used        free      shared  buff/cache   available
+Mem:        1863028      179324     1494172        9792      189532     1530804
+Swap:       4194296           0     4194296</code></pre>
+
+        <h4>九、Linux 逻辑卷管理机制（LVM）</h4>
+        <ul>
+          <li>虽然有扩展硬盘的机制，经过分区、格式化之后，可以无限扩容，但是分区应该分多大？如何迁徙数据？</li>
+          <li>如果在一开始就有管理机制帮助动态的管理存储，LVM 提高这种功能</li>
+          <li>LVM 最大的好处：可以随时调整分区的大小，分区内的时候不会丢失，而且不需要卸载分区、停止服务等等</li>
+        </ul>
+        <p><strong>9.1 LVM 的概念</strong></p>
+        <p>LVM（逻辑卷管理机制）：在硬盘分区上建立一个逻辑层，这个逻辑层让多个硬盘或者多个分区看起来像是一个硬盘。</p>
+        <ul>
+          <li>真实的硬盘分区被称为物理卷（PV）：真实的物理硬盘或者硬盘分区</li>
+          <li>由多个物理卷（PV）组成的逻辑上的硬盘，叫做卷组（VG）：可以使用同一个硬盘的不同分区，也可以是在不同硬盘的不同分区，最后显示的一个逻辑硬盘</li>
+          <li>把卷组划分成多个可以使用的分区，就叫逻辑卷（LV）：卷组一个逻辑上的硬盘，需要使用一定要分区，分区就是 LV</li>
+          <li>在 LVM 最小存储单位不在 block，是物理扩展（PE）：PE 是最小存储单位，大小是 4MB</li>
+        </ul>
+
+        <p><strong>9.2 PV 物理卷管理操作</strong></p>
+        <p>9.2.1 创建 8e 的物理分区：</p>
+        <pre><code>[root@localhost ~]# fdisk /dev/sdb
+命令(输入 m 获取帮助)：n
+...
+分区 6 已设置为 Linux 类型，大小设为 12 GiB
+
+#更改分区ID
+命令(输入 m 获取帮助)：t
+分区号 (1,3,5,6，默认 6)：6
+Hex 代码(输入 L 列出所有代码)：8e
+已将分区"Linux"的类型更改为"Linux LVM"
+
+#保存退出
+命令(输入 m 获取帮助)：w
+
+#准备好了3个物理分区 /dev/sdb6  /dev/sdc1  /dev/sdc2</code></pre>
+
+        <p>9.2.2 创建 PV：</p>
+        <pre><code>[root@localhost ~]# pvcreate /dev/sdb6
+  Physical volume "/dev/sdb6" successfully created
+
+[root@localhost ~]# pvcreate /dev/sdc1
+  Physical volume "/dev/sdc1" successfully created
+
+[root@localhost ~]# pvcreate /dev/sdc2
+  Physical volume "/dev/sdc2" successfully created.</code></pre>
+        <p>查询 pv：</p>
+        <pre><code>[root@localhost ~]# pvscan
+  PV /dev/sda2   VG centos          lvm2 [&lt;79.00 GiB / 4.00 MiB free]
+  PV /dev/sdc1                      lvm2 [10.00 GiB]
+  PV /dev/sdb6                      lvm2 [&lt;12.00 GiB]
+  PV /dev/sdc2                      lvm2 [&lt;10.00 GiB]
+  Total: 4 [110.99 GiB] / in use: 1 [&lt;79.00 GiB] / in no VG: 3 [&lt;32.00 GiB]</code></pre>
+        <p>查询详细信息：</p>
+        <pre><code>[root@localhost ~]# pvdisplay
+  --- Physical volume ---
+  PV Name               /dev/sda2
+  VG Name               centos
+  PV Size               &lt;79.00 GiB / not usable 3.00 MiB
+  Allocatable           yes
+  PE Size               4.00 MiB
+  Total PE              20223
+  Free PE               1
+  Allocated PE          20222
+  PV UUID               ysdZdh-4pPV-ctmE-rHe5-sLmE-ftcI-unC3Fc
+  ...</code></pre>
+        <p>移除 PV：</p>
+        <pre><code>[root@localhost ~]# pvremove  /dev/sdc2
+  Labels on physical volume "/dev/sdc2" successfully wiped.</code></pre>
+
+        <p><strong>9.3 卷组的操作</strong></p>
+        <p>9.3.1 创建卷组：</p>
+        <pre><code>[root@localhost ~]# vgcreate scvg /dev/sdb6 /dev/sdc1 /dev/sdc2
+  Volume group "scvg" successfully created</code></pre>
+        <p>使用命令激活卷组：</p>
+        <pre><code>[root@localhost ~]# vgchange -a y scvg
+  0 logical volume(s) in volume group "scvg" now active</code></pre>
+        <p>减少 vg 卷组容量：</p>
+        <pre><code>[root@localhost ~]# vgreduce scvg /dev/sdc2
+  Removed "/dev/sdc2" from volume group "scvg"</code></pre>
+        <p>增加卷组容量：</p>
+        <pre><code>[root@localhost ~]# vgextend scvg /dev/sdc2
+  Volume group "scvg" successfully extended</code></pre>
+        <p>删除卷组：</p>
+        <pre><code>vgremove scvg</code></pre>
+
+        <p><strong>9.4 逻辑卷操作</strong></p>
+        <p>9.4.1 创建逻辑卷：</p>
+        <ul>
+          <li>-L：指定逻辑卷的大小，单位：MB GB TB</li>
+          <li>-l：安装 PE 个数指定逻辑卷，这个参数需要换算容量</li>
+          <li>-n：逻辑卷名</li>
+        </ul>
+        <pre><code>#建立一个大小为5G的lv
+[root@localhost ~]# lvcreate -L 5G -n whlv scvg
+  Logical volume "whlv" created.</code></pre>
+        <p>查询 LV：</p>
+        <pre><code>[root@localhost ~]# lvdisplay
+  --- Logical volume ---
+  LV Path                /dev/scvg/whlv
+  LV Name                whlv
+  VG Name                scvg
+  ...
+  LV Size                5.00 GiB
+  Current LE             1280
+  ...</code></pre>
+        <p>格式化 whlv 并且挂载系统：</p>
+        <pre><code>[root@localhost ~]# mkfs -t ext4 /dev/scvg/whlv
+...
+[root@localhost ~]# mkdir /opt/lv
+[root@localhost ~]# mount /dev/scvg/whlv /opt/lv/
+[root@localhost ~]# df -Th
+...
+/dev/mapper/scvg-whlv   ext4      4.8G   20M  4.6G    1% /opt/lv</code></pre>
+        <p>LV 扩容：</p>
+        <pre><code>#将whlv的大小设置成10G
+[root@localhost ~]# lvresize -L 10G /dev/scvg/whlv
+  Size of logical volume scvg/whlv changed from 5.00 GiB (1280 extents) to 10.00 GiB (2560 extents).
+  Logical volume scvg/whlv successfully resized.
+
+#扩容之后，查询还是5G左右
+[root@localhost ~]# df -h /opt/lv/
+文件系统               容量  已用  可用 已用% 挂载点
+/dev/mapper/scvg-whlv  4.8G   20M  4.6G    1% /opt/lv
+
+#同步LV和挂载点
+[root@localhost ~]# resize2fs  /dev/scvg/whlv
+resize2fs 1.42.9 (28-Dec-2013)
+Filesystem at /dev/scvg/whlv is mounted on /opt/lv; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 2
+The filesystem on /dev/scvg/whlv is now 2621440 blocks long.
+
+#再次查询
+[root@localhost ~]# df -h /opt/lv/
+文件系统               容量  已用  可用 已用% 挂载点
+/dev/mapper/scvg-whlv  9.8G   23M  9.3G    1% /opt/lv</code></pre>
+        <p>缩容：</p>
+        <pre><code>umount  /opt/lv
+e2fsck -fy /dev/scvg/whlv    #检查超级块等等
+resize2fs  /dev/scvg/whlv 5G    #同步文件系统
+lvreduce -L 5G /dev/scvg/whlv    #缩容为5G
+resize2fs  /dev/scvg/whlv 5G    #同步文件系统
+[root@localhost ~]# mount /dev/scvg/whlv /opt/lv/
+[root@localhost ~]# echo "111" &gt;&gt;/opt/lv/1.txt</code></pre>
+        <p>删除 lv：</p>
+        <pre><code>lvremove /dev/scvg/whlv</code></pre>
+
+        <h4>十、RAID</h4>
+        <p><strong>10.1 RAID 是什么</strong></p>
+        <p>RAID（磁盘阵列）：廉价由多个磁盘组成磁盘阵列。</p>
+        <ul>
+          <li>原理：通过软件或者硬件把多个比较小分区组合成一个容量比较大的磁盘组</li>
+          <li>功能：提高读写性能、增加了数据冗余的功能</li>
+        </ul>
+
+        <p><strong>10.2 RAID 级别</strong></p>
+        <p>10.2.1 RAID 0（带区卷）：RAID 级别内性能最好的</p>
+        <ul>
+          <li>RAID 0 最好是由容量相同的两块或者两块以上的磁盘，如果容量不一致，会影响性能</li>
+          <li>优点：读取和写入性能都是最快的，可使用容量也是最大的</li>
+          <li>缺点：数据没有冗余，可靠性差</li>
+          <li>磁盘容量：N * 磁盘数量</li>
+          <li>磁盘利用率：100%</li>
+          <li>适用场景：对读写性能要求高，但是不需要数据冗余功能</li>
+        </ul>
+
+        <p>10.2.2 RAID 1（镜像卷）：至少是有两块磁盘组成，磁盘的容量一致，如果不一致容量是以小的那一块为主</p>
+        <ul>
+          <li>RAID1 就具备了数据冗余功能，就是把一个写数据写进到两个磁盘</li>
+          <li>优点：具备数据的冗余功能，提高了数据的安全性，允许坏一块磁盘</li>
+          <li>缺点：可使用容量 50%，数据镜像；磁盘利用率低，成本高；磁盘写入性能一般</li>
+        </ul>
+
+        <p>10.2.3 RAID5：最少是可以三块磁盘组成，磁盘容量一致是最好</p>
+        <ul>
+          <li>当使用 RAID 5 的时候，需要把硬盘分割成区块，当数据要写入磁盘的时候，数据也被划分了区块</li>
+          <li>每次在循环写入数据的时候，在其中一个硬盘上加了奇偶校验值，校验值的内容就是这次循环写入其他磁盘数据备份</li>
+          <li>优点：因为奇偶校验值的出现，raid5 有了数据冗余功能</li>
+          <li>缺点：因为奇偶校验值需要损失一部分性能来进行生成和写入；RAID5 不管是多少磁盘组成，只支持一块磁盘损坏之后数据恢复；写的性能不高</li>
+          <li>磁盘容量：（n-1）* 磁盘容量</li>
+          <li>磁盘利用率：75%（四块磁盘组成 raid5）</li>
+        </ul>
+        <p>其他级别：RAID 6、RAID1+0、RAID0+1</p>
+
+        <p>10.2.4 软 RAID 和硬 RAID 区别</p>
+        <ul>
+          <li>磁盘阵列卡（RAID 卡）组成 raid：性能高，不占用服务器的资源，唯一的缺点贵</li>
+          <li>服务器搭建软 RAID，适合经费有限，但是又需要 raid 功能的，就可以使用软 raid</li>
+        </ul>
+
+        <p><strong>10.3 RAID 5 实战搭建</strong></p>
+        <p>1. 安装 mdadm：</p>
+        <pre><code>[root@localhost ~]# yum -y install mdadm</code></pre>
+        <ul>
+          <li>mdadm 磁盘阵列命令，选项：
+            <ul>
+              <li>创建模式：-C 创建阵列、-l 指定级别、-n 自定义设备数量、-v 指定设备名称、-x 指定备用磁盘</li>
+              <li>管理模式：--add 添加磁盘、--remove 移除磁盘、--fail 模拟磁盘故障</li>
+            </ul>
+          </li>
+        </ul>
+        <p>案例磁盘分配：/dev/sdb /dev/sdc /dev/sdd /dev/sde（sdb sdc sdd 做 raid5，sde 备用磁盘）</p>
+
+        <p>2. 使用 mdadm 创建磁盘阵列：</p>
+        <pre><code>[root@localhost ~]#
+mdadm -C -v /dev/md5  -l 5 -n 3 /dev/sdb /dev/sdc /dev/sdd -x  1 /dev/sde
+
+mdadm: layout defaults to left-symmetric
+mdadm: chunk size defaults to 512K
+mdadm: size set to 20954112K
+mdadm: Defaulting to version 1.2 metadata
+mdadm: array /dev/md5 started.</code></pre>
+
+        <p>3. 查询当前正在活跃的磁盘阵列：</p>
+        <pre><code>[root@localhost ~]# mdadm -D /dev/md5
+/dev/md5:
+           Version : 1.2
+     Creation Time : Mon Mar 18 14:16:21 2024
+        Raid Level : raid5
+        Array Size : 41908224 (39.97 GiB 42.91 GB)
+     Used Dev Size : 20954112 (19.98 GiB 21.46 GB)
+      Raid Devices : 3
+     Total Devices : 4
+       Persistence : Superblock is persistent
+...
+    Number   Major   Minor   RaidDevice State
+       0       8       16        0      active sync   /dev/sdb
+       1       8       32        1      active sync   /dev/sdc
+       4       8       48        2      spare rebuilding   /dev/sdd
+
+       3       8       64        -      spare   /dev/sde</code></pre>
+
+        <p>4. 格式化：</p>
+        <pre><code>[root@localhost ~]# mkfs -t xfs -f /dev/md5
+或者  mkfs.xfs -f /dev/md5</code></pre>
+
+        <p>5. 创建挂载点，挂载使用：</p>
+        <pre><code>[root@localhost ~]# mkdir /raid5
+[root@localhost ~]# mount /dev/md5 /raid5/
+[root@localhost ~]# echo "11111" &gt; /raid5/1
+[root@localhost ~]# cat /raid5/1
+11111</code></pre>
+
+        <p>6. 模拟损坏：</p>
+        <pre><code>[root@localhost ~]# mdadm /dev/md5 --fail /dev/sdc
+mdadm: set /dev/sdc faulty in /dev/md5
+[root@localhost ~]# cat /raid5/1
+11111</code></pre>
+
+        <p>7. 移除磁盘、添加磁盘：</p>
+        <pre><code>[root@localhost ~]# mdadm /dev/md5 --remove /dev/sdc
+mdadm: hot removed /dev/sdc from /dev/md5
+[root@localhost ~]# mdadm /dev/md5 --add /dev/sdc
+mdadm: added /dev/sdc</code></pre>
+
+        <p>8. raid 永久生效：</p>
+        <pre><code>#输出相应设备到配置文件内，配置文件本身是不存在的
+[root@localhost ~]# echo Device /dev/sdb /dev/sdc /dev/sdd /dev/sde &gt;&gt; /etc/mdadm.conf
+
+#利用mdadm -Ds 将磁盘阵列的UUID写入配置文件
+[root@localhost ~]# mdadm -Ds &gt;&gt;/etc/mdadm.conf
+[root@localhost ~]# cat /etc/mdadm.conf
+Device /dev/sdb /dev/sdc /dev/sdd /dev/sde
+ARRAY /dev/md5 metadata=1.2 spares=1 name=localhost.localdomain:5 UUID=584f652a:64488a8f:2adbafee:d86deeed</code></pre>
+
+        <p>9. 删除 raid：</p>
+        <ul>
+          <li>取消挂载：<code>umount /raid5/</code></li>
+          <li>停止 raid：<code>mdadm -S /dev/md5</code></li>
+          <li>清除磁盘内从超级块信息（很重要！！！！）：<code>mdadm --zero-superblock /dev/sdb /dev/sdc /dev/sdd /dev/sde</code></li>
+          <li>清除配置文件：进入配置文件，删除相关的信息即可</li>
+        </ul>
+
+        <p>RAID 级别对比表：</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>RAID 级别</th><th>冗余磁盘</th><th>空间利用率</th><th>性能</th><th>安全性</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>0 个</td><td>100%</td><td>最高</td><td>最低</td></tr>
+            <tr><td>1</td><td>n/2 个</td><td>50%</td><td>较低</td><td>最高</td></tr>
+            <tr><td>5</td><td>1 个</td><td>（n-1）/n</td><td>较高</td><td>较低</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- 文件权限管理 -->
+    <div class="file-card" id="sec-permission">
+      <div class="card-header">
+        <span class="card-icon">&#128274;</span>
+        <h3>文件权限管理</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、文件权限介绍</h4>
+        <p><strong>1.1 什么是权限</strong></p>
+        <ul>
+          <li>权限是约束用户对系统的操作</li>
+          <li>权限指某一个用户具有的特定系统资源试用权</li>
+        </ul>
+        <p><strong>1.2 为啥需要权限</strong></p>
+        <ul>
+          <li>Linux 是多用户系统，对于用户来说，个人隐私重要。所以要划分权限
+            <ul>
+              <li>安全性、降低误删除的风险、减少故障和数据泄露</li>
+              <li>数据隔离，不同权限看到的东西是不一样，操作也不一样</li>
+              <li>职责明确</li>
+            </ul>
+          </li>
+        </ul>
+        <p><strong>1.3 权限和用户的关系</strong></p>
+        <ul>
+          <li>Linux 内，权限是规定用户可以做什么、不能做什么
+            <ul>
+              <li>针对文件定义了三种身份：属主（owner）、属组（group）、其他人（other）</li>
+              <li>每个身份对应三个权限：read 读取（r）、write 写入（w）、execute 执行权限（x）</li>
+            </ul>
+          </li>
+          <li>用户访问流程：
+            <ul>
+              <li>判断你是不是文件的属主，如果是就按照属主的权限进行访问</li>
+              <li>判断你是不是文件的属组，如果是的话就按照属组的权限进行访问</li>
+              <li>如果判断你不是属主，也不是属组，就只能按照其他人的权限进行访问</li>
+            </ul>
+          </li>
+        </ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>第一列字符代表文件类型</th><th>第 2 到第 4 位代表属主的权限</th><th>第 5 到第 7 代表的属组权限</th><th>第 8-第 10 位代表的其他用户权限</th></tr></thead>
+          <tbody>
+            <tr><td>d</td><td>rwx</td><td>r-x</td><td>r-x</td></tr>
+          </tbody>
+        </table></div>
+
+        <p><strong>1.4 权限内 rwx 含义</strong></p>
+        <ul><li>Linux 内权限是 rwxr-x--- 9 个字符组成，主要控制文件的：属主、属组、其他</li></ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>字母</th><th>含义</th><th>二进制</th><th>八进制</th></tr></thead>
+          <tbody>
+            <tr><td>r--</td><td>读取权限</td><td>100</td><td>4</td></tr>
+            <tr><td>-w-</td><td>写入权限</td><td>010</td><td>2</td></tr>
+            <tr><td>--x</td><td>执行权限</td><td>001</td><td>1</td></tr>
+            <tr><td>---</td><td>没有权限</td><td>000</td><td>0</td></tr>
+          </tbody>
+        </table></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>7</th><th>5</th><th>1</th></tr></thead>
+          <tbody>
+            <tr><td>属主</td><td>属组</td><td>其他</td></tr>
+            <tr><td>U</td><td>G</td><td>O</td></tr>
+          </tbody>
+        </table></div>
+        <ul>
+          <li>如果把 751 转换为字符格式：rwxr-x--x</li>
+          <li><code>-  rwx    r-x    rw-    zhangsan   dev   1.txt</code>：属主是 zhangsan，属组是 dev，属组拥有读取和执行权限</li>
+          <li>如果现在 lisi 的附加组是 dev，文件现在 lisi 可以对 1.txt 文件拥有读取、执行权限。无论是基本组、附加组都是用户组</li>
+        </ul>
+
+        <p><strong>1.3 修改权限</strong></p>
+        <ul>
+          <li>修改权限使用 chmod 命令实现：对于 root 用户来说，可以修改任何人的文件；对于普通用户而言，只能修改属于自己的文件（授权除外）</li>
+          <li>修改权限方式：UGO 方式、NUM 方式</li>
+        </ul>
+
+        <p><strong>1.4.1 UGO 方式</strong></p>
+        <ul>
+          <li>修改权限的单位：= 直接赋予权限（覆盖原有权限）、+ 在现在的基础上增加权限、- 在现在基础上减少权限</li>
+          <li>U 属主（u=、u-x、u+x）；G 属组；O 其他；a 代表所有</li>
+        </ul>
+        <pre><code>#给1.txt文件授予所有权限
+chmod  a=rwx 1.txt
+
+#取消所有用户的读写执行权限
+chmod  a-rwx 1.txt
+
+#单独给属主增加rwx
+chmod  u+rwx 1.txt
+或者
+chmod  u=rwx 1.txt
+
+#设置属主权限为rwx，属组为r-x ，其他没有权限
+chmod  u=rwx,g=rx,o= 1.txt</code></pre>
+
+        <p><strong>1.4.2 NUM 方式</strong></p>
+        <pre><code>#需要设置文件属主权限是r-x，属组是rwx，其他用户是r-x
+[root@localhost opt]# chmod  575 1.txt
+
+#递归：修改目录和目录下的子目录以及文件的权限
+[root@localhost opt]# chmod  -R 744 a</code></pre>
+
+        <p><strong>1.5 权限对文件影响</strong></p>
+        <p>1.5.1 读取 r：</p>
+        <pre><code>[root@localhost opt]# touch a.txt
+[root@localhost opt]# ll
+总用量 0
+-rw-------. 1 root root  0 3月   7 12:45 1.txt
+drwxr--r--. 3 root root 15 3月   7 13:04 a
+-rw-r--r--. 1 root root  0 3月   7 13:33 a.txt
+[root@localhost opt]# id zhangsan
+uid=1002(zhangsan) gid=1000(yw) 组=1000(yw),1001(ywq)
+[root@localhost opt]# su zhangsan
+
+[zhangsan@localhost opt]$ cat a.txt
+
+[zhangsan@localhost opt]$ rm -f a.txt
+rm: 无法删除"a.txt": 权限不够</code></pre>
+
+        <p>1.5.2 写入 w：</p>
+        <pre><code>[root@localhost opt]# chmod  752 a.txt
+[root@localhost opt]# ll
+...
+-rwxr-x-w-. 1 root root  0 3月   7 13:33 a.txt
+[root@localhost opt]# su zhangsan
+[zhangsan@localhost opt]$ vi a.txt
+[zhangsan@localhost opt]$ cat a.txt
+cat: a.txt: 权限不够
+[zhangsan@localhost opt]$ rm -rf a.txt
+rm: 无法删除"a.</code></pre>
+
+        <p>1.5.3 执行 x：</p>
+        <pre><code>[root@localhost opt]# chmod  751 a.txt
+[root@localhost opt]# ll
+...
+-rwxr-x--x. 1 root root  0 3月   7 13:33 a.txt
+[root@localhost opt]# su zhangsan
+[zhangsan@localhost opt]$ vi a.txt
+[zhangsan@localhost opt]$ cat a.txt
+cat: a.txt: 权限不够
+[zhangsan@localhost opt]$ rm -rf a.txt
+rm: 无法删除"a.txt": 权限不够</code></pre>
+
+        <p>1.5.4 总结：</p>
+        <ul>
+          <li>读取权限：读取文件内容</li>
+          <li>写入权限：新增、修改文件内容。无法使用 rm 删除文件，因为删除文件需要上级目录是否有 w 权限</li>
+          <li>执行权限：具有执行权限。如果普通用户需要执行文件，需要配合 r 权限</li>
+          <li>文件权限创建组合：
+            <ul>
+              <li>r：用户只能看，无法做其他操作</li>
+              <li>rw：用户可以读写文件</li>
+              <li>rx：用户可以查看和执行文件内容，但是不能修改文件</li>
+              <li>rwx：用户可以读写执行，但是能不能删除要看上一级目录是否有 w 权限</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p><strong>1.6 权限对目录的影响</strong></p>
+        <p>1.6.1 r 读取（权限给到 774）：</p>
+        <pre><code>[root@localhost opt]# mkdir yw
+[root@localhost opt]# vi yw/1.txt
+[root@localhost opt]# chmod  774 yw
+[root@localhost opt]# su zhangsan
+[zhangsan@localhost opt]$ cat yw/1.txt
+cat: yw/1.txt: 权限不够
+[zhangsan@localhost opt]$ ll yw/
+ls: 无法访问yw/1.txt: 权限不够
+总用量 0
+-????????? ? ? ? ?            ? 1.txt
+[zhangsan@localhost opt]$ cd yw/
+bash: cd: yw/: 权限不够</code></pre>
+
+        <p>1.6.2 w 写入（权限 772）：</p>
+        <pre><code>[root@localhost opt]# su zhangsan
+[zhangsan@localhost opt]$ ls yw/
+ls: 无法打开目录yw/: 权限不够
+[zhangsan@localhost opt]$ cd yw/
+bash: cd: yw/: 权限不够
+[zhangsan@localhost opt]$ rm -rf yw/1.txt
+rm: 无法删除"yw/1.txt": 权限不够
+[zhangsan@localhost opt]$ touch yw/2.txt
+touch: 无法创建"yw/2.txt": 权限不够</code></pre>
+
+        <p>1.6.3 x 执行（权限 771）：</p>
+        <pre><code>[root@localhost opt]# chmod 771 yw/
+[root@localhost opt]# su zhangsan
+[zhangsan@localhost opt]$ cd yw/
+[zhangsan@localhost yw]$ pwd
+/opt/yw
+[zhangsan@localhost yw]$ ls
+ls: 无法打开目录.: 权限不够
+[zhangsan@localhost yw]$ touch 2.txt
+touch: 无法创建"2.txt": 权限不够
+[zhangsan@localhost yw]$ rm -rf 1.txt
+rm: 无法删除"1.txt": 权限不够</code></pre>
+
+        <p>1.6.4 总结：</p>
+        <ul>
+          <li>读取权限：具有浏览目录和子目录权限。使用 ls 目录浏览，显示拒绝但是可以浏览；ll（以长格式显示信息）显示拒绝但是可以浏览目录下的内容，但是文件其他数据是？</li>
+          <li>写入权限：有增加、删除、修改目录内的文件权限（需要搭配 x 权限）。可以 cd 到目录，在目录内创建、删除文件；不能浏览目录，不能删除、移动、复制目录</li>
+          <li>执行权限：具有文件执行权限。只能进入目录；不能浏览、创建、删除等等</li>
+          <li>小结：
+            <ul>
+              <li>目录 rw 只能查看目录，但是无法登录目录</li>
+              <li>目录 rx 可以重新目录内容，但是不能删除、创建文件</li>
+              <li>目录 wx 可以进入目录、创建删除文件，但是不能查看</li>
+              <li>目录 rwx 读写执行</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h4>二、修改文件所属关系</h4>
+        <p><strong>2.1 如何修改文件的所属关系</strong></p>
+        <ul>
+          <li>chown：修改文件属主和属组</li>
+          <li>chgrp：只能修改文件的属组</li>
+        </ul>
+        <p><strong>2.2 chown</strong></p>
+        <pre><code>chown    属主.属组  文件名      #同时修改文件的属主和属组
+chown     .属组  文件名            #单独修改文件的属组
+chown   属主 文件名                #单独修改文件的属主
+
+[root@localhost opt]# chown cat.abc bbb
+
+#递归修改目录下的子目录和子文件的属主属组
+chown -R cat.abc bbb</code></pre>
+        <p><strong>2.3 chgrp</strong></p>
+        <pre><code>#修改bbb属组为abc
+chgrp abc bbb</code></pre>
+        <p>实操题示例：</p>
+        <pre><code>-创建用户aa基本组ops，附加组dev；创建bb：基本组gp附加组oo
+-创建目录oa、ob，权限为753
+-设置用户密码为123456（aa、bb用户）
+-设置aa用户有oa目录的属主权限，有ob目录的其他用户权限
+-设置bb用户有ob目录的属组权限和oa目录的属组权限
+
+groupadd  ops  gp dev  oo
+useradd aa -g ops  -G dev
+useradd bb -g gp -G oo
+echo "123456" | passwd --stdin aa
+echo "123456" | passwd --stdin bb
+mkdir  oa  mkdir ob
+chmod  753 oa ob
+chown  aa   oa
+chown   .gp  ob
+chgrp    gp oa</code></pre>
+
+        <h4>三、特殊权限</h4>
+        <p><strong>3.1 SUID 特殊权限</strong></p>
+        <p>3.1.1 SUID 生产背景：</p>
+        <ul>
+          <li>普通用户能不能改自己的密码？可以</li>
+          <li>普通用户可不可以改其他用户的密码呢？不能</li>
+          <li>存放密码信息的文件是哪个？/etc/shadow</li>
+          <li>这个文件有什么权限？没有权限</li>
+          <li>普通用户能不能更改这个文件？不可以</li>
+          <li>那么现在为什么普通用户可以修改自己的密码呢？因为使用 passwd 命令。在 passwd 属主位置上本来应该 x 权限变成 S。s 是 suid，是设置属主。作用：在使用有 suid 文件或者命令的时候，会以属主的身份去执行</li>
+        </ul>
+        <pre><code>[root@localhost bin]# chmod  u+s cat    ugo添加权限s权限
+[root@localhost bin]# ll cat
+-rwsr-xr-x. 1 root root 54080 8月  20 2019 cat
+[root@localhost bin]# chmod  u-s cat    ugo回收权限s权限
+[root@localhost bin]# ll cat
+-rwxr-xr-x. 1 root root 54080 8月  20 2019 cat
+
+------------------------------------------------------
+[root@localhost bin]# chmod  4755 cat    #num方式添加权限    s八进制数字是4
+[root@localhost bin]# ll cat
+-rwsr-xr-x. 1 root root 54080 8月  20 2019 cat
+
+[root@localhost bin]# chmod  755 cat      #num方式回收权限    s八进制数字是4
+[root@localhost bin]# ll cat
+-rwxr-xr-x. 1 root root 54080 8月  20 2019 cat</code></pre>
+        <p>3.1.2 总结：</p>
+        <ul>
+          <li>如果属主位上有 x 权限，再去添加 suid 的话会显示小写 s</li>
+          <li>如果属主位上没有 x 权限，添加 suid 会显示大写 S</li>
+          <li>让普通用户可执行的文件，临时拥有文件属主的权限</li>
+          <li>特殊权限 suid 对二进制可执行程序有效=命令文件</li>
+          <li>特殊权限 suid 不建议给 vi 或者 vim、rm</li>
+        </ul>
+
+        <p><strong>3.2 SGID 特殊权限</strong></p>
+        <p>3.2.1 什么是 SGID：</p>
+        <ul>
+          <li>SGID 设置二进制可执行程序，命令在执行的过程中会以命令属组的身份去执行</li>
+          <li>如果你 SGID 设置目录上，在目录下创建子目录或者子文件都会继承父目录属组</li>
+        </ul>
+        <pre><code>sgid 设置在属组位置上，八进制数值是2
+[root@localhost bin]# chmod  g+s cat    #使用ugo方式添加sgid权限
+[root@localhost bin]# ll cat
+-rwxr-sr-x. 1 root root 54080 8月  20 2019 cat
+
+[root@localhost bin]# chmod  g-s cat     #使用ugo方式回收sgid权限
+[root@localhost bin]# chmod  2755  cat      #使用num方式添加sgid权限
+[root@localhost bin]# chmod  755  cat    #使用num方式回收sgid权限
+
+#给目录添加SGID权限，添加之后新建的文件或者目录都会继承父目录的属组
+[root@localhost opt]# chmod  2755 yw15
+[root@localhost opt]# touch yw15/b
+[root@localhost opt]# mkdir yw15/2
+[root@localhost opt]# ll yw15/
+总用量 0
+drwxr-xr-x. 2 root root     6 3月   8 11:12 1
+drwxr-sr-x. 2 root zhangsan 6 3月   8 11:13 2
+-rw-r--r--. 1 root root     0 3月   8 11:12 a
+-rw-r--r--. 1 root zhangsan 0 3月   8 11:13 b</code></pre>
+        <p>3.2.2 总结：</p>
+        <ul>
+          <li>如果属组位上有 x 权限，再去添加 SGID 的话会显示小写 s</li>
+          <li>如果属组位上没有 x 权限，添加 SGID 会显示大写 S</li>
+          <li>给目录添加 SGID 权限，添加之后新建的文件或者目录都会继承父目录的属组</li>
+          <li>SGID 权限可以让多个用户共享一个目录变得简单很多</li>
+        </ul>
+
+        <p><strong>3.3 SBIT 特殊权限</strong></p>
+        <ul><li>粘滞位：除了 root 用户之外，普通用户只能删除自己创建的文件，不能删除别人的文件</li></ul>
+        <pre><code>[root@localhost opt]# chmod o+t ceshi/     ugo方式添加权限
+[root@localhost opt]# chmod 1770 ceshi    num方式添加权限
+[root@localhost opt]# ll
+总用量 0
+drwxrwx--T. 2 root zhangsan 6 3月   8 12:09 ceshi
+[root@localhost opt]# su lisi
+[lisi@localhost opt]$ touch ceshi/lisi
+[lisi@localhost opt]$ ll ceshi/
+总用量 0
+-rw-r--r--. 1 lisi zhangsan 0 3月   8 12:13 lisi
+[lisi@localhost opt]$ exit
+exit
+[root@localhost opt]# su zhangsan
+[zhangsan@localhost opt]$ rm -rf ceshi/lisi
+rm: 无法删除"ceshi/lisi": 不允许的操作</code></pre>
+        <p>3.3.1 总结：</p>
+        <ul>
+          <li>让普通用户可以对目录有写入创建，并且让每个用户只能删除自己创建的文件</li>
+          <li>粘滞位目录设置在其他用户（others）的 x 位置，用 t 表示，如果本身没有执行权限则表示位 T，如果本身有 x 执行权限，则表示 t</li>
+        </ul>
+
+        <p>练习：创建目录 /share，让 ops 组内成员都能在目录下进行访问和创建文件，要求成员创建的文件或者是目录要继承父目录的属组，并且要求除了文件的创建者之外，其他人不能删除文件</p>
+        <pre><code>mkdir   /share
+groupadd ops
+chown .ops /share
+chmod 770 /share
+#要求成员创建的文件或者是目录要继承父目录的属组
+#特殊权限：sgid
+chmod  g+s   /share
+
+#要求除了文件的创建者之外，其他人不能删除文件
+#粘滞位：sbit  保证用户只能删除自己创建的文件
+chmod  o+t   /share
+
+或者
+chmod 3770 /share
+chmod 7777 /share</code></pre>
+
+        <p>特殊权限总结表：</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>权限</th><th>八进制</th><th>设置位置</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td>suid</td><td>4</td><td>设置在属主</td><td>让普通用户在使用这个命令的时候以属主身份执行</td></tr>
+            <tr><td>sgid</td><td>2</td><td>设置在属组</td><td>如果是设置在命令上，让普通用户在使用这个命令的时候以属组身份执行；如果是设置在目录上，在目录下新建的文件或者是目录都会继承父目录的属组</td></tr>
+            <tr><td>sbit</td><td>1</td><td>设置在其他用户</td><td>让用户只能删除自己创建的文件，不是自己创建的只能看不能删除</td></tr>
+          </tbody>
+        </table></div>
+
+        <h4>四、文件默认权限</h4>
+        <p><strong>4.1 默认权限</strong></p>
+        <ul><li>用户在创建文件或者是创建目录的时候，默认分配给文件或者是目录的权限</li></ul>
+        <p><strong>4.2 默认权限的由来</strong></p>
+        <ul>
+          <li>背景：用户创建文件默认权限 rw-rw-rw 666；用户创建目录默认权限 rwxrwxrwx 777；实际情况文件 644 目录是 755</li>
+          <li>分析：系统在创建文件或者是目录的时候会受到 UMASK 值的影响，默认是 022
+            <ul>
+              <li>文件：666-022=644</li>
+              <li>目录：777-022=755</li>
+            </ul>
+          </li>
+        </ul>
+        <p><strong>4.3 系统默认权限配置文件</strong></p>
+        <pre><code>if [ $UID -gt 199 ] && [ "`/usr/bin/id -gn`" = "`/usr/bin/id -un`" ]; then
+    umask 002
+else
+    umask 022
+fi</code></pre>
+        <ul>
+          <li>如果 UID 大于 199 则 umask 值是：002</li>
+          <li>如果 UID 小于 199 则 umask 值是：022</li>
+          <li>为什么 root 的 UMASK 是 022，这个是 /etc/profile 文件定义</li>
+          <li>用户在登录系统的时候会加载 profile 文件进行判断</li>
+        </ul>
+        <p><strong>4.4 修改 umask</strong></p>
+        <ul>
+          <li>永久修改</li>
+          <li>临时修改（电脑重启或者重新加载就会失效）</li>
+        </ul>
+        <pre><code>#怎么查询当前umask
+[root@localhost ceshi]# umask
+0022
+
+#临时修改umask值（重启会失效）
+[root@localhost ceshi]# umask 003
+[root@localhost ceshi]# touch rootceshi
+[root@localhost ceshi]# ll
+总用量 0
+-rw-r--r--. 1 root     root     0 3月   8 13:24 root
+-rw-rw-r--. 1 root     root     0 3月   8 13:29 rootceshi
+-rw-rw-r--. 1 zhangsan zhangsan 0 3月   8 13:24 zhangsan
+
+#永久修改UMASK值（重启不会失效）
+#由于是修改配置文件，想要生效需要重启计算机或者是重新加载配置文件
+[root@localhost ceshi]# vim /etc/profile
+umask 004
+[root@localhost ceshi]# source /etc/profile</code></pre>
+
+        <h4>五、ACL 权限</h4>
+        <p><strong>5.1 权限创建</strong></p>
+        <ul>
+          <li>共享目录 yw15，这个是班级目录：班级内每一个学员都可以访问、修改这个目录；老师需要对这个目录有最高管理权限；其他班级学员不能访问这个目录</li>
+        </ul>
+        <pre><code>mkdir  yw15
+useradd wh
+groupadd yw
+useradd fhx -g yw
+useradd msy  -g yw
+chmod 770 yw15
+chown wh.yw yw15</code></pre>
+        <p>下周一有学员 qq 要来试听，由于怕技术不完整乱修改 yw15 目录内内容，所有我想要给他 r-x 的权限。除了 wh、yw 组内的学员和 qq 学员的其他任何人都不能访问这个文件。</p>
+        <p><strong>5.2 ACL 概念</strong></p>
+        <ul><li>ACL（权限控制列表）：可以对单一用户设置特定访问权限</li></ul>
+        <p><strong>5.3 ACL 案例</strong></p>
+        <ul>
+          <li>ACL 分为两种：setfacl（设置）、getfacl（查看）</li>
+        </ul>
+        <pre><code>[root@localhost opt]# setfacl -m u:qq:rx yw15/
+[root@localhost opt]# getfacl yw15/
+# file: yw15/
+# owner: wh
+# group: yw
+user::rwx
+user:qq:r-x
+group::rwx
+mask::rwx
+other::---
+
+[root@localhost opt]# ll
+总用量 0
+-rw-r--r--. 1 root root  0 3月   8 13:13 1.txt
+drwxrwx--T. 2 root yw    6 3月   8 14:08 ceshi
+drwxr-xr-x. 2 root root  6 3月   8 13:13 txt
+drwxrwx---+ 2 wh   yw   32 3月   8 14:07 yw15</code></pre>
+
+        <p><strong>5.4 ACL 参数</strong></p>
+        <p>5.4.1 -m 参数：设定 ACL 权限，给用户设置 ACL（u:用户名:权限）</p>
+        <pre><code>setfacl -m u:qq:rx yw15/</code></pre>
+        <p>5.4.2 -x 参数：删除指定 acl 用户</p>
+        <pre><code>setfacl -x u:qq yw15</code></pre>
+        <p>5.4.3 -b 参数：删除所有 acl 用户</p>
+        <pre><code>setfacl -b yw15</code></pre>
+        <p>5.4.4 -R 参数：递归 acl 权限。比如现在我给父目录设置 ACL 权限，目录下所有子文件和子目录都会有相同的权限</p>
+        <pre><code>setfacl -m u:qq:rx -R yw15
+
+[root@localhost opt]# setfacl -m u:qq:rx -R yw15
+[root@localhost opt]# getfacl yw15    #目录有acl权限
+# file: yw15/
+# owner: wh
+# group: yw
+user::rwx
+user:qq:r-x
+group::rwx
+mask::rwx
+other::---
+
+[root@localhost opt]# getfacl yw15/2.txt    #目录下子文件也有acl权限
+# file: yw15/2.txt
+# owner: root
+# group: root
+user::rw-
+user:qq:r-x
+group::r--
+mask::r-x
+other::r--</code></pre>
+        <p>练习：现在有个目录 aaa，有三个账号 a1 a2 a3，a1 有目录最高管理权限，a2,a3 对目录有 rw</p>
+        <pre><code>mkdir  aaa
+useradd a1 a2 a3
+usermode  a2 -G a3
+chmod 760 aaa
+chown a1.a3 aaa</code></pre>
+        <p>又来了一个 a4，想要在目录内创建文件，怎么做：</p>
+        <pre><code>useradd a4
+chmod 767 aaa
+
+#不可以开启其他用户的权限
+chmod 760 aaa
+setfacl  -m u:a4:rwx aaa
+
+#设置权限的时候递归设置acl权限
+setfacl  -m u:a4:rwx -R aaa</code></pre>
+      </div>
+    </div>
+
+    <!-- 用户和用户组管理 -->
+    <div class="file-card" id="sec-user-mgmt">
+      <div class="card-header">
+        <span class="card-icon">&#128100;</span>
+        <h3>用户和用户组管理</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、用户的基本概述</h4>
+        <p><strong>1.1 什么是用户？</strong></p>
+        <ul><li>用户指的是能够正常登录 Linux 系统或者 windows、mac os 系统的账号，比如：QQ号、身份证号</li></ul>
+        <p><strong>1.2 为什么需要用户</strong></p>
+        <ul>
+          <li>系统上运行的每一个进程，都是需要特定的用户才能运行</li>
+          <li>通常在公司内使用普通用户进行管理，root 权限太大了，容易造成破坏的</li>
+        </ul>
+        <p><strong>1.3 用户的分类</strong></p>
+        <ul><li>用户管理就是去管理 root 用户创建出来的用户</li></ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>用户 ID</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>超级管理员，最高权限，也有着极强的破坏力</td></tr>
+            <tr><td>1~200</td><td>系统用户，来运行系统自带进程（指令、软件等等），默认已经创建的</td></tr>
+            <tr><td>201~999</td><td>系统用户，用来运行用户安装的程序，此类无需登录系统</td></tr>
+            <tr><td>1000+</td><td>普通用户，可以正常登录系统的用户，权限比较小，能执行的任务有限</td></tr>
+          </tbody>
+        </table></div>
+
+        <p><strong>1.4 查询用户 ID</strong></p>
+        <pre><code>查询当前登录的用户的id信息
+[root@localhost opt]# id
+uid=0(root) gid=0(root) 组=0(root) 环境=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+
+#查询指定用户的信息
+id username
+
+[root@localhost opt]# id zhangsan
+uid=1000(zhangsan) gid=1000(zhangsan) 组=1000(zhangsan)</code></pre>
+
+        <p><strong>1.5 用户相关的配置文件</strong></p>
+        <ul>
+          <li>系统把用户的信息存放 /etc/passwd 文件</li>
+          <li>系统把用户密码存放在 /etc/shadow 文件</li>
+          <li>两个文件非常重要，不要随便删除或者是随便更改</li>
+        </ul>
+
+        <p>1.5.1 passwd 文件：</p>
+        <ul><li>文件解析：<code>root:x:0:0:root:/root:/bin/bash</code></li></ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>root</th><th>x</th><th>0</th><th>0</th><th>root</th><th>/root</th><th>/bin/bash</th></tr></thead>
+          <tbody>
+            <tr><td>用户名</td><td>密码占位符</td><td>用户的UID</td><td>组ID</td><td>注释信息</td><td>用户的家目录</td><td>登录shell</td></tr>
+          </tbody>
+        </table></div>
+        <ul>
+          <li>/sbin/nologin 如果用户的 shell/sbin/nologin，那么这个用户是给系统内的服务使用的，咱们是不可以登录使用</li>
+          <li>/bin/bash 是咱们可以登录使用的</li>
+        </ul>
+
+        <p>1.5.2 shadow 文件：</p>
+        <ul><li>文件解析：<code>zhangsan:!!:19786:0:99999:7:::</code></li></ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>zhangsan</th><th>!!</th><th>19786</th><th>0</th><th>99999</th><th>7</th><th>空</th><th>空</th></tr></thead>
+          <tbody>
+            <tr><td>用户名</td><td>密码字符串，!!代表没有设置密码</td><td>最近一次密码的变更时间</td><td>密码最小使用天限 0=无限</td><td>密码最长使用天数 99999=不过期</td><td>密码到期前，系统会在密码到期前7天提醒更改密码</td><td>密码到期后2天会强制用户换密码</td><td>账户失效时间</td></tr>
+          </tbody>
+        </table></div>
+
+        <h4>二、用户管理</h4>
+        <p><strong>2.1 添加用户 useradd</strong></p>
+        <ul><li>想要使用 useradd 命令只能是 root 用户</li></ul>
+        <pre><code>-u    指定创建的UID，不允许冲突
+-g    指定创建用户的基本组
+-G    指定创建的附加组，逗号隔开可以添加多个附加组
+-d    指定创建用户的家目录
+-s    指定创建用户的bash shell
+-c    指定创建用户的注释信息
+-M    指定创建用户时不创建家目录
+-r    创建系统用户，默认时没有家目录</code></pre>
+        <pre><code>#创建用户lisi
+#设置UID=2000
+#描述信息：new user
+#登录bash：/bin/bash
+
+useradd lisi -u 2000 -c "new user" -s /bin/bash</code></pre>
+        <pre><code>创建用户wangwu
+设置基本组是z1，附加组是z2
+设置UID=3000
+设置描述信息：aaaa
+
+[root@localhost opt]# groupadd z1
+[root@localhost opt]# groupadd z2
+[root@localhost opt]# useradd wangwu -u 3000 -c "aaaaa" -g z1 -G z2
+[root@localhost opt]# id wangwu
+uid=3000(wangwu) gid=2001(z1) 组=2001(z1),2002(z2)</code></pre>
+        <pre><code>创建一个nginx系统用户
+用户不想要家目录和不需要登录
+[root@localhost opt]# useradd nginx -r -s /sbin/nologin
+[root@localhost opt]# id nginx
+uid=997(nginx) gid=995(nginx) 组=995(nginx)</code></pre>
+
+        <p><strong>2.2 修改用户 usermod</strong></p>
+        <ul><li>如果想要修改用户信息，可以使用 usermod 命令，但是必须是 root 用户</li></ul>
+        <pre><code>-u    指定要修改用户的UID
+-g    指定要修改用户的基本组
+-G    指定要修改用户的附加组
+-d    指定要修改用户的家目录
+-s    指定要修改用户的bash shell
+-c    指定要修改用户的注释信息
+-l    指定要修改用户的登录名
+-L    指定要锁定的用户
+-U    指定要解锁的用户</code></pre>
+        <pre><code>修改lisi用户
+    UID=1234
+    基本组：z1  附加组：Z2
+    注释信息：albb
+    修改登录名：new-lisi
+
+[root@localhost opt]# usermod  lisi -u 1234 -g z1 -G z2 -c "albb" -l new-lisi
+
+#由于将用户名修改成了new-lisi，所以再去查询lisi的时候，是查询不到的
+[root@localhost opt]# id lisi
+id: lisi: no such user
+
+[root@localhost opt]# id new-lisi
+uid=1234(new-lisi) gid=2001(z1) 组=2001(z1),2002(z2)</code></pre>
+
+        <p><strong>2.3 删除用户 userdel</strong></p>
+        <ul><li>-r 删除用户并且删除家目录</li></ul>
+        <pre><code>删除zhangsan且删除家目录
+[root@localhost opt]# userdel -r zhangsan
+[root@localhost opt]# ls /home/
+lisi  wangwu
+
+#删除用户的使用没有使用-r，导致用户删除了家目录还在
+[root@localhost opt]# userdel new-lisi
+[root@localhost opt]# ls /home/
+lisi  wangwu
+[root@localhost opt]# id new-lisi
+id: new-lisi: no such user
+[root@localhost opt]# rm -rf /home/lisi/
+[root@localhost opt]# ls /home/
+wangwu</code></pre>
+
+        <p><strong>2.4 密码 passwd</strong></p>
+        <ul>
+          <li>root 用户可以修改任何用户的密码</li>
+          <li>普通用户只能修改自己的密码，且密码长度必须符合 8 位</li>
+        </ul>
+        <pre><code>-d    删除密码（只能管理员使用）
+-f    强制执行
+-k    设置密码只有在过期后才能更新密码
+-l    锁定密码
+-u    解锁密码
+-S    查询账户状态</code></pre>
+        <p>2.4.1 交互式设置密码：</p>
+        <pre><code>passwd  给当前登录用户修改密码
+passwd username  给指定用户修改密码
+----------------------------------------------------------------
+[root@localhost opt]# passwd wangwu
+更改用户 wangwu 的密码 。
+新的 密码：
+无效的密码： 密码少于 8 个字符
+重新输入新的 密码：
+passwd：所有的身份验证令牌已经成功更新。
+
+#普通用户修改自己的密码
+[wangwu@localhost opt]$ passwd
+更改用户 wangwu 的密码 。
+为 wangwu 更改 STRESS 密码。
+（当前）UNIX 密码：
+新的 密码：
+重新输入新的 密码：
+passwd：所有的身份验证令牌已经成功更新。</code></pre>
+        <p>2.4.2 非交互式设置密码：</p>
+        <pre><code>[root@localhost ~]# echo "abc123"  | passwd --stdin zhangsan
+更改用户 zhangsan 的密码 。
+passwd：所有的身份验证令牌已经成功更新。</code></pre>
+        <p>2.4.3 明文修改：</p>
+        <pre><code>[root@localhost ~]# passwd --stdin zhangsan
+更改用户 zhangsan 的密码 。
+123456
+passwd：所有的身份验证令牌已经成功更新。</code></pre>
+
+        <p><strong>2.5 系统创建用户流程</strong></p>
+        <ul>
+          <li>系统创建用户时，会参考两个文件：/etc/login.defs、/etc/default/useradd</li>
+        </ul>
+        <p>2.5.1 /etc/login.defs 文件：</p>
+        <pre><code>[root@localhost ~]# cat /etc/login.defs
+#创建用户的时候，在/var/spool/mail文件
+MAIL_DIR        /var/spool/mail
+#密码最大有效期
+PASS_MAX_DAYS   99999
+#密码最小有效期
+PASS_MIN_DAYS   0
+#密码最小长度（对root无效）
+PASS_MIN_LEN    5
+#密码过期前多少天提醒
+PASS_WARN_AGE   7
+#用户最小UID
+UID_MIN                  1000
+#用户最大UID
+UID_MAX                 60000
+# System accounts
+#系统用户最小UID
+SYS_UID_MIN               201
+#系统用户最大UID
+SYS_UID_MAX               999
+#用户组最小gid
+GID_MIN                  1000
+#用户组最gid
+GID_MAX                 60000
+# System accounts
+#系统以后最小GID
+SYS_GID_MIN               201
+#系统用户最大的GID
+SYS_GID_MAX               999
+#是否创建家目录
+CREATE_HOME     yes
+#权限掩码
+UMASK           077
+#删除用户时删除用户组
+USERGROUPS_ENAB yes
+#指定密码SHA512加密模式
+ENCRYPT_METHOD SHA512</code></pre>
+
+        <p>2.5.2 /etc/default/useradd 文件：</p>
+        <ul>
+          <li>主要定义：用户家目录路径、用户的 shell 类型、从什么位置拷贝环境变量、用户同名用户的创建</li>
+        </ul>
+        <pre><code>[root@localhost ~]# cat /etc/default/useradd
+# useradd defaults file
+GROUP=100    #指定用户初始
+HOME=/home    #用户家目录
+INACTIVE=-1    #密码过期后是否失效（-1代表永久不失效）
+EXPIRE=    #账号失效日期
+SHELL=/bin/bash    #默认使用shell程序
+SKEL=/etc/skel    #用户家目录参考模板
+CREATE_MAIL_SPOOL=yes    #建立用户邮箱目录</code></pre>
+
+        <h4>三、用户组的管理</h4>
+        <p><strong>3.1 用户组概念</strong></p>
+        <ul>
+          <li>组是逻辑层面的含义</li>
+          <li>逻辑上将多个用户归纳到一起，当对组进行管理的时候，就是对组内所有用户进行管理</li>
+          <li>共享组的权利</li>
+        </ul>
+        <p><strong>3.2 组的分类</strong></p>
+        <ul>
+          <li>默认组：你在创建用户的时候，如果不指定组，那么默认会创建一个和用户同名的组</li>
+          <li>基本组：用户只能由一个基本组，创建的时候 -g 指定</li>
+          <li>附加组：用户可以有多个附加组，创建时候 -G 指定</li>
+        </ul>
+        <p><strong>3.3 组相关配置文件</strong></p>
+        <ul>
+          <li>/etc/group 保存组信息</li>
+          <li>/etc/gshadow 保存组密码</li>
+        </ul>
+        <p>3.3.1 group 文件：</p>
+        <ul><li>文件解析：<code>z2:x:2002:wangwu</code></li></ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>z2</th><th>x</th><th>2002</th><th>wangwu</th></tr></thead>
+          <tbody>
+            <tr><td>组名</td><td>密码占位符</td><td>GID</td><td>当前这个组被那个用户作为附加组使用了</td></tr>
+          </tbody>
+        </table></div>
+        <p>3.3.2 gshadow 文件：</p>
+        <ul><li>文件解析：<code>z2:!::wangwu</code></li></ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>z2</th><th>!</th><th>空</th><th>wangwu</th></tr></thead>
+          <tbody>
+            <tr><td>组名</td><td>密码，!代表没有密码</td><td>组的管理员</td><td>当前这个组被那个用户作为附加组使用了</td></tr>
+          </tbody>
+        </table></div>
+
+        <h4>四、用户组的相关命令</h4>
+        <p><strong>4.1 添加组 groupadd</strong></p>
+        <ul><li>必须是 root 用户或者你有相关的权限</li></ul>
+        <pre><code>-f    默认情况下，如果组已经存在的话再次创建是有提醒；结合-f 即可不提醒
+-g    为新建的组设置GID，如果GiD存在，会提示已存在
+-r    创建系统组</code></pre>
+        <pre><code>#需要创建一个组叫做ops，Gid为2300
+[root@localhost ~]# groupadd -g 2300 ops
+[root@localhost ~]# tail -n 2 /etc/group
+bbb:x:3005:
+ops:x:2300:</code></pre>
+
+        <p><strong>4.2 修改组 groupmod</strong></p>
+        <ul><li>必须是 root 用户或者你有相关的权限</li></ul>
+        <pre><code>-g    给组设置新的GID，如果GiD存在，会提示已存在
+-n    修改组名</code></pre>
+        <pre><code>[root@localhost ~]# groupmod  -g 2400 -n yw-ops ops
+[root@localhost ~]# tail -n 2 /etc/group
+bbb:x:3005:
+yw-ops:x:2400:</code></pre>
+
+        <p><strong>4.3 删除组 groupdel</strong></p>
+        <ul><li>当一个组被用户作为主组使用的时候，是不能直接删除的；如果是被用户作为附加组使用，没有任何影响</li></ul>
+        <pre><code>#删除组
+groupdel 组名
+
+#如果组被用户作为基本组使用的时候，不能直接删除
+[root@localhost ~]# usermod  -g bbb wangwu
+[root@localhost ~]# id wangwu
+uid=3000(wangwu) gid=3005(bbb) 组=3005(bbb)
+[root@localhost ~]# groupdel bbb
+groupdel：不能移除用户"wangwu"的主组
+[root@localhost ~]# usermod  -g z1 wangwu
+[root@localhost ~]# id wangwu
+uid=3000(wangwu) gid=2001(z1) 组=2001(z1),3005(bbb)
+[root@localhost ~]# groupdel bbb</code></pre>
+        <p>练习：</p>
+        <pre><code>创建用户张三，设置基本组为ops，附加组为dev
+创建用户lisi，设置基本组为lisi，附加组：ops、dev
+给张三用户设置登录密码：123456（root用户设置）
+设置lisi用户的登录密码：abc123（要自己给自己设置）</code></pre>
+
+        <h4>五、提权</h4>
+        <ul>
+          <li>在普通用户需要使用 sbin 目录下的命令时需要做一个提权</li>
+          <li>需要提权的场景：普通用户没有足够的权限；root 权限太强应该少用；普通用户不得不使用特殊指令的时候</li>
+          <li>提权的方式：
+            <ul>
+              <li>sudo：优点安全、方便；缺点需要提前制定规则，规则操作复杂</li>
+              <li>su：身份切换，相当于提权；优点方便；缺点需要知道提权者的密码</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p><strong>5.1 su 身份切换</strong></p>
+        <p>5.1.1 su 切换：</p>
+        <ul>
+          <li>su username 切换身份（非登陆式 shell）</li>
+          <li>su - username 切换身份（登陆式 shell）</li>
+        </ul>
+        <pre><code>[root@localhost ~]# su lisi
+[lisi@localhost root]$ pwd
+/root
+[lisi@localhost root]$ exit
+exit
+[root@localhost ~]# su
+[root@localhost ~]# su - lisi
+上一次登录：三 3月  6 14:53:08 CST 2024pts/0 上
+[lisi@localhost ~]$ pwd
+/home/lisi</code></pre>
+
+        <p>5.1.2 shell 登录分类：</p>
+        <ul>
+          <li>登录式 shell 需要输入用户名、密码才能登录 shell</li>
+          <li>非登陆式 shell 不需要用户名和密码就能进入 shell 的</li>
+          <li>登录式和非登陆式加载环境变量文件顺序不一样：
+            <ul>
+              <li>登陆式：/etc/profile &gt; /etc/profile/*.sh &gt; ~/.bash_profile &gt; ~/.bashrc &gt; /etc/bashrc</li>
+              <li>非登录式：~/.bashrc &gt; /etc/bashrc &gt; /etc/profile/*.sh</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p>5.1.3 环境变量配置：</p>
+        <ul>
+          <li>profile 类文件：设定环境变量，登陆前运行脚本或者命令</li>
+          <li>用户配置文件：~/.bash_profile、~/.bashrc</li>
+          <li>全局环境变量：/etc/profile、/etc/profile/*.sh、/etc/bashrc</li>
+        </ul>
+        <p>练习环境变量的添加：</p>
+        <pre><code>[root@localhost opt]# tar zvxf  jdk-11.0.14_linux-x64_bin.tar.gz
+
+[root@localhost opt]# ln -s /opt/jdk-11.0.14 /jdk
+[root@localhost opt]# rm -rf /bin/java
+[root@localhost opt]# ln -s /jdk/bin/java /bin/java
+
+[root@localhost bin]# vim /etc/profile
+#末行添加下列内容
+export JAVA_HOME=/jdk
+export PATH=$PATH:$JAVA_HOME/bin
+[root@localhost bin]# source  /etc/profile</code></pre>
+
+        <p><strong>5.2 sudo 提权</strong></p>
+        <pre><code>sudo  [选项] [-u 使用者账号] 执行命令
+选项：
+    -b    把后续命令放在背景执行，不会对当前shell环境造成影响
+    -u    后面跟的是切换的用户名，如果没有写这个选项默认是root
+    -l    列出当前用户可以使用的sudo那些命令</code></pre>
+
+        <p>5.2.1 sudo 配置文件：</p>
+        <ul>
+          <li>默认情况下 sudo 命令只能 root 用户使用；如果普通用户也想使用 sudo 命令，就要提权</li>
+          <li>sudo 的执行过程：当用户运行 sudo 命令时，系统会先通过 /etc/sudoers 文件，验证用户是否有 sudo 权限；确认用户它有 sudo 命令权限后，还有让用户输入自己的密码进行验证</li>
+        </ul>
+        <pre><code>visudo    #编辑/etc/suduers文件命令；普通的vi vim编辑器时不能直接编辑这个文件
+root    ALL=(ALL)       ALL
+用户名    被管理的主机=可使用的身份    授权的命令
+
+%wheel  ALL=(ALL)       ALL
+组名     被管理的主机=可使用的身份    授权的命令</code></pre>
+
+        <p>5.2.2 sudo 案例：</p>
+        <pre><code>#准备环境
+[root@localhost ~]# groupadd yw
+[root@localhost ~]# useradd zhangsan -g yw -G ywq
+[root@localhost ~]# id zhangsan
+uid=1000(zhangsan) gid=1000(yw) 组=1000(yw),1001(ywq)
+[root@localhost ~]# echo "123456" | passwd --stdin zhangsan
+更改用户 zhangsan 的密码 。
+passwd：所有的身份验证令牌已经成功更新。
+
+#案例要求：给张三用户useradd命令
+visudo
+#100行下方添加
+zhangsan ALL=(ALL)      /sbin/useradd
+
+#切换用户验证
+[root@localhost home]# su zhangsan
+#列出当前用户有什么权限
+[zhangsan@localhost home]$ sudo -l
+[sudo] zhangsan 的密码：
+...
+用户 zhangsan 可以在 localhost 上运行以下命令：
+    (ALL) /sbin/useradd
+[zhangsan@localhost home]$ sudo useradd wangwu
+[zhangsan@localhost home]$ id wangwu
+uid=1003(wangwu) gid=1003(wangwu) 组=1003(wangwu)
+
+#给张三用户同时添加useradd和usermod命令权限，命令之间使用逗号隔开
+zhangsan ALL=(ALL)      /sbin/useradd,/sbin/usermod</code></pre>
+        <pre><code>#给用户组设置权限
+#要求给yw组添加useradd命令权限，让yw组内的用户都可以使用useradd命令
+
+visudo
+ %yw ALL=(ALL)  /sbin/useradd</code></pre>
+      </div>
+    </div>
+
+    <!-- vim 编辑器 -->
+    <div class="file-card" id="sec-vim">
+      <div class="card-header">
+        <span class="card-icon">&#128221;</span>
+        <h3>vim 编辑器</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、vim 编辑器</h4>
+        <ul><li>vim 默认是没有的，需要安装</li></ul>
+        <pre><code>yum -y install vim</code></pre>
+        <p><strong>1.1 vim 的优势</strong></p>
+        <ul>
+          <li>Linux 一切皆文件，我们的工作就是修改文件，所以需要使用 vi 或者 vim 进行文本编辑</li>
+          <li>vim 就是 vi 的增强版，比 vi 多了查找、高光等等</li>
+        </ul>
+
+        <p><strong>1.2 vim 的使用</strong></p>
+        <p>1.2.1 vim 的三种模式：</p>
+        <ul>
+          <li><strong>普通模式</strong>：进入文件内的第一个界面就是普通模式，不能编辑而只能使用光标进行移动定位</li>
+          <li><strong>编辑模式</strong>：通过按键"a A I i O o"进入编辑模式，文件左下角会出现"插入"字样，此时就可以对文件进行编辑，按 ESC 即可退回普通模式</li>
+          <li><strong>末行模式</strong>：普通模式按 : 或者是 / 进入末行模式。在末行模式下可以进行的操作：保存、退出、搜索、替换、显示行号</li>
+        </ul>
+
+        <p>1.2.2 普通模式的使用：</p>
+        <ul>
+          <li>命令光标跳转：
+            <ul>
+              <li>G 光标跳转到文件末行</li>
+              <li>gg 光标会跳转到文件首行</li>
+              <li>Ngg 光标跳转到指定行，N 是数字</li>
+              <li>$ 光标跳转到当前光标所在行的行尾</li>
+            </ul>
+          </li>
+          <li>文件内容多翻页显示：
+            <ul>
+              <li>ctrl + f 向下翻页</li>
+              <li>ctrl + b 向上翻页</li>
+            </ul>
+          </li>
+          <li>复制粘贴：
+            <ul>
+              <li>yy 复制当前所在的行</li>
+              <li>Nyy 复制几行，N 是数字</li>
+              <li>P 粘贴到光标所在的下一行</li>
+              <li>P 粘贴到光标所在的上一行</li>
+            </ul>
+          </li>
+          <li>删除、撤销、反撤销：
+            <ul>
+              <li>dd 删除当前光标所在的行</li>
+              <li>Nd 删除当前光标所在行以及向下几行</li>
+              <li>dG 删除当前光标所在行以及后面的所有行</li>
+              <li>u 撤销上一步操作</li>
+              <li>ctrl + r 反撤销</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p>1.2.3 编辑模式：</p>
+        <ul>
+          <li>a 进入编辑模式，当前光标后移一位</li>
+          <li>i 进入编辑模式，光标不会发生改变</li>
+          <li>o 进入编辑模式，并且在当前光标所在行的下方插入新的空白行</li>
+        </ul>
+        <ul>
+          <li>A 进入编辑模式，光标跳转到当前行的行尾</li>
+          <li>I 进入编辑模式，光标跳转至本行行头</li>
+          <li>O 进入编辑模式，并且在当前光标所在行的上方插入新的空白行</li>
+        </ul>
+
+        <p>1.2.4 末行模式：</p>
+        <ul>
+          <li>进入末行模式的方法：: 或者 /</li>
+          <li>文件保存和退出：
+            <ul>
+              <li>:w 保存当前文件状态</li>
+              <li>:w！ 强制保存</li>
+              <li>:q 退出</li>
+              <li>:q！ 强制退出</li>
+              <li>:wq 保存退出</li>
+              <li>:wq！ 强制保存退出</li>
+              <li>:number 跳转到指定行</li>
+            </ul>
+          </li>
+          <li>文件内容查找：
+            <ul>
+              <li>/string 需要搜索的内容</li>
+              <li>n 按照搜索到内容依次向下查找</li>
+              <li>N 按照搜索到内容依次向上查找</li>
+            </ul>
+          </li>
+          <li>文件另存为：:w 保存的文件路径</li>
+          <li>读取文件内容写入本文件：
+            <ul>
+              <li>:r 读取的文件路径（默认是在当前光标下方）</li>
+              <li>:nr 读取的文件路径（N 是数字，读取文件内容写入指定行的下方）</li>
+            </ul>
+          </li>
+          <li>显示行号：:set nu</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 文件打包和压缩 -->
+    <div class="file-card" id="sec-archive">
+      <div class="card-header">
+        <span class="card-icon">&#128230;</span>
+        <h3>文件打包和压缩</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、文件打包和压缩介绍</h4>
+        <p><strong>1.1 什么是压缩</strong></p>
+        <ul><li>将多个文件或者目录合并成一个特殊文件</li></ul>
+        <p><strong>1.2 为什么要压缩</strong></p>
+        <ul>
+          <li>存储或者传输大文件的时候，压缩可以减少大文件实际容量</li>
+          <li>如果输出的时候有很多文件，这样子传输会降低效率，把多个文件压缩，再传输</li>
+        </ul>
+        <p><strong>1.3 不同系统的压缩格式互通</strong></p>
+        <ul>
+          <li>windows 的压缩包和 Linux 的压缩包互通？
+            <ul>
+              <li>在 windows 系统内接触最多的压缩格式：zip、7z、gzip、rar</li>
+              <li>在 Linux 系统内接触使用最多的压缩格式：zip、tar.gz</li>
+            </ul>
+          </li>
+          <li>一般需要互通的话，就选择：zip</li>
+        </ul>
+        <p><strong>1.4 Linux 常见的压缩包类型</strong></p>
+        <ul>
+          <li>.zip zip 压缩工具</li>
+          <li>.gz gzip 压缩工具，只能压缩文件，会删除源文件</li>
+          <li>.bz bzip2 压缩工具，只能压缩文件，会删除源文件</li>
+          <li>.tar.gz 使用 tar 命令先归档打包，然后使用 gzip 压缩</li>
+          <li>.tar.bz 使用 tar 命令先归档打包，然后使用 bzip2 压缩</li>
+        </ul>
+
+        <h4>二、文件压缩和解压缩</h4>
+        <p><strong>2.1 gzip</strong></p>
+        <ul><li>gzip 压缩工具，只能压缩文件，会删除源文件</li></ul>
+        <pre><code>[root@localhost opt]# gzip 2.txt    压缩文件
+[root@localhost opt]# zcat 2.txt.gz    不解压查询文件内容
+1111111
+[root@localhost opt]# gzip -d 2.txt.gz    解压</code></pre>
+        <ul>
+          <li>总结应用场景：当一个文件不需要生效但是不想删除的时候</li>
+        </ul>
+
+        <p><strong>2.2 zip</strong></p>
+        <pre><code>#安装命令工具
+[root@localhost opt]# yum -y install zip unzip</code></pre>
+        <p>zip 压缩：</p>
+        <pre><code>[root@localhost opt]# zip 2.zip  2.txt
+  adding: 2.txt (deflated 25%)
+zip  压缩后存放的文件名   要压缩的文件\目录</code></pre>
+        <p>解压缩：</p>
+        <pre><code>[root@localhost opt]# unzip 2.zip</code></pre>
+        <p>压缩目录：</p>
+        <pre><code>[root@localhost opt]# zip -r a.zip yw15
+  adding: yw15/ (stored 0%)
+  adding: yw15/1.txt (stored 0%)
+  adding: yw15/2.txt (stored 0%)</code></pre>
+        <p>解压到指定目录：</p>
+        <pre><code>[root@localhost opt]# unzip 2.zip -d yw15</code></pre>
+        <p>不解压查看文件：</p>
+        <pre><code>[root@localhost opt]# unzip -l a.zip</code></pre>
+
+        <p><strong>2.3 tar</strong></p>
+        <ul>
+          <li>tar 命令是 Linux 中最常用的压缩和解压的，支持目录、文件的压缩归档</li>
+          <li>tar [参数] filename：
+            <ul>
+              <li>c 创建新的归档文件</li>
+              <li>x 对归档文件进行解包</li>
+              <li>t 列出归档文件内的文件列表</li>
+              <li>v 输出命令的归档或者是解包的过程</li>
+              <li>f 指定包文件名，多参数的时候 f 写在最后</li>
+              <li>z 使用 gzip 压缩后的文件（.tar.gz）</li>
+              <li>j 使用 bzip2 压缩后的文件（.tar.bz2）</li>
+              <li>J 使用 xz 压缩归档后的文件（.tar.xz）</li>
+              <li>C 指定解压目录</li>
+              <li>X 排除多个文件</li>
+              <li>--exclude 排除文件或者目录</li>
+            </ul>
+          </li>
+          <li>常用的打包和压缩的组合命令：
+            <ul>
+              <li>czf 打包文件成 .tar.gz 格式</li>
+              <li>zcf 打包文件成 .tar.gz 格式</li>
+              <li>cjf 打包文件成 .tar.bz2 格式</li>
+              <li>cJf 打包文件成 .tar.xz 格式</li>
+              <li>zxf 解压 tar.gz 包</li>
+              <li>jxf 解压 tar.bz2 包</li>
+              <li>xf 智能解压文件</li>
+              <li>tf 查询压缩包内的文件内容</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p>实操：使用 tar 归档和 gz 压缩目录</p>
+        <pre><code>[root@localhost opt]# tar czf tmp.tar.gz 2.txt
+tar  参数   压缩后的文件  要压缩的文件</code></pre>
+        <p>不解压查看压缩包下的内容：</p>
+        <pre><code>[root@localhost opt]# tar tf tmp.tar.gz
+2.txt</code></pre>
+        <p>解压文件并且存放到指定目录下：</p>
+        <pre><code>[root@localhost opt]# tar zxf tmp.tar.gz  -C txt/</code></pre>
+        <p>压缩的时候排除某一个文件：</p>
+        <pre><code>[root@localhost opt]# tar czf stop.tar.gz --exclude=/opt/2222.txt /opt</code></pre>
+        <p>压缩的时候排除多个文件：</p>
+        <pre><code>[root@localhost opt]#
+tar czf stop1.tar.gz --exclude=/opt/2222.txt --exclude=/opt/2.txt  /opt</code></pre>
+        <p>利用文件列表排除文件或者目录：</p>
+        <pre><code>#提前准备文件，这个文件是要排除的文件名
+[root@localhost opt]# cat paichu.list
+2.txt
+1.txt
+a.txt
+
+[root@localhost opt]# tar czfX start.tar.gz paichu.list /opt</code></pre>
+        <p>打包 opt 目录的所有文件：</p>
+        <pre><code>[root@localhost opt]# find /opt -type f  | xargs tar czf stt.tar.gz</code></pre>
+      </div>
+    </div>
+
+    <!-- find 文件查找 -->
+    <div class="file-card" id="sec-find">
+      <div class="card-header">
+        <span class="card-icon">&#128269;</span>
+        <h3>find 文件查找</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、find 文件查找</h4>
+        <p><strong>1.1 find 简介</strong></p>
+        <ul>
+          <li>find 命令可以根据不同的条件来查找文件</li>
+          <li>比如：文件名称、文件大小、文件时间、属主、属组、权限等等</li>
+        </ul>
+        <p><strong>1.2 工作原理、特点</strong></p>
+        <ul>
+          <li>find 在工作的时候会遍历指定目录，通过匹配的指定条件搜寻需要的文件或者目录</li>
+          <li>特点：查询速度略慢；精确查找；实时查找；只能搜索用户具备读取和执行权限的目录</li>
+        </ul>
+        <p><strong>1.3 find 的语法</strong></p>
+        <pre><code>find    [path]    [options]    [expression]    [action]
+命令    路径        选项            表达式        动作</code></pre>
+
+        <h4>二、find 案例</h4>
+        <p><strong>2.1 基于名称查找</strong></p>
+        <pre><code>#精准查找某一个文件
+[root@localhost share]# find /share -name "file1"
+#利用*查找file开头的文件
+[root@localhost share]# find /share -name "file*"
+#利用-i  查找的时候忽略大小写
+[root@localhost share]# find /share -iname "file*"
+
+总结:-name  查找根据文件名进行查找
+      -iname 在查找的根据文件进行查找但是忽略大小写</code></pre>
+
+        <p><strong>2.2 基于大小查找</strong></p>
+        <pre><code>#查询文件大于1M的文件
+[root@localhost share]# find /etc -size +1M
+
+#查询文件小于1M的文件
+[root@localhost share]# find /etc -size -1M
+
+#查询文件等于1M的文件
+[root@localhost share]# find /etc -size 1M</code></pre>
+
+        <p><strong>2.3 基于文件类型查找</strong></p>
+        <pre><code>文件类型
+f    普通文件
+d    目录文件
+b    块文件
+l    链接文件
+c    字符文件
+s    套接字文件
+……</code></pre>
+        <pre><code>[root@localhost share]# find /dev -type d
+[root@localhost share]# find /dev -type c
+[root@localhost share]# find /dev -type l</code></pre>
+
+        <p><strong>2.4 基于时间线查找</strong></p>
+        <p>2.4.1 准备文件：</p>
+        <pre><code>for i in {01..20};do date -s 202402$i && touch file-$i;done</code></pre>
+        <p>2.4.2 案例：</p>
+        <pre><code>#查询文件名为file-最近七天创建文件
+[root@localhost share]# find ./ -iname "file-*" -mtime -7
+
+#查询文件名为file-* 七天前那一天创建的文件
+[root@localhost share]# find ./ -iname "file-*" -mtime 7
+
+#七天以前的文件
+[root@localhost share]# find ./ -iname "file-*" -mtime +7
+
+#最近30分钟内修改的文件
+[root@localhost share]# find ./  -mmin -30</code></pre>
+        <p>时间同步：</p>
+        <pre><code>[root@localhost share]# yum -y install ntpdate
+[root@localhost share]# ntpdate ntp1.aliyun.com
+11 Mar 15:21:27 ntpdate[46684]: step time server 120.25.115.20 offset 1782301.156575 sec
+[root@localhost share]# date
+2024年 03月 11日 星期一 15:21:29 CST</code></pre>
+
+        <p><strong>2.5 基于用户进行查找</strong></p>
+        <pre><code>#设置aaa用户的基本组abc  附加组cat
+[root@localhost share]# usermod  aaa -g abc -G cat
+[root@localhost share]# id aaa
+uid=1005(aaa) gid=1007(abc) 组=1007(abc),1008(cat)
+
+#基于用户查找
+[root@localhost share]# find /home -user aaa
+/home/aaa
+/home/aaa/.bash_logout
+/home/aaa/.bash_profile
+/home/aaa/.bashrc
+
+#基于用户和用户组双重条件
+[root@localhost share]# find /home -user aaa -group abc
+/home/aaa
+/home/aaa/.bash_logout
+/home/aaa/.bash_profile
+/home/aaa/.bashrc
+
+#基于用户组查找（查找的基本组，附加组不算）
+[root@localhost share]# find /home -group abc
+/home/aaa
+...
+/home/abc
+/home/abc/.bash_history
+/home/abc/.viminfo</code></pre>
+
+        <p><strong>2.6 基于权限查找</strong></p>
+        <pre><code>#精准查找权限为644的文件
+[root@localhost share]# find ./ -type f  -perm  644
+
+#查询权限包含644的文件
+[root@localhost share]# find ./ -type f  -perm  -644
+
+#满足640其中一个条件即可列出来
+[root@localhost share]# find ./ -type f  -perm  /640</code></pre>
+
+        <p><strong>2.7 逻辑运算符</strong></p>
+        <ul>
+          <li>-a 与：a -a b 两个条件都需要满足</li>
+          <li>-o 或：a -o b 两个条件满足一个即可</li>
+          <li>-not ! 非（取反）</li>
+        </ul>
+        <pre><code>#查找root用户以外的文件
+[root@localhost share]# find /home ! -user root
+[root@localhost share]# find /home -not! -user root
+
+#查找用户为root且大小超过1M
+[root@localhost share]# find /home -user root -a -size +1M
+
+#查找用户为root或者大小超过1M
+[root@localhost share]# find /home -user root -o -size +1M
+
+#查询/home 用户为cat或者aaa目录
+[root@localhost share]# find /home '(' -user cat -o -user aaa  ')'  -a -type d
+/home/aaa
+/home/cat</code></pre>
+
+        <h4>三、find 动作处理</h4>
+        <ul>
+          <li>查找到文件之后，需要对文件进行怎么样的处理。find 默认动作：-print</li>
+          <li>-print：打印查找的内容（默认）</li>
+          <li>-ls：以长格式显示打印内容</li>
+        </ul>
+        <pre><code>[root@localhost share]# find /home '(' -user cat -o -user aaa  ')'  -a -type d -ls
+50331716    0 drwx------   2 aaa      abc            62 3月  7 10:37 /home/aaa
+16777348    0 drwx------   2 cat      cat            62 3月  7 14:48 /home/cat</code></pre>
+        <ul>
+          <li>-delete：删除查找的文件、目录（只能删除空目录）</li>
+        </ul>
+        <pre><code>[root@localhost share]# mkdir a
+[root@localhost share]# echo "11" &gt; a/1.txt
+[root@localhost share]# mkdir b
+[root@localhost share]# find ./ -type d -delete
+find: 无法删除 './a': 目录非空
+find: 无法删除 './': 无效的参数</code></pre>
+        <ul>
+          <li>-ok：后面跟上自定义的 shell 命令，特点：提示是否操作</li>
+        </ul>
+        <pre><code>[root@localhost share]# find ./ -type f -ok rm -f { } \;
+&lt; rm ... ./file2 &gt; ? y
+&lt; rm ... ./file3 &gt; ? y
+&lt; rm ... ./file4 &gt; ? ^C</code></pre>
+        <ul>
+          <li>-exec：后面跟上自定义的 shell 命令，标准写法 -exec comment { } \;。相较于 -ok 不需要一个个确认，方便很多了</li>
+          <li>-exec 是把查询到文件一个个进行执行，性能低下</li>
+          <li>xargs 将命令查找的文件，作为一个整体传输给后面命令执行，所以性能高</li>
+        </ul>
+        <pre><code>find ./ -type f -exec rm -f {} \;
+
+[root@localhost share]# find ./ -type f | xargs rm -f</code></pre>
+      </div>
+    </div>
+
+    <!-- 正则表达式 -->
+    <div class="file-card" id="sec-regex">
+      <div class="card-header">
+        <span class="card-icon">&#128270;</span>
+        <h3>正则表达式</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>正则表达式</h4>
+        <ul><li>是一个被用于从文本中搜索符合某种特定条件的文本</li></ul>
+
+        <h4>通配符</h4>
+        <ul>
+          <li><strong>?</strong>
+            <ul>
+              <li>作用：匹配任意一个字符</li>
+            </ul>
+          </li>
+        </ul>
+        <pre><code>[root@localhost opt]# ls ?.txt
+1.txt</code></pre>
+        <ul>
+          <li><strong>*</strong>
+            <ul>
+              <li>作用：匹配 0 个或者是多个字符</li>
+            </ul>
+          </li>
+        </ul>
+        <pre><code>[root@localhost opt]# ls *txt
+111.txt  1.txt</code></pre>
+        <ul>
+          <li><strong>[]</strong>
+            <ul>
+              <li>作用：匹配范围内任意一个字符</li>
+            </ul>
+          </li>
+        </ul>
+        <pre><code>[root@localhost opt]# ls [a-z].txt
+a.txt  b.txt  c.txt</code></pre>
+        <ul>
+          <li><strong>[^]</strong>
+            <ul>
+              <li>作用：匹配范围外任意一个字符（反选）</li>
+            </ul>
+          </li>
+        </ul>
+        <pre><code>[root@localhost opt]# ls [^1-9].txt
+a.txt  b.txt  c.txt</code></pre>
+        <ul>
+          <li><strong>{}</strong>
+            <ul>
+              <li>作用：组合匹配</li>
+            </ul>
+          </li>
+        </ul>
+        <pre><code>touch file{1..10}</code></pre>
+
+        <h4>字符匹配元字符</h4>
+        <ul>
+          <li>. 任意单个字符</li>
+          <li>[] 指定一个范围内的字符</li>
+          <li>[^] 匹配不在指定范围内的任意一个字符</li>
+        </ul>
+        <pre><code>[root@localhost opt]# ls
+1.txt  2.txt  3.txt  a.txt  b.txt  c.txt
+#匹配任意一个字符后缀为txt的文件
+[root@localhost opt]# ls ?.txt
+1.txt  2.txt  3.txt  a.txt  b.txt  c.txt
+#匹配1到3范围内的txt文件
+[root@localhost opt]# ls [1-3].txt
+1.txt  2.txt  3.txt
+#匹配不在1到3范围内的txt文件（反选）
+[root@localhost opt]# ls [^1-3].txt
+a.txt  b.txt  c.txt</code></pre>
+
+        <h4>POSIX 字符类</h4>
+        <ul>
+          <li>为了解决不同系统之间正则字符编码问题，POSIX 字符类是一个特殊的关键字符序列，用于表示特定范围字符</li>
+          <li><code>[:alnum:]</code> 匹配任意一个字母或数字 0-9 a-z A-Z</li>
+          <li><code>[:lower:]</code> 匹配任意一个小写字母 a-z</li>
+          <li><code>[:upper:]</code> 匹配任意一个大写字母 A-Z</li>
+          <li><code>[:alpha:]</code> 匹配任意一个字母（不分大小写）a-z A-Z</li>
+          <li><code>[:digit:]</code> 匹配任意一个数字 0-9</li>
+          <li><code>[:xdigit:]</code> 匹配任意一个十六进制数字 0-9 a-f A-F</li>
+          <li><code>[:print:]</code> 匹配任意一个可打印字符</li>
+          <li><code>[:graph:]</code> 匹配任意一个非空白字符（非空格、非制表符）</li>
+        </ul>
+        <pre><code>[root@localhost opt]# ls
+123  12a  1a2  1ab  abc  a_b
+#匹配以字母开头并且后面紧跟数字的文件
+[root@localhost opt]# ls [[:alpha:]][[:digit:]]*
+12a
+#匹配纯数字文件名
+[root@localhost opt]# ls [[:digit:]]*
+123  12a  1a2  1ab</code></pre>
+
+        <h4>匹配示例</h4>
+        <p>示例一：查找系统内所有以 .conf 结尾的配置文件</p>
+        <pre><code>[root@localhost opt]# find /etc -name "*.conf" | head</code></pre>
+        <p>示例二：查找 /etc 下文件名包含数字的配置文件</p>
+        <pre><code>[root@localhost opt]# find /etc -name "*[[:digit:]]*"</code></pre>
+
+
+      </div>
+    </div>
+
+    <!-- 软件包管理 -->
+    <div class="file-card" id="sec-package">
+      <div class="card-header">
+        <span class="card-icon">&#128230;</span>
+        <h3>软件包管理</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、rpm 概述</h4>
+        <p><strong>1.1 什么是 rpm</strong></p>
+        <ul>
+          <li>rpm 全称：RedHat package manager（红帽软件包管理器）</li>
+          <li>是一个软件包管理机制，作用：对软件包进行安装、升级、卸载、查询、校验等等操作</li>
+          <li>广泛用于 RedHat centos suse 等发行版本</li>
+          <li>特点：已经编译过的二进制包，所以不需要编译就可以直接安装；依赖性比较强</li>
+        </ul>
+        <p><strong>1.2 rpm 包名组成</strong></p>
+        <pre><code>nginx-1.20.2-1.el7.ngx.x86_64.rpm
+nginx     软件名
+1.20.2    软件版本号
+1.el7.ngx 适合操作系统版本
+x86_64    软件架构
+rpm       软件包后缀</code></pre>
+        <p><strong>1.3 其他类型的安装包</strong></p>
+        <ul>
+          <li>源码包：开发者发布的源代码包，需要编译之后才能安装</li>
+          <li>二进制包：已经编译完成的包，直接解压即可使用</li>
+        </ul>
+
+        <h4>二、rpm 包管理命令</h4>
+        <ul>
+          <li>rpm 命令的选项：
+            <ul>
+              <li>i install 安装</li>
+              <li>v verbose 显示过程</li>
+              <li>h hash 显示进度，由 # 组成</li>
+            </ul>
+          </li>
+        </ul>
+
+        <p><strong>2.1 rpm 案例</strong></p>
+        <p>本地安装：</p>
+        <pre><code>[root@localhost opt]# mkdir /media/cdrom
+[root@localhost opt]# mount /dev/cdrom /media/cdrom/
+mount: /dev/sr0 写保护，将以只读方式挂载
+
+[root@localhost opt]# cd /media/cdrom/Packages/
+[root@localhost Packages]# ls
+acl-2.2.51-15.el7.x86_64.rpm
+aic94xx-firmware-30-6.el7.noarch.rpm
+aide-0.15.1-13.el7.x86_64.rpm
+......
+
+[root@localhost Packages]# rpm -ivh zip-3.0-11.el7.x86_64.rpm
+准备中...                          ################################# [100%]
+        软件包 zip-3.0-11.el7.x86_64 已经安装</code></pre>
+        <p>安装互联网上的包：</p>
+        <pre><code>[root@localhost Packages]# 
+rpm -ivh  https://mirrors.aliyun.com/zabbix/zabbix13/rhel/7/zabbix-agent-3.0.9-e7.x86_64.rpm</code></pre>
+
+        <p><strong>2.2 rpm 依赖安装包</strong></p>
+        <pre><code>yum -y install samba   (会自己处理依赖关系)</code></pre>
+        <pre><code>rpm -ivh  samba-common-tools*
+rpm -ivh samba-libs*
+rpm -ivh samba*</code></pre>
+
+        <p><strong>2.3 升级软件包</strong></p>
+        <pre><code>#拉取了3.0版本的zabbix-agent
+[root@localhost ~]# wget https://mirrors.aliyun.com/zabbix/zabbix/3.0/rhel/5/x86_64/zabbix-agent-3.0.0-2.el5.x86_64.rpm
+
+
+#拉取4.0版本的包
+[root@localhost ~]# wget https://mirrors.aliyun.com/zabbix/zabbix/4.0/rhel/7/x86_64/zabbix-agent-4.0.17-1.el7.x86_64.rpm</code></pre>
+        <pre><code>安装低版本3.0
+[root@localhost ~]# rpm -ivh zabbix-agent-3.0.9-1.el7.x86_64.rpm
+
+如果直接安装的话会出错
+[root@localhost ~]# rpm -ivh  zabbix-agent-4.0.17-1.el7.x86_64.rpm
+
+
+使用rpm -Uvh 升级软件包
+[root@localhost ~]# rpm -Uvh zabbix-agent-4.0.17-1.el7.x86_64.rpm
+警告：zabbix-agent-4.0.17-1.el7.x86_64.rpm: 头V4 RSA/SHA512 Signature, 密钥 ID a14fe591: NOKEY
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:zabbix-agent-4.0.17-1.el7        ################################# [ 50%]
+正在清理/删除...
+   2:zabbix-agent-3.0.9-1.el7         ################################# [100%]</code></pre>
+
+        <p><strong>2.4 自动更新的概念</strong></p>
+        <p>微信自动更新，最初安装微信的时候，本质是安装了两个程序：一个微信（社交软件），另一个更新微信的应用程序</p>
+
+        <p><strong>2.5 rpm 卸载软件包</strong></p>
+        <pre><code>#查询软件包是否安装
+[root@localhost ~]# rpm -q zabbix-agent
+zabbix-agent-4.0.17-1.el7.x86_64
+
+#卸载并查询
+[root@localhost ~]# rpm -e zabbix-agent
+[root@localhost ~]# rpm -q zabbix-agent
+未安装软件包 zabbix-agent</code></pre>
+
+        <p><strong>2.6 rpm 查询软件包</strong></p>
+        <pre><code>rpm -q   软件包名     查询指定软件包是否安装
+
+ rpm -qa                     查询系统内已经安装的rpm包列表、
+
+ rpm -qi 软件包名    查询指定软件包详细信息
+
+ rpm -ql   软件包名      查询指定软件包安装目录、文件列表
+
+rpm -qc   软件包名          查询软件包的配置文件
+
+ rpm -qf 文件、目录名           查询文件或者目录属于那个文件</code></pre>
+
+        <h4>三、yum 基本介绍</h4>
+        <p><strong>3.1 什么是 yum</strong></p>
+        <ul>
+          <li>yum（yellow dog updater modified）是一个基于 rpm 的软件包管理器</li>
+          <li>能从指定的服务器自动下载 rpm 包并且安装，可以自动处理依赖关系，一次性安装所有的依赖包</li>
+        </ul>
+        <p><strong>3.2 什么是 yum 源</strong></p>
+        <ul>
+          <li>yum 源就是软件仓库，存放了大量的 rpm 软件包以及包的元数据信息</li>
+          <li>yum 源分为：本地 yum 源（基于本地文件）、网络 yum 源（基于 http/ftp）</li>
+        </ul>
+        <p><strong>3.3 yum 的配置文件</strong></p>
+        <pre><code>[root@localhost opt]# cat /etc/yum.repos.d/CentOS-Base.repo
+[base]
+name=CentOS-$releasever - Base
+mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra
+#baseurl=http://mirror.centos.org/centos/$releasever/os/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7</code></pre>
+        <ul>
+          <li>[base] 仓库标识，必须唯一</li>
+          <li>name 仓库的描述信息</li>
+          <li>mirrorlist 镜像地址列表</li>
+          <li>baseurl 仓库地址</li>
+          <li>gpgcheck 是否检查软件包的签名 1 检查 0 不检查</li>
+          <li>gpgkey 公钥文件路径</li>
+          <li>enabled 是否启用仓库，1 启用 0 不启用</li>
+        </ul>
+
+        <p>3.3.1 缓存机制</p>
+        <ul>
+          <li>yum 在安装软件包的时候，会把软件包以及元数据缓存到本地</li>
+          <li>清空缓存：<code>yum clean all</code></li>
+          <li>生成缓存：<code>yum makecache</code></li>
+        </ul>
+
+        <h4>四、yum 日常操作</h4>
+        <pre><code>#安装软件包
+yum -y install 包名
+
+#重新安装软件包
+yum -y reinstall 包名
+
+#更新软件包
+yum -y update 包名
+
+#卸载软件包
+yum -y remove 包名
+
+#查询软件包
+yum list 包名
+
+#查询软件包的信息
+yum info 包名
+
+#搜索软件包
+yum search 关键字
+
+#查询命令是哪个软件包提供的
+yum provides 命令名
+
+#查询系统内可用的 yum 源
+yum repolist
+
+#查看已经安装的软件包组
+yum grouplist
+
+#安装软件包组
+yum -y groupinstall "开发工具"</code></pre>
+      </div>
+    </div>
+
+    <!-- 重定向 -->
+    <div class="file-card" id="sec-redirect">
+      <div class="card-header">
+        <span class="card-icon">&#128260;</span>
+        <h3>重定向</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、重定向</h4>
+        <p><strong>1.1 什么是重定向</strong></p>
+        <ul>
+          <li>重定向就是改变默认的输入输出的方向</li>
+          <li>默认情况下：标准输入是键盘；标准输出是显示器</li>
+        </ul>
+        <p><strong>1.2 为什么需要重定向</strong></p>
+        <ul>
+          <li>命令的输出结果想要保存到文件中</li>
+          <li>命令的输入需要从文件中读取</li>
+          <li>过滤命令的输出</li>
+        </ul>
+        <p><strong>1.3 标准输入和输出</strong></p>
+        <p>Linux 内一切皆文件，所以标准输入设备、标准输出设备被抽象成文件：</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>名称</th><th>文件描述符</th><th>设备</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>标准输入</td><td>0</td><td>键盘</td><td>命令默认从键盘读取输入</td></tr>
+            <tr><td>标准输出</td><td>1</td><td>显示器</td><td>命令默认把正确结果输出到显示器</td></tr>
+            <tr><td>标准错误</td><td>2</td><td>显示器</td><td>命令默认把错误信息输出到显示器</td></tr>
+          </tbody>
+        </table></div>
+
+        <h4>二、输出重定向</h4>
+        <ul>
+          <li>标准覆盖输出：<code>&gt;</code> 把命令的正确结果输出到文件，会覆盖文件原有内容</li>
+          <li>标准追加输出：<code>&gt;&gt;</code> 把命令的正确结果输出到文件，追加到文件末尾</li>
+          <li>错误覆盖输出：<code>2&gt;</code> 把命令的错误信息输出到文件，会覆盖文件原有内容</li>
+          <li>错误追加输出：<code>2&gt;&gt;</code> 把命令的错误信息输出到文件，追加到文件末尾</li>
+          <li>正确和错误都追加输出：<code>&amp;&gt;&gt;</code></li>
+          <li>正确和错误都输出到同一个文件：<code>&gt; 文件 2&gt;&amp;1</code></li>
+        </ul>
+        <pre><code>#标准覆盖输出：把ls的结果输出到1.txt（会覆盖原有内容）
+[root@localhost opt]# ls &gt; 1.txt
+
+#标准追加输出：把ls的结果追加到1.txt末尾
+[root@localhost opt]# ls &gt;&gt; 1.txt
+
+#错误覆盖输出：把错误信息输出到2.txt
+[root@localhost opt]# ls /aaaa 2&gt; 2.txt
+
+#错误追加输出：把错误信息追加到2.txt末尾
+[root@localhost opt]# ls /bbbb 2&gt;&gt; 2.txt
+
+#正确和错误都输出到同一个文件
+[root@localhost opt]# ls /opt /aaaa &gt; 3.txt 2&gt;&amp;1
+#或者
+[root@localhost opt]# ls /opt /aaaa &amp;&gt; 3.txt
+
+#正确和错误分别输出到不同文件
+[root@localhost opt]# ls /opt /aaaa &gt; 4.txt 2&gt; 5.txt
+
+#黑洞文件：丢弃输出内容
+[root@localhost opt]# ls /aaaa 2&gt; /dev/null</code></pre>
+
+        <h4>三、输入重定向</h4>
+        <ul>
+          <li>输入重定向：<code>&lt;</code> 把文件的内容作为命令的输入</li>
+        </ul>
+        <pre><code>#把1.txt的内容作为wc的输入
+[root@localhost opt]# wc -l &lt; 1.txt
+3</code></pre>
+        <ul>
+          <li>输入重定向：&lt;&lt;EOF，把多行内容作为命令的输入</li>
+        </ul>
+        <pre><code>[root@localhost opt]# cat &lt;&lt;EOF
+&gt; 111
+&gt; 222
+&gt; 333
+&gt; EOF
+111
+222
+333
+
+#写入文件
+[root@localhost opt]# cat &gt;&gt; 1.txt &lt;&lt;EOF
+&gt; 111
+&gt; 222
+&gt; EOF</code></pre>
+
+        <h4>四、管道符</h4>
+        <ul>
+          <li>管道符 <code>|</code>：把前一个命令的输出作为后一个命令的输入</li>
+          <li>管道符只能处理标准输出，不能处理标准错误</li>
+        </ul>
+        <pre><code>#把ls的输出作为grep的输入
+[root@localhost opt]# ls /etc | grep "conf"
+
+#分页查看命令输出
+[root@localhost opt]# ls /etc | less
+
+#统计/etc下文件数量
+[root@localhost opt]# ls /etc | wc -l</code></pre>
+      </div>
+    </div>
+
+    <!-- Linux Samba -->
+    <div class="file-card" id="sec-samba">
+      <div class="card-header">
+        <span class="card-icon">&#128279;</span>
+        <h3>Linux Samba</h3>
+        <span class="toggle-icon">&#9660;</span>
+      </div>
+      <div class="card-body">
+        <h4>一、samba 简介</h4>
+        <ul>
+          <li>samba 是基于 smb 协议（server message block 服务信息块）的一个开源软件</li>
+          <li>主要功能：让 Linux 系统和 windows 系统之间共享文件、打印机等资源</li>
+          <li>samba 是运行在 Linux/Unix 之上的服务，把 Linux/Unix 系统模拟成 windows 的文件服务器</li>
+        </ul>
+
+        <h4>二、samba 服务器的组成</h4>
+        <ul>
+          <li><strong>SMB（Server Message Block）</strong>：服务信息块协议，主要作用是网络文件共享</li>
+          <li><strong>NBM（NetBIOS over TCP/IP）</strong>：通过 TCP/IP 协议栈承载 NetBIOS 名称解析，使得 windows 可以通过主机名访问 samba 共享</li>
+        </ul>
+
+        <h4>三、安装部署 Samba 服务</h4>
+        <p><strong>3.1 基础环境的搭建</strong></p>
+        <ul>
+          <li>关闭防火墙</li>
+          <li>关闭 selinux</li>
+        </ul>
+        <pre><code>#关闭防火墙
+[root@localhost ~]# systemctl stop firewalld
+[root@localhost ~]# systemctl disable firewalld
+
+#关闭selinux
+[root@localhost ~]# setenforce 0
+[root@localhost ~]# sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config</code></pre>
+
+        <p><strong>3.2 安装 samba</strong></p>
+        <pre><code>[root@localhost ~]# yum -y install samba</code></pre>
+
+        <p><strong>3.3 查询安装情况</strong></p>
+        <pre><code>[root@localhost ~]# rpm -qa | grep samba
+samba-common-libs-4.10.16-18.el7_9.x86_64
+samba-client-libs-4.10.16-18.el7_9.x86_64
+samba-common-4.10.16-18.el7_9.noarch
+samba-4.10.16-18.el7_9.x86_64
+samba-common-tools-4.10.16-18.el7_9.x86_64</code></pre>
+
+        <p><strong>3.4 启动服务&开机自启</strong></p>
+        <pre><code>[root@localhost ~]# systemctl start smb nmb
+[root@localhost ~]# systemctl enable smb nmb
+Created symlink from /etc/systemd/system/multi-user.target.wants/smb.service to /usr/lib/systemd/system/smb.service.
+Created symlink from /etc/systemd/system/multi-user.target.wants/nmb.service to /usr/lib/systemd/system/nmb.service.
+
+#查看端口监听情况
+[root@localhost ~]# netstat -lntup | grep smb
+tcp        0      0 0.0.0.0:139             0.0.0.0:*               LISTEN      8342/smbd
+tcp        0      0 0.0.0.0:445             0.0.0.0:*               LISTEN      8342/smbd
+tcp6       0      0 :::139                  :::*                    LISTEN      8342/smbd
+tcp6       0      0 :::445                  :::*                    LISTEN      8342/smbd</code></pre>
+
+        <p><strong>3.5 修改配置文件</strong></p>
+        <p>samba 配置文件路径：/etc/samba/smb.conf</p>
+        <pre><code>[root@localhost ~]# vim /etc/samba/smb.conf
+
+[global]
+        workgroup = SAMBA
+        security = user
+        passdb backend = tdbsam
+        printing = cups
+        printcap name = cups
+        load printers = yes
+        cups options = raw
+
+[share]
+        comment = share
+        path = /share
+        browseable = yes
+        public = yes
+        writable = yes</code></pre>
+        <ul>
+          <li>[share] 共享名称，客户端访问时显示的名称</li>
+          <li>comment 共享描述</li>
+          <li>path 共享路径</li>
+          <li>browseable 是否可浏览</li>
+          <li>public 是否允许匿名访问</li>
+          <li>writable 是否可写</li>
+        </ul>
+
+        <p><strong>3.6 创建共享目录</strong></p>
+        <pre><code>[root@localhost ~]# mkdir /share</code></pre>
+
+        <p><strong>3.7 创建用户&设置密码</strong></p>
+        <pre><code>[root@localhost share]# useradd smb_root
+[root@localhost share]# smbpasswd  -a smb_root
+New SMB password:
+Retype new SMB password:
+Added user smb_root.</code></pre>
+
+        <p><strong>3.8 共享路径授权身份验证</strong></p>
+        <pre><code>[root@localhost share]# chmod  -R 775 /share
+[root@localhost share]# chown  -R smb_root.smb_root /share</code></pre>
+
+        <p><strong>3.9 windows 访问测试</strong></p>
+        <pre><code>\\\192.168.10.128</code></pre>
+      </div>
+    </div>
+
+    </div>
+  </div>
+
+<script src="common.js"></script>
+</body>
+</html>

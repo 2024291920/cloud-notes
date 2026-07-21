@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>08 K8S 容器编排 - 云计算运维课程笔记</title>
+  <link rel="stylesheet" href="common.css">
+
+</head>
+<body>
+
+<div class="topbar">
+  
+  <span class="title"><span class="num" style="background:linear-gradient(90deg,#14b8a6,#0d9488)">08</span>K8S 容器编排</span>
+  <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
+    <div class="nav-btns">
+      <a href="07-docker.html">&#8592;</a>
+      <a href="01-linux-core.html">&#8594;</a>
+  </div>
+</div>
+
+<div class="page-header">
+  <h1>08 K8S 容器编排</h1>
+  <p class="desc">Kubernetes 基础介绍、kubeadm 集群部署、资源管理（Pod/Deployment/Service）、集群应用测试</p>
+</div>
+
+<div class="page-wrap">
+  <nav class="sidebar" id="sidebar">
+    <div class="side-title">本页导航</div>
+    <ul>
+      <li><a href="#sec-k8s-basics">K8s 基础</a></li>
+      <li><a href="#sec-k8s-deploy">K8S 集群部署</a></li>
+      <li><a href="#sec-k8s-resource">K8s 资源管理</a></li>
+      <li><a href="#sec-k8s-test">K8S 集群测试</a></li>
+    </ul>
+  </nav>
+  <div class="content">
+
+  <!-- ==================== K8s基础 ==================== -->
+  <div class="file-card" id="sec-k8s-basics">
+    <div class="file-card-header">
+      <h3>K8s 基础</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <p>Kubernetes &gt; K8S</p>
+
+      <h4>部署方式演变</h4>
+      <p>传统部署 &gt; 虚拟机部署 &gt; 容器化部署</p>
+      <ul>
+        <li><strong>传统部署</strong>：
+          <ul>
+            <li>优点：安装简单</li>
+            <li>缺点：不能给程序定义边界</li>
+          </ul>
+        </li>
+        <li><strong>虚拟化部署</strong>：
+          <ul>
+            <li>在一个物理机上运行多个虚拟机，给每一个虚拟机都提供单独的环境</li>
+            <li>优点：程序环境之间是互不影响，安全性得到了保障</li>
+            <li>缺点：增加了操作系统浪费了资源</li>
+          </ul>
+        </li>
+        <li><strong>容器化部署</strong>：
+          <ul>
+            <li>优点：可以保证每一个容器都有自己的文件系统，cpu、内存、进程空间等等
+              <ul>
+                <li>运行应用程序所需要的资源都能内容器包装</li>
+              </ul>
+            </li>
+            <li>问题：
+              <ul>
+                <li>如果一个容器关停了，怎么让另一个容器替补关停的容器呢？</li>
+                <li>如果程序的访问量变多的时候，怎么横向扩展？</li>
+                <li>当程序的访问量变少的时候，怎么回收呢？</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <p>为了解决这些容器管理的问题，使用相关的软件：</p>
+      <ul>
+        <li>K8S：谷歌开源的容器编排工具</li>
+        <li>swarm：docker自己的容器编排工具</li>
+      </ul>
+
+      <h4>K8S 介绍</h4>
+      <ul>
+        <li>基于容器技术的容器编排的解决方案</li>
+      </ul>
+
+      <h4>K8S 的特点</h4>
+      <ul>
+        <li>K8S本质是一组服务器集群，可以在集群的每一个节点上运行特定的程序，对节点中的容器进行管理</li>
+        <li><strong>自我修复</strong>：一旦你某一个容器崩溃，能够在一秒左右启动新的容器</li>
+        <li><strong>弹性收缩</strong>：可以根据需要，自动对集群内正在运行的容器数量进行调整</li>
+        <li><strong>服务发现</strong>：服务可以通过自动发现的形式找到所依赖的服务</li>
+        <li><strong>负载均衡</strong>：如果一个服务启动了多个容器，能够自动实现请求的负载均衡</li>
+        <li><strong>版本回退</strong>：如果发现新发布的程序版本有问题，可以立即退会原来的版本</li>
+        <li><strong>存储编排</strong>：可以根据容器自身的需求自动创建存储卷</li>
+      </ul>
+
+      <h4>K8S 集群组件</h4>
+      <p>搭建K8S集群的时候，服务器的数量尽量单数，方便选举master</p>
+
+      <p>K8S集群内主要是两种角色：</p>
+      <ul>
+        <li>master节点：控制节点</li>
+        <li>node节点：工作节点</li>
+      </ul>
+
+      <p><strong>master 节点</strong>：集群的控制平台，复制集群的决策</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>组件</th><th>功能说明</th><th>端口</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>kube-apiserver</strong></td><td>集群操作的唯一入口，接受用户输入命令，提供认证、授权、API注册、发现等等机制</td><td>6443</td></tr>
+            <tr><td><strong>kube-controller-manage</strong></td><td>负责维护集群的状态，比如：程序的部署安装、故障检查、自动扩展等等</td><td>10252</td></tr>
+            <tr><td><strong>kube-scheduler</strong></td><td>负责集群资源调度，按照预定的调度策略将pod调度到相应的node节点上</td><td>10251</td></tr>
+            <tr><td><strong>etcd</strong></td><td>负责存储集群内各种资源对象的信息</td><td>2379 / 2380</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>node 节点</strong>：集群的数据平台，负责为容器提供运行环境</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>组件</th><th>功能说明</th><th>端口</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>kubelet</strong></td><td>负责维护容器的生命周期，控制docker，来创建、更新、删除容器</td><td>10250</td></tr>
+            <tr><td><strong>kube-proxy</strong></td><td>负责提供集群内部的服务发现、负载均衡</td><td>-</td></tr>
+            <tr><td><strong>docker</strong></td><td>容器引擎，负责本机容器创建和管理工作</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== K8S集群部署 ==================== -->
+  <div class="file-card" id="sec-k8s-deploy">
+    <div class="file-card-header">
+      <h3>K8S 集群部署</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>集群类型</h4>
+      <ul>
+        <li><strong>一主多从</strong>：一个master多个node，搭建简单，适合小型环境和测试环境</li>
+        <li><strong>多主多从</strong>：多master和多node的节点，搭建麻烦。安全性高，适合成产环境</li>
+      </ul>
+
+      <h4>K8S 安装方式</h4>
+      <ul>
+        <li><strong>minikube</strong>：一个用于快速搭建单个节点K8S工具</li>
+        <li><strong>kubeadm</strong>：一个用于快速搭建K8S集群的工具</li>
+        <li><strong>二进制包</strong>：从官网下载各个组件的二进制包，依次安装</li>
+      </ul>
+
+      <h4>主机规划</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>主机</th><th>角色</th><th>配置</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>192.168.10.128</td><td>master</td><td>2G2核60G磁盘</td></tr>
+            <tr><td>192.168.10.129</td><td>node1</td><td>2G2核60G磁盘</td></tr>
+            <tr><td>192.168.10.150</td><td>node2</td><td>2G2核60G磁盘</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>基础环境（三台机器同时操作）</h4>
+
+      <p><strong>时间同步</strong></p>
+      <pre><code>[root@localhost ~]# yum -y install ntpdate
+[root@localhost ~]# ntpdate ntp1.aliyun.com</code></pre>
+
+      <p><strong>DNS解析</strong></p>
+      <pre><code>#修改主机名
+192.168.10.128&gt; hostname master &amp;&amp; bash
+192.168.10.129&gt; hostname node1 &amp;&amp; bash
+192.168.10.150&gt; hostname node2 &amp;&amp; bash
+
+#三台主机同时操作
+[root@master ~]# vim /etc/hosts
+192.168.10.128 master
+192.168.10.129 node1
+192.168.10.150 node2</code></pre>
+
+      <p><strong>关闭防火墙、内核</strong></p>
+      <pre><code>[root@node2 ~]# systemctl  stop firewalld
+[root@node2 ~]# systemctl  disable firewalld
+[root@node2 ~]# setenforce  0
+[root@node2 ~]#  vim /etc/selinux/config</code></pre>
+
+      <p><strong>禁止swap分区</strong></p>
+      <pre><code>[root@master ~]# vim /etc/fstab
+#将swap这行内容注释掉
+#/dev/mapper/centos-swap swap                    swap    defaults        0 0</code></pre>
+
+      <p><strong>修改Linux 内核参数</strong></p>
+      <pre><code>[root@node2 ~]# vim /etc/sysctl.d/kubernetes.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+
+
+[root@node2 ~]# vim /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+
+#加载系统配置
+[root@node2 ~]# sysctl -p
+[root@node2 ~]# sysctl --system
+
+
+#加载网桥过滤模块
+[root@node2 ~]# modprobe br_netfilter
+
+
+#查询网卡部署是否成功
+[root@node2 ~]# lsmod | grep br_netfilter
+br_netfilter           22256  0
+bridge                151336  1 br_netfilter</code></pre>
+
+      <p><strong>配置IPvs功能</strong></p>
+      <pre><code>[root@node2 ~]# yum -y install ipset ipvsadm ipvsadmin
+
+
+# 添加需要加载的模块到脚本文件
+[root@node1 ~]# vim /etc/sysconfig/modules/ipvs.modules
+#! /bin/bash
+modprobe -- ip_vs
+modprobe -- ip_vs_rr
+modprobe -- ip_vs_wrr
+modprobe -- ip_vs_sh
+modprobe -- nf_conntrack_ipv4
+modprobe -- nf_conntrack
+
+#添加执行权限，执行脚本
+[root@node2 ~]# chmod +x /etc/sysconfig/modules/ipvs.modules
+[root@node2 ~]# /bin/bash /etc/sysconfig/modules/ipvs.modules
+
+# 验证查询模块是否加载成功
+[root@master ~]# lsmod | grep -e ip_vs -e nf_conntrack_ipv4
+nf_conntrack_ipv4      15053  0
+nf_defrag_ipv4         12729  1 nf_conntrack_ipv4
+ip_vs_sh               12688  0
+ip_vs_wrr              12697  0
+ip_vs_rr               12600  0
+ip_vs                 145458  6 ip_vs_rr,ip_vs_sh,ip_vs_wrr
+nf_conntrack          139264  2 ip_vs,nf_conntrack_ipv4
+libcrc32c              12644  3 xfs,ip_vs,nf_conntrack</code></pre>
+
+      <p><strong>重启服务器</strong></p>
+      <pre><code>init 6 </code></pre>
+
+      <h4>集群工具部署（三台机器同时操作）</h4>
+
+      <p><strong>3.1 部署docker</strong></p>
+      <pre><code>#拉取镜像源
+[root@node2 ~]# yum -y install wget
+wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O /etc/yum.repos.d/docker-ce.repo
+
+#安装docker
+[root@node2 ~]# yum -y install --setopt=obsoletes=0  docker-ce-18.06.3.ce-3.el7
+
+
+
+#添加配置文件
+[root@node2 ~]# mkdir /etc/docker
+[root@node2 ~]# vim /etc/docker/daemon.json
+{
+  "exec-opts":["native.cgroupdriver=systemd"],
+  "registry-mirrors":["https://kn0t2bca.mirror.aliyuncs.com"]
+}
+
+
+[root@node2 ~]# systemctl  start docker
+[root@node2 ~]# systemctl  enable docker</code></pre>
+
+      <p><strong>3.2 安装K8S</strong></p>
+      <pre><code>[root@node2 ~]# vim /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</code></pre>
+
+      <p>安装：</p>
+      <pre><code>[root@node2 ~]# yum -y install kubeadm-1.17.4-0 kubelet-1.17.4-0 kubectl-1.17.4-0 --setopt=obsoelets=0
+
+kubeadm-1.17.4-0     部署工具
+kubelet-1.17.4-0     systemd的守护进程管理
+kubectl-1.17.4-0     K8S的命令工具
+--setopt=obsoelets=0</code></pre>
+
+      <div class="key-box">
+        <strong>说明：</strong>原始笔记中 <code>--setopt=obsoelets=0</code> 为拼写错误，正确应为 <code>--setopt=obsoletes=0</code>，此处保留原始笔记内容。
+      </div>
+
+      <p>拉取镜像：</p>
+      <pre><code>#定义变量，声明所需要拉取的镜像
+[root@node2 ~]# images=(
+kube-apiserver:v1.17.4
+kube-controller-manager:v1.17.4
+kube-scheduler:v1.17.4
+kube-proxy:v1.17.4
+pause:3.1
+etcd:3.4.3-0
+coredns:1.6.5)
+
+[root@node2 ~]# 
+for imageName in ${images[@]} ; do
+    docker pull registry.cn-hangzhou.aliyuncs.com/google_containers/$imageName
+    docker tag registry.cn-hangzhou.aliyuncs.com/google_containers/$imageName k8s.gcr.io/$imageName
+    docker rmi registry.cn-hangzhou.aliyuncs.com/google_containers/$imageName
+done</code></pre>
+
+      <p>查询镜像：</p>
+      <pre><code>[root@node2 ~]# docker images
+REPOSITORY                           TAG                 IMAGE ID            CREATED             SIZE
+k8s.gcr.io/kube-proxy                v1.17.4             6dec7cfde1e5        4 years ago         116MB
+k8s.gcr.io/kube-controller-manager   v1.17.4             7f997fcf3e94        4 years ago         161MB
+k8s.gcr.io/kube-apiserver            v1.17.4             2e1ba57fe95a        4 years ago         171MB
+k8s.gcr.io/kube-scheduler            v1.17.4             5db16c1c7aff        4 years ago         94.4MB
+k8s.gcr.io/coredns                   1.6.5               70f311871ae1        4 years ago         41.6MB
+k8s.gcr.io/etcd                      3.4.3-0             303ce5db0e90        4 years ago         288MB
+k8s.gcr.io/pause                     3.1                 da86e6ba6ca1        6 years ago         742kB</code></pre>
+
+      <h4>3.3 部署master（192.168.10.128执行）</h4>
+      <pre><code>[root@master ~]# kubeadm init \
+&gt; --kubernetes-version=v1.17.4 \
+&gt; --pod-network-cidr=10.244.0.0/16 \
+&gt; --service-cidr=10.96.0.0/12 \
+&gt; --apiserver-advertise-address=192.168.10.128
+---------------------------------------------------
+
+&gt; --kubernetes-version=v1.17.4 \
+#指定K8S软件的版本
+&gt; --pod-network-cidr=10.244.0.0/16 \
+#指定pod节点之间的网段，不能和service一致
+&gt; --service-cidr=10.96.0.0/12 \
+#指定service的地址们直接套用就可以
+&gt; --apiserver-advertise-address=192.168.10
+#指定master节点的IP</code></pre>
+
+      <p>（kubeadm init 输出的 join 命令截图）</p>
+      <pre><code>kubeadm join 192.168.10.128:6443 --token p8u2v6.44vbj782gyk6omm5 \
+    --discovery-token-ca-cert-hash sha256:debf046bb674f2839c278114692663ae161f76aa0c3ccb975af55d5eb236b874</code></pre>
+
+      <pre><code> master节点运行下面三条命令，创建相关的文件
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config</code></pre>
+
+      <p>查询集群信息：目前只有一个master节点，且状态时没有准备好的</p>
+      <pre><code>[root@master ~]# kubectl  get nodes
+NAME     STATUS     ROLES    AGE   VERSION
+master   NotReady   master   25m   v1.17.4</code></pre>
+
+      <h4>3.4 将node节点加入集群</h4>
+      <pre><code>#加入集群的命令
+kubeadm join 192.168.10.128:6443 --token p8u2v6.44vbj782gyk6omm5 \
+    --discovery-token-ca-cert-hash sha256:debf046bb674f2839c278114692663ae161f76aa0c3ccb975af55d5eb236b874</code></pre>
+
+      <p>master节点查询集群信息：</p>
+      <pre><code>[root@master ~]# kubectl  get nodes
+NAME     STATUS     ROLES    AGE   VERSION
+master   NotReady   master   30m   v1.17.4
+node1    NotReady   &lt;none&gt;   16s   v1.17.4
+node2    NotReady   &lt;none&gt;   11s   v1.17.4</code></pre>
+
+      <h4>3.5 安装网络插件-flannel（master节点执行）</h4>
+      <pre><code>[root@master ~]# yum -y install wget
+[root@master ~]# </code></pre>
+
+      <p>将 kube-flannel.yml移动到/home目录下：</p>
+      <pre><code>[root@master ~]# mv kube-flannel.yml /home
+[root@master ~]# cd /home/
+[root@master home]# kubectl  apply -f kube-flannel.yml
+podsecuritypolicy.policy/psp.flannel.unprivileged created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds created</code></pre>
+
+      <p>将cni-plugins-linux-amd64-v0.8.6.tgz组件放置在/home<strong>（所有服务器都要操作）</strong></p>
+      <pre><code>[root@master home]# ls
+cni-plugins-linux-amd64-v0.8.6.tgz  kube-flannel.yml
+[root@master home]# tar zxf cni-plugins-linux-amd64-v0.8.6.tgz
+[root@master home]# cp flannel /opt/cni/bin/
+[root@master home]# kubectl  apply -f kube-flannel.yml
+podsecuritypolicy.policy/psp.flannel.unprivileged configured
+clusterrole.rbac.authorization.k8s.io/flannel unchanged
+clusterrolebinding.rbac.authorization.k8s.io/flannel unchanged
+serviceaccount/flannel unchanged
+configmap/kube-flannel-cfg unchanged
+daemonset.apps/kube-flannel-ds unchanged
+
+#稍等一会查询节点状态，会发现状态正常
+[root@master ~]# kubectl  get nodes
+NAME     STATUS   ROLES    AGE     VERSION
+master   Ready    master   3h42m   v1.17.4
+node1    Ready    &lt;none&gt;   3h13m   v1.17.4
+node2    Ready    &lt;none&gt;   3h12m   v1.17.4</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== K8s资源管理 ==================== -->
+  <div class="file-card" id="sec-k8s-resource">
+    <div class="file-card-header">
+      <h3>K8s 资源管理</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>介绍</h4>
+      <ul>
+        <li>K8S集群内，所有的内容都可以被称为资源，需要去操作资源进行管理K8S程序
+          <ul>
+            <li>程序是部署在容器内</li>
+            <li>由于pod是K8S最小管理单位，所有容器是部署在pod内</li>
+            <li>pod由pod控制器进行管理</li>
+            <li>程序需要对外访问，需要使用service</li>
+            <li>程序内的数据持久化由volumes</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>pod工作流程</h4>
+      <p>（pod工作流程图）</p>
+      <ul>
+        <li>管理员要创建pod，kubuctl 向apiserver发起创建pod请求</li>
+        <li>apiserver将pod的信息存储一份到etcd</li>
+        <li>controller-manager 通过监听apiserver的watch接口发现pod信息的更新，然后 整合所有的资源，整合发给apiserver，在这个时候这个pod就是可以调度，apiserver将信息写入etcd</li>
+        <li>scheduler 通过监听apiserver的watchd接口，更新pod可以被调度，通过短发给pod分配合适的节点，把pod和对应节点的信息通知apiserver
+          <ul>
+            <li>先预选再优选</li>
+          </ul>
+        </li>
+        <li>apiserver在收到pod和对应节点的信息后，会将信息存储到etcd内</li>
+        <li>apiserver会将pod的信息发送给指定node节点上的kubelet</li>
+        <li>kubelet在接收到pod信息后，通知docker创建容器</li>
+        <li>docker在创建完成后返回信息给kubelet</li>
+        <li>kubelet把pod创建信息、运行信息等等返回给apiserver，再由apiserver将信息写入etcd</li>
+      </ul>
+
+      <p>K8S 本质就是集群系统，用户是可以再集群内部署各种服务：</p>
+      <ul>
+        <li>就是在K8S集群内运行一个个的容器，并且指定程序运行到容器</li>
+        <li>由于pod是K8S最小管理单位，如果你想要K8S帮你管理容器，就只能把容器防止到pod内，；K8S是不会直接管理容器了，而是通过pod控制器管理pod</li>
+        <li>pod可以提供服务器，但是集群外部是不可以直接访问pod服务，k8s通过service资源实现这个功能</li>
+        <li>需要时间pod内程序数据的持久化，K8S提供volumes存储系统</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>nginx</th><th>mysql</th><th>tomcat</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>pod</td><td>√</td><td>√</td><td>√</td></tr>
+            <tr><td>pod控制器</td><td>√</td><td>√</td><td>√</td></tr>
+            <tr><td>service</td><td>√</td><td>√</td><td>√</td></tr>
+            <tr><td>volumes</td><td>生产环境是需要的</td><td>生产环境是需要的</td><td>生产环境是需要的</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>资源管理方式</h4>
+      <p><strong>命令式资源管理</strong>：直接使用命令去操作K8S资源</p>
+      <pre><code>kubectl get nodes
+kubectl get  service
+kubectl run nginx-pod --image=nginx --port=80</code></pre>
+
+      <p><strong>命令式资源配置</strong>：通过命令配置和配置文件去操作K8S资源</p>
+      <pre><code>kubectl create -f tomcat-service.yaml</code></pre>
+
+      <p><strong>声明式的资源配置</strong></p>
+      <pre><code>kubectl apply -f tomcat-service.yaml</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>类型</th><th>操作对象</th><th>使用环境</th><th>优点</th><th>缺点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>命令式资源管理</td><td>对象</td><td>测试</td><td>简单</td><td>只能操作活动的资源，临时用</td></tr>
+            <tr><td>命令式资源配置</td><td>文件</td><td>开发</td><td>可以审计、追踪</td><td>项目大配置多的时候操作麻烦</td></tr>
+            <tr><td>声明式的资源配置</td><td>目录</td><td>开发</td><td>支持目录操作</td><td>意外清空难以调试</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>命令式资源管理</h4>
+      <p>kubeclt 语法格式：</p>
+      <pre><code>kubectl command type [name]  [flags]
+#[name] 大小写是敏感</code></pre>
+
+      <pre><code>#查询所有的pod
+kubectl get pod
+
+
+#查询所有的service
+kubectl get service
+
+
+
+#单独查询某一个
+kubectl get pod podname（pod名称）
+
+#显示详细内容
+[root@master ~]# kubectl  get pod -o wide
+
+
+#以yaml格式显示结果
+[root@master ~]# kubectl  get pod -o yaml
+
+
+#以json格式显示结果
+[root@master ~]# kubectl  get pod -o json</code></pre>
+
+      <p><strong>资源类型</strong></p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>资源分类</th><th>资源名称</th><th>缩写</th><th>资源作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>集群级别资源</td><td>nodes</td><td>no</td><td>集群资源组成部分</td></tr>
+            <tr><td></td><td>namespaces</td><td>ns</td><td>隔离pod</td></tr>
+            <tr><td>pod资源</td><td>pods</td><td>po</td><td>装载容器</td></tr>
+            <tr><td>pod资源控制器</td><td>replicationcontrollers</td><td>rc</td><td>控制pod资源</td></tr>
+            <tr><td></td><td>replicasets</td><td>rs</td><td></td></tr>
+            <tr><td></td><td>deployments</td><td>deploy</td><td></td></tr>
+            <tr><td></td><td>daemonsets</td><td>ds</td><td></td></tr>
+            <tr><td></td><td>jobs</td><td></td><td></td></tr>
+            <tr><td></td><td>statefulsets</td><td>sts</td><td></td></tr>
+            <tr><td></td><td>horizontalopodautoscalers</td><td>hpa</td><td></td></tr>
+            <tr><td>服务发现资源</td><td>services</td><td>svc</td><td>统一pod对外的接口</td></tr>
+            <tr><td></td><td>imgress</td><td>ing</td><td>统一pod对外的接口</td></tr>
+            <tr><td>存储资源</td><td>volumeattachments</td><td></td><td>存储</td></tr>
+            <tr><td></td><td>persistenvolumes</td><td>pv</td><td>存储</td></tr>
+            <tr><td>配置资源</td><td>configmaps</td><td>cm</td><td>配置</td></tr>
+            <tr><td></td><td>secrets</td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="key-box">
+        <strong>说明：</strong>原始笔记中存在部分拼写错误，如 <code>imgress</code>（应为 ingress）、<code>persistenvolumes</code>（应为 persistentvolumes）、<code>horizontalopodautoscalers</code>（应为 horizontalpodautoscalers），此处保留原始笔记内容。
+      </div>
+
+      <p><strong>对资源类型进行的操作</strong></p>
+      <p>查询帮助信息：</p>
+      <pre><code>[root@master ~]# kubectl  --help</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>命令分类</th><th>命令</th><th>含义</th><th>作用</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>基本命令</td><td>create</td><td>创建</td><td>创建一个资源</td></tr>
+            <tr><td></td><td>edit</td><td>编辑</td><td>编辑一个资源</td></tr>
+            <tr><td></td><td>get</td><td>获取</td><td>获取一个资源</td></tr>
+            <tr><td></td><td>patch</td><td>更新</td><td>更新一个资源</td></tr>
+            <tr><td></td><td>delete</td><td>删除</td><td>删除一个资源</td></tr>
+            <tr><td>运行调试</td><td>run</td><td>运行</td><td>在集群内运行指定的镜像</td></tr>
+            <tr><td></td><td>expose</td><td>暴漏</td><td>暴漏资源位service</td></tr>
+            <tr><td></td><td>describe</td><td></td><td>显示资源内容信息</td></tr>
+            <tr><td></td><td>logs</td><td></td><td>输出容器在pod中的日志</td></tr>
+            <tr><td></td><td>attach</td><td></td><td>进入运行的容器</td></tr>
+            <tr><td></td><td>exec</td><td></td><td>执行容器内的一个命令</td></tr>
+            <tr><td></td><td>cp</td><td></td><td>在pod内外复制文件</td></tr>
+            <tr><td></td><td>rollout</td><td>首次展示</td><td>管理资源发布</td></tr>
+            <tr><td></td><td>scale</td><td>规模</td><td>扩容或缩容pod的数量</td></tr>
+            <tr><td></td><td>autoscale</td><td>自动调整规模</td><td>自动调整pod的数量</td></tr>
+            <tr><td>高级命令</td><td>apply</td><td></td><td>通过文件对资源进行配置</td></tr>
+            <tr><td></td><td>label</td><td>标签</td><td>更新资源的标签</td></tr>
+            <tr><td>其他命令</td><td>version</td><td>版本</td><td></td></tr>
+            <tr><td></td><td>cluster-info</td><td>显示集群信息</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>命名空间</h4>
+      <p>查询当前都有那些命名空间：</p>
+      <pre><code>[root@master ~]# kubectl  get ns
+NAME              STATUS   AGE
+default           Active   11h
+kube-node-lease   Active   11h
+kube-public       Active   11h
+kube-system       Active   11h</code></pre>
+
+      <p>创建命名空间：</p>
+      <pre><code>[root@master ~]# kubectl  create namespace dev
+namespace/dev created
+
+
+#在直接命名空间创建一个pod
+[root@master ~]# kubectl  run  pod --image=nginx -n dev
+
+[root@master ~]# kubectl  get pod -n dev
+NAME                   READY   STATUS    RESTARTS   AGE
+pod-864f9875b9-2tpjb   1/1     Running   0          2m46s</code></pre>
+
+      <p>删除dev分区内的pod：</p>
+      <pre><code>[root@master ~]# kubectl  delete pod  pod-864f9875b9-2tpjb -n dev
+pod "pod-864f9875b9-2tpjb" deleted</code></pre>
+
+      <p>删除命名空间：</p>
+      <pre><code>[root@master ~]# kubectl  delete ns dev
+namespace "dev" deleted
+[root@master ~]# kubectl  get ns
+NAME              STATUS   AGE
+default           Active   11h
+kube-node-lease   Active   11h
+kube-public       Active   11h
+kube-system       Active   11h</code></pre>
+
+      <p><strong>命令式资源配置</strong></p>
+      <pre><code>[root@master ~]# vim ns.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginxpod
+  namespace: dev
+spec:
+  containers:
+  - name: nginx-containers
+    image: nginx:1.17.1
+
+
+#创建资源
+[root@master ~]# kubectl create -f ns.yaml
+namespace/dev created
+pod/nginxpod created
+
+
+#查询资源
+[root@master ~]# kubectl  get pod -n dev
+NAME       READY   STATUS    RESTARTS   AGE
+nginxpod   1/1     Running   0          117s
+[root@master ~]# kubectl  get ns
+NAME              STATUS   AGE
+default           Active   12h
+dev               Active   2m16s
+kube-node-lease   Active   12h
+kube-public       Active   12h
+kube-system       Active   12h
+
+#删除资源
+[root@master ~]# kubectl  delete -f ns.yaml
+namespace "dev" deleted
+pod "nginxpod" deleted</code></pre>
+
+      <p><strong>声明式资源配置</strong></p>
+      <pre><code>[root@master ~]# kubectl  apply -f ns.yaml
+namespace/dev created
+pod/nginxpod created</code></pre>
+
+      <p>查询资源信息：</p>
+      <pre><code>[root@master ~]# kubectl  describe pod nginxpod -n dev</code></pre>
+
+      <p>修改ns.yaml文件内指定的镜像的版本：</p>
+      <pre><code>apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginxpod
+  namespace: dev
+spec:
+  containers:
+  - name: nginx-containers
+    image: nginx:1.17.2</code></pre>
+
+      <p>创建资源：</p>
+      <pre><code>[root@master ~]# kubectl  create -f ns.yaml
+Error from server (AlreadyExists): error when creating "ns.yaml": namespaces "dev" already exists
+Error from server (AlreadyExists): error when creating "ns.yaml": pods "nginxpod" already exists
+[root@master ~]# kubectl  apply -f ns.yaml
+namespace/dev unchanged
+pod/nginxpod configured</code></pre>
+
+      <p>总结：</p>
+      <ul>
+        <li>kubectl create命令式：
+          <ul>
+            <li>在创建资源的时候，如果资源不存在，那么就创建</li>
+            <li>如果资源存在，那么就提示已存在，不会再次创建</li>
+          </ul>
+        </li>
+        <li>kubbler apply 声明式：
+          <ul>
+            <li>在创建资源的时候，
+              <ul>
+                <li>如果资源不存在，就创建，相当于kubectl create</li>
+                <li>如果资源已存在的话，就更新，相当于kubectl patch</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="key-box">
+        <strong>说明：</strong>原始笔记中 <code>kubbler apply</code> 为拼写错误，正确应为 <code>kubectl apply</code>，此处保留原始笔记内容。
+      </div>
+
+      <h4>Pod资源</h4>
+      <ul>
+        <li>Pod是K8S集群内最小的管理单位</li>
+        <li>pod也是放置在某一个命名空间内执行</li>
+        <li>K8S在集群启动之后，系统组件也是以pod的方式运行</li>
+      </ul>
+      <pre><code>[root@master ~]# kubectl get pod -n kube-system
+NAME                             READY   STATUS    RESTARTS   AGE
+coredns-6955765f44-blqwc         1/1     Running   2          12h
+coredns-6955765f44-wtxpq         1/1     Running   2          12h
+etcd-master                      1/1     Running   3          12h
+kube-apiserver-master            1/1     Running   3          12h
+kube-controller-manager-master   1/1     Running   3          12h
+kube-flannel-ds-298vn            1/1     Running   2          11h
+kube-flannel-ds-k68lp            1/1     Running   2          11h
+kube-flannel-ds-x98k7            1/1     Running   1          11h
+kube-proxy-d4jjm                 1/1     Running   1          12h
+kube-proxy-p7hqs                 1/1     Running   2          12h
+kube-proxy-pvwwx                 1/1     Running   2          12h
+kube-scheduler-master            1/1     Running   3          12h</code></pre>
+
+      <p>案例：部署nginx程序\创建nginxccc这个pod</p>
+      <ul>
+        <li>kubectl run nginxccc --image=nginx --port=80 --namespave dev
+          <ul>
+            <li>pod创建完成，集群内部可以使用内部IP去访问，集群外无法访问</li>
+            <li>需要访问就得配置service资源</li>
+          </ul>
+        </li>
+        <li>kubectl expose deployment nginxccc -n dev --prot=80 --type=NodePort
+          <ul>
+            <li>创建service资源后，外界就可以通过master的IP加指定端口去访问nginx程序了</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="key-box">
+        <strong>说明：</strong>原始笔记中 <code>--namespave</code>（应为 --namespace）、<code>--prot=80</code>（应为 --port=80）为拼写错误，此处保留原始笔记内容。
+      </div>
+
+      <h4>Deployment资源</h4>
+      <p>pod资源控制器：保证pod资源符合预期状态，当你的颇多出现故障的时候，会尝试重启或者重建pod</p>
+      <pre><code>[root@master ~]# kubectl run nginx --image=nginx --port=80 --replicas=3 -n dev
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+deployment.apps/nginx created
+
+[root@master ~]# kubectl  get pod -n dev
+NAME                     READY   STATUS              RESTARTS   AGE
+nginx-5578584966-2lkkv   0/1     ContainerCreating   0          11s
+nginx-5578584966-wmj8c   0/1     ContainerCreating   0          11s
+nginx-5578584966-xx6qg   0/1     ContainerCreating   0          11s
+nginxpod                 1/1     Running             1          54m
+[root@master ~]# kubectl  get pod -n dev
+NAME                     READY   STATUS    RESTARTS   AGE
+nginx-5578584966-2lkkv   1/1     Running   0          40s
+nginx-5578584966-wmj8c   1/1     Running   0          40s
+nginx-5578584966-xx6qg   1/1     Running   0          40s
+nginxpod                 1/1     Running   1          55m</code></pre>
+
+      <p>pod资源扩容：</p>
+      <pre><code>[root@master ~]# kubectl  scale deploy nginx --replicas=6 -n dev</code></pre>
+
+      <p>pod资源缩容：</p>
+      <pre><code>[root@master ~]# kubectl  scale deploy nginx --replicas=2 -n dev</code></pre>
+
+      <p>删除指定pod控制器：</p>
+      <pre><code>[root@master ~]# kubectl  delete deployment nginx -n dev</code></pre>
+
+      <pre><code>vim nginx-deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: dev
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        ports:
+        - containerPort: 80</code></pre>
+
+      <pre><code>[root@master ~]# kubectl  create -f nginx-deploy.yaml
+deployment.apps/nginx created
+[root@master ~]# vim nginx-deploy.yaml
+[root@master ~]# kubectl  get pod -n dev
+NAME                     READY   STATUS    RESTARTS   AGE
+nginx-5578584966-58fqp   1/1     Running   0          103s
+nginx-5578584966-bts4z   1/1     Running   0          103s
+nginx-5578584966-njwn5   1/1     Running   0          103s
+nginx-5578584966-rbw7l   1/1     Running   0          103s
+nginx-5578584966-trp2m   1/1     Running   0          103s</code></pre>
+
+      <h4>service 资源</h4>
+      <p>创建集群内可以访问的service：</p>
+      <pre><code>kubectl  expose deploy nginx --name=nginx --type=ClusterIP --port=80 -n dev</code></pre>
+
+      <p>创建集群外可以访问的service：</p>
+      <pre><code>kubectl  expose deploy nginx --name=nginx04 --type=NodePort --port=80  -n dev</code></pre>
+
+      <p>（service 创建后的截图）</p>
+
+      <p>删除service：</p>
+      <pre><code>[root@master ~]# kubectl  delete service nginx -n dev   </code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== K8S集群测试 ==================== -->
+  <div class="file-card" id="sec-k8s-test">
+    <div class="file-card-header">
+      <h3>K8S 集群测试</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>1.1 部署nginx</h4>
+      <pre><code># 没有任何资源
+[root@master ~]# kubectl  get deployment
+No resources found in default namespace.
+
+#创建一个nginx，--image指定镜像，部署nginx
+[root@master ~]# kubectl create deployment nginx --image=nginx
+deployment.apps/nginx created
+
+
+#查询deployment里面的pod
+[root@master ~]# kubectl  get deployment
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+nginx   0/1     1            0           12s
+
+#查询所有的pod
+[root@master ~]# kubectl  get pod
+NAME                     READY   STATUS    RESTARTS   AGE
+nginx-86c57db685-x6n5s   1/1     Running   0          108s
+
+#利用-o wide更加详细的内容，可以看到当前这个pod是部署在哪一个node节点
+[root@master ~]# kubectl  get -o wide pod
+NAME                     READY   STATUS    RESTARTS   AGE     IP           NODE    NOMINATED NODE   READINESS GATES
+nginx-86c57db685-x6n5s   1/1     Running   0          2m23s   10.244.1.2   node1   &lt;none&gt;           &lt;none&gt;</code></pre>
+
+      <h4>1.2 使用内部IP测试访问</h4>
+      <pre><code>[root@master ~]# curl 10.244.1.2
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+&lt;style&gt;
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Welcome to nginx!&lt;/h1&gt;
+&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&lt;/p&gt;
+
+&lt;p&gt;For online documentation and support please refer to
+&lt;a href="http://nginx.org/"&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+Commercial support is available at
+&lt;a href="http://nginx.com/"&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Thank you for using nginx.&lt;/em&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+      <h4>1.3 集群外部访问nginx程序</h4>
+      <p>如果没有做端口暴漏，外部无法访问</p>
+      <pre><code>#暴漏端口
+[root@master ~]# kubectl expose deployment nginx --port=80 --type=NodePort
+service/nginx exposed
+
+#查询service详细获得暴漏的端口和映射的端口
+[root@master ~]# kubectl  get service
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.96.0.1       &lt;none&gt;        443/TCP        4h42m
+nginx        NodePort    10.96.104.218   &lt;none&gt;        80:30690/TCP   75s</code></pre>
+
+      <p>（nginx service 访问截图）</p>
+
+      <p>部署nginx程序：</p>
+      <ul>
+        <li>创建deploymant
+          <ul>
+            <li>创建时候指明创建的是什么程序，--image=nginx</li>
+            <li>创建nginx后，集群内部可以使用curl命令去访问这个程序做验证</li>
+          </ul>
+        </li>
+        <li>创建暴漏端口
+          <ul>
+            <li>作用：创建暴漏端口之后就可以把nginx程序的端口，对外公开，K8S集群外也可以进行访问</li>
+            <li>访问地址：masterIP：暴漏端口</li>
+            <li>案例：http://192.168.10.128:30690</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>二、部署mysql</h4>
+      <p>目标：在看s集群内部署mysql，验证集群是否可以正常通信</p>
+      <pre><code>[root@master home]# vim mysql-rc.yml
+
+apiVersion: v1    #定义apiserver的版本
+kind: ReplicationController    #指定pod控制器
+metadata:    #定义资源的元数据
+  name: mysql    #指定创建程序的名字
+spec:    #定义deployment的参数
+  replicas: 1    #定义副本数量
+  selector:    #定义标签
+    app: mysql
+  template:    #定义模板
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql    #定义容器的名称
+        image: mysql:8.0.21    #指定镜像文件
+        ports:
+        - containerPort: 3306    #定义容器的对外端口
+        env:
+        - name: MYSQL_ROOT_PASSWORD    #设置登录密码
+          value: "123456"</code></pre>
+
+      <p>创建service：</p>
+      <pre><code>[root@master home]# kubectl  apply -f mysql-rc.yml
+replicationcontroller/mysql created</code></pre>
+
+      <p>编写文件，暴漏端口：</p>
+      <pre><code>[root@master home]# vim mysql-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+   name: mysql
+spec:
+  type: NodePort
+  ports:
+    - port: 3306
+      nodePort: 31000
+  selector:
+    app: mysql</code></pre>
+
+      <p>创建service：</p>
+      <pre><code>[root@master home]# kubectl  create -f mysql-service.yaml
+service/mysql created
+[root@master home]# kubectl  get service
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+kubernetes   ClusterIP   10.96.0.1       &lt;none&gt;        443/TCP          5h34m
+mysql        NodePort    10.100.252.10   &lt;none&gt;        3306:31000/TCP   15s
+nginx        NodePort    10.96.104.218   &lt;none&gt;        80:30690/TCP     53m</code></pre>
+
+      <p>（mysql 部署相关截图）</p>
+
+      <h4>三、部署tomcat</h4>
+      <pre><code>[root@master home]# vim tomcat-deploy.yaml
+apiVersion: apps/v1    #声明apiserver版本 
+kind: Deployment    #定义资源类型
+metadata:    #定义元数据
+  name: tomcat-deploy
+spec:    #定义资源参数    
+  replicas: 1    #副本数量
+  selector:    #定义标签
+    matchLabels:
+      app: tomcat9
+  template:    #定义模板
+    metadata:
+      labels:
+        app: tomcat9
+    spec:    #定义
+      containers:    #定义容器的属性
+      - name: mytomcat    #容器名
+        image: tomcat:9.0    #镜像名
+        ports:
+        - containerPort: 8080    #暴漏的端口</code></pre>
+
+      <p>创建tomcat：</p>
+      <pre><code>[root@master home]# kubectl  apply -f tomcat-deploy.yaml</code></pre>
+
+      <p>调整网页路径：</p>
+      <pre><code>[root@master home]# kubectl  get -o wide pod
+NAME                           READY   STATUS    RESTARTS   AGE     IP           NODE    NOMINATED NODE   READINESS GATES
+mysql-4zht6                    1/1     Running   0          60m     10.244.2.2   node2   &lt;none&gt;           &lt;none&gt;
+nginx-86c57db685-x6n5s         1/1     Running   0          126m    10.244.1.2   node1   &lt;none&gt;           &lt;none&gt;
+tomcat-deploy-8bdf74dd-j2tn7   1/1     Running   0          5m32s   10.244.2.3   node2   &lt;none&gt;           &lt;none&gt;
+[root@master home]# kubectl  exec -it tomcat-deploy-8bdf74dd-j2tn7 /bin/bash
+
+#移动ROOT目录到webapps目录下
+root@tomcat-deploy-8bdf74dd-j2tn7:/usr/local/tomcat# mv webapps.dist/ROOT webapps</code></pre>
+
+      <p>到此，tomcat部署完成，但是仅限于集群内部访问，集群以外不可以访问。如果想要集群外也可以访问，需要暴漏端口。</p>
+
+      <p>端口暴漏文件：作用是让集群外的用户也可以访问集群内的内容</p>
+      <pre><code>[root@master home]# vim tomcat-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcatservice
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 32000
+  selector:
+    app: tomcat9</code></pre>
+
+      <pre><code>[root@master home]# kubectl  apply -f tomcat-service.yaml
+service/tomcatservice created
+[root@master home]# vim tomcat-service.yaml
+[root@master home]# kubectl  get service
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+kubernetes      ClusterIP   10.96.0.1       &lt;none&gt;        443/TCP          6h44m
+mysql           NodePort    10.100.252.10   &lt;none&gt;        3306:31000/TCP   70m
+nginx           NodePort    10.96.104.218   &lt;none&gt;        80:30690/TCP     123m
+tomcatservice   NodePort    10.98.187.212   &lt;none&gt;        8080:32000/TCP   58s</code></pre>
+
+      <p>（tomcat 部署访问截图）</p>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="common.js"></script>
+
+</body>
+</html>

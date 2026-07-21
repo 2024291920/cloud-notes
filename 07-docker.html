@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>07 Docker 容器 - 云计算运维课程笔记</title>
+  <link rel="stylesheet" href="common.css">
+
+</head>
+<body>
+
+<div class="topbar">
+  
+  <span class="title"><span class="num" style="background:linear-gradient(90deg,#6366f1,#4f46e5)">07</span>Docker 容器</span>
+  <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
+    <div class="nav-btns">
+      <a href="06-zabbix.html">&#8592;</a>
+      <a href="08-k8s.html">&#8594;</a>
+  </div>
+</div>
+
+<div class="page-header">
+  <h1>07 Docker 容器</h1>
+  <p class="desc">Docker 基础、部署、镜像与容器管理、应用部署（Nginx/Tomcat/MySQL）、Docker Commit 与 Dockerfile 构建镜像</p>
+</div>
+
+<div class="page-wrap">
+  <nav class="sidebar" id="sidebar">
+    <div class="side-title">本页导航</div>
+    <ul>
+      <li><a href="#sec-docker-basics">Docker 基础</a></li>
+      <li><a href="#sec-docker-deploy">部署 Docker</a></li>
+      <li><a href="#sec-image-mgmt">镜像管理</a></li>
+      <li><a href="#sec-container-mgmt">容器管理</a></li>
+      <li><a href="#sec-app-deploy">应用部署（Nginx / Tomcat / MySQL）</a></li>
+      <li><a href="#sec-docker-commit">Docker Commit 构建镜像</a></li>
+      <li><a href="#sec-dockerfile">Dockerfile 构建镜像</a></li>
+    </ul>
+  </nav>
+  <div class="content">
+
+  <!-- ==================== Docker 基础 ==================== -->
+  <div class="file-card" id="sec-docker-basics">
+    <div class="file-card-header">
+      <h3>Docker 基础</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>1.1 Docker 介绍</h4>
+      <ul>
+        <li>是一个开源、轻量级的虚拟化计算的容器引擎项目</li>
+        <li>一个可以用于开发、发布和运行应用程序的开发平台</li>
+        <li>基于 GO 语言开发，遵循 apache2.0 协议</li>
+      </ul>
+
+      <h4>1.2 Docker 的应用场景</h4>
+      <ul>
+        <li>web 应用的自动化打包和发布</li>
+        <li>自动化测试和持续基础、发布</li>
+        <li>在服务型的环境内部署和调整数据库或者其他的应用</li>
+        <li>从头编译或者扩展现有 openshift 等等平台搭建自己的 PaaS 环境</li>
+      </ul>
+
+      <h4>1.3 Dcoker的架构</h4>
+      <ul>
+        <li><strong>镜像（image）</strong>：Docker 的镜像，就相当于 root 文件系统</li>
+        <li><strong>容器（container）</strong>：
+          <ul>
+            <li>镜像和容器之间关系：镜像是静态的定义，容器就是镜像运行时的载体</li>
+            <li>容器的管理：创建、启动、停止、删除、暂停等等</li>
+          </ul>
+        </li>
+        <li><strong>仓库（repository）</strong>：存放镜像</li>
+        <li><strong>客户端</strong>：docker 客户端通过命令行或者其他工具使用 docker sdk 和 docker 的守护进程通信</li>
+        <li><strong>主机</strong>：一个物理或者虚拟的机器用于执行 docker 守护进程和容器</li>
+      </ul>
+
+      <h4>1.4 Docker 和传统虚拟机的区别</h4>
+      <div class="key-box">
+        <strong>docker 误解：docker 是一个轻量级的虚拟机</strong>
+      </div>
+      <p>（图：Docker 与传统虚拟机架构对比图）</p>
+      <ul>
+        <li>传统虚拟机
+          <ul>
+            <li>vmware 在宿主机的操作系统基础上，创建虚拟层、虚拟化操作系统、虚拟化的仓库等等，然后安装使用</li>
+          </ul>
+        </li>
+        <li>docker 容器
+          <ul>
+            <li>在宿主机操作系统上，创建 docker 引擎，在引擎的基础上安装应用</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>Docker 优势</h4>
+      <ul>
+        <li>docker 容器很快：启动或者停止都实现秒级完成</li>
+        <li>docker 容器对于系统资源需求很小，一个主机可以同时运行上千个 docker 容器</li>
+        <li>docker 通过类似 git 的操作方式方便用户的获取、发布、更新镜像，指令很简单</li>
+        <li>docker 通过 dockerfile 配置文件来支持更加灵活自动化创建和部署机制，通高工作效率</li>
+        <li>docker 保证应用性能的同时，尽可能减少系统开销</li>
+        <li>docker 利用 Linux 系统内的多种保护机制实现严格可靠的隔离</li>
+        <li>docker 引入安全选项和镜像签名机制，极大性提高 docker 的安全性</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>特点</th><th>容器</th><th>虚拟机</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>启动速度</td><td>秒级</td><td>分钟级</td></tr>
+            <tr><td>硬盘占用</td><td>一般是 MB</td><td>一般是 GB</td></tr>
+            <tr><td>性能</td><td>接近原生</td><td>弱于原生</td></tr>
+            <tr><td>系统支持量</td><td>一个主机可以同时运行上千个 docker 容器</td><td>一般就是几十个</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr>
+      <ul>
+        <li><strong>docker build</strong>：编译 dockerfile 的命令
+          <ul>
+            <li>根据的 docker file 创建一个可执行的 image</li>
+          </ul>
+        </li>
+        <li><strong>docker run</strong>：在有了可执行 image，就可以运行程序</li>
+      </ul>
+
+    </div>
+  </div>
+
+  <!-- ==================== 部署 Docker ==================== -->
+  <div class="file-card" id="sec-docker-deploy">
+    <div class="file-card-header">
+      <h3>部署 Docker</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>2.1 配置 yum 源</h4>
+      <pre><code>[root@localhost ~]# yum -y install yum-utils
+[root@localhost ~]# yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</code></pre>
+
+      <h4>2.2  安装docke</h4>
+      <pre><code>[root@localhost ~]# yum -y install docker-ce docker-ce-cli containerd.io
+
+docker-ce docker引擎
+docker-ce-cli     docker引擎的命令行页面
+containerd.io    守护进程</code></pre>
+
+      <h4>2.3 docker 状态管理</h4>
+      <pre><code>[root@localhost ~]# systemctl  start docker &amp;&amp; systemctl  enable docker
+[root@localhost ~]# docker info  #查询概要信息</code></pre>
+
+      <h4>2.4 移除 docker</h4>
+      <pre><code># 移除docker
+yum remove docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+#删除镜像
+rm -rf /var/lib/docker
+#删除容器
+rm -rf /var/lib/containerd</code></pre>
+
+      <h4>2.5 配置镜像加速</h4>
+      <pre><code>[root@localhost ~]# vim /etc/docker/daemon.json
+{
+  "registry-mirrors":["http://hub-mirror.c.163.com","https://docker.mirrors.ustc.edu.cn"]
+}
+
+[root@localhost ~]# systemctl  restart docker</code></pre>
+
+      <h4>2.6 docker 验证</h4>
+      <pre><code>[root@localhost ~]# docker run hello-world
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+c1ec31eb5944: Pull complete
+Digest: sha256:a26bff933ddc26d5cdf7faa98b4ae1e3ec20c4985e6f87ac0973052224d24302
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/</code></pre>
+      <p>（图：docker run hello-world 运行结果截图）</p>
+
+    </div>
+  </div>
+
+  <!-- ==================== 镜像管理 ==================== -->
+  <div class="file-card" id="sec-image-mgmt">
+    <div class="file-card-header">
+      <h3>镜像管理</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>3.1 搜索镜像</h4>
+      <pre><code>[root@localhost ~]# docker search nginx
+NAME                                              DESCRIPTION                                      STARS     OFFICIAL
+nginx                                             Official build of Nginx.                         19833     [OK]
+unit                                              Official build of NGINX Unit: Universal Web …   29        [OK]
+nginx/nginx-ingress                               NGINX and  NGINX Plus Ingress Controllers fo…   90
+nginxinc/nginx-unprivileged                       Unprivileged NGINX Dockerfiles                   147
+nginx/nginx-prometheus-exporter                   NGINX Prometheus Exporter for NGINX and NGIN…   40
+nginx/nginx-s3-gateway                         Authenticating and caching gateway based on …   6
+nginx/unit                                        This repository is retired, use the Docker o…   63
+nginx/nginx-ingress-operator                      NGINX Ingress Operator for NGINX and NGINX P…   2
+nginxinc/amplify-agent                            NGINX Amplify Agent docker repository            1
+nginx/nginx-quic-qns                              NGINX QUIC interop                               1
+nginxinc/ingress-demo                             Ingress Demo                                     4
+nginxproxy/nginx-proxy                            Automated nginx proxy for Docker containers …   136
+nginxproxy/acme-companion                         Automated ACME SSL certificate generation fo…   132
+bitnami/nginx                                     Bitnami container image for NGINX                186
+bitnami/nginx-ingress-controller                  Bitnami container image for NGINX Ingress Co…   33
+nginxproxy/docker-gen                             Generate files from docker container meta-da…   17
+bitnami/nginx-exporter                            Bitnami container image for NGINX Exporter       5
+nginxinc/mra-fakes3                                                                                0
+ubuntu/nginx                                      Nginx, a high-performance reverse proxy &amp; we…   112
+nginxinc/ngx-rust-tool                                                                             0
+nginxinc/mra_python_base                                                                           0
+rancher/nginx-ingress-controller                                                                   13
+kasmweb/nginx                                     An Nginx image based off nginx:alpine and in…   7
+rancher/nginx-ingress-controller-defaultbackend                                                    2</code></pre>
+      <p>（图：docker search nginx 搜索结果截图）</p>
+
+      <h4>3.2 拉取镜像</h4>
+      <p>拉取 Nginx 镜像（拉取的时候不指定标签，默认是 latest）</p>
+      <pre><code>[root@localhost ~]# docker pull nginx
+Using default tag: latest
+latest: Pulling from library/nginx
+b0a0cf830b12: Pull complete
+4d84de5fb9b2: Pull complete
+2818b7b6a9db: Pull complete
+1e5314d67f16: Pull complete
+8066e07ce4f2: Pull complete
+05f7109fea9e: Pull complete
+e58cbd904f7f: Pull complete
+Digest: sha256:32e76d4f34f80e479964a0fbd4c5b4f6967b5322c8d004e9cf0cb81c93510766
+Status: Downloaded newer image for nginx:latest
+docker.io/library/nginx:latest
+[root@localhost ~]# docker images
+REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
+nginx         latest    1d668e06f1e5   6 days ago      188MB
+hello-world   latest    d2c94e258dcb   12 months ago   13.3kB</code></pre>
+
+      <p>拉取的时候指定标签</p>
+      <pre><code>[root@localhost ~]# docker pull centos:7
+7: Pulling from library/centos
+7: Pulling from library/centos
+2d473b07cdd5: Pull complete
+Digest: sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
+Status: Downloaded newer image for centos:7
+docker.io/library/centos:7
+[root@localhost ~]# docker images
+REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
+nginx         latest    1d668e06f1e5   6 days ago      188MB
+hello-world   latest    d2c94e258dcb   12 months ago   13.3kB
+centos        7         eeb6ee3f44bd   2 years ago     204MB</code></pre>
+
+      <h4>3.3 更改标签</h4>
+      <pre><code>[root@localhost ~]# docker tag centos:7 centoswwh
+[root@localhost ~]# docker images   k8s.gcr.io/kube-scheduler:v1.17.4
+REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
+nginx         latest    1d668e06f1e5   6 days ago      188MB
+hello-world   latest    d2c94e258dcb   12 months ago   13.3kB
+centoswwh     latest    eeb6ee3f44bd   2 years ago     204MB
+centos        7         eeb6ee3f44bd   2 years ago     204MB
+
+[root@localhost ~]# docker tag nginx nginxa:90
+[root@localhost ~]# docker images
+REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
+nginx         latest    1d668e06f1e5   6 days ago      188MB
+nginxa        90        1d668e06f1e5   6 days ago      188MB
+hello-world   latest    d2c94e258dcb   12 months ago   13.3kB
+centos        7         eeb6ee3f44bd   2 years ago     204MB
+centoswwh     latest    eeb6ee3f44bd   2 years ago     204MB</code></pre>
+
+      <h4>3.4 删除镜像</h4>
+      <pre><code>#根据镜像名称删除
+[root@localhost ~]# docker rmi nginx
+
+
+#指定镜像ID删除
+[root@localhost ~]# docker rmi 1d668e06f1e5
+#基于镜像ID删除的时候，如果有多个镜像ID相同，需要使用-f   强制删除
+[root@localhost ~]# docker rmi -f 1d668e06f1e5
+
+#批量删除
+[root@localhost ~]# docker rmi 镜像ID1 镜像ID2 ……
+
+
+# 清空镜像
+[root@localhost ~]# docker rmi -f $(docker images -qa)</code></pre>
+
+      <h4>3.5 导出镜像</h4>
+      <pre><code>[root@localhost ~]# docker save &gt; /opt/centos7 centos:7
+[root@localhost ~]# docker save -o /opt/nginx nginx:latest</code></pre>
+
+      <h4>3.6 导入镜像</h4>
+      <pre><code>[root@localhost ~]# docker load &lt; /opt/nginx</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== 容器管理 ==================== -->
+  <div class="file-card" id="sec-container-mgmt">
+    <div class="file-card-header">
+      <h3>容器管理</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>4.1 创建容器</h4>
+      <pre><code>#基于centos：7镜像创建容器
+[root@localhost ~]# docker create -it centos:7 /bin/bash
+12c63d2ef11976c49c80037a328bfa626a4e003b111db6f1f9c5c6454e097e23</code></pre>
+
+      <h4>4.2 查询容器</h4>
+      <pre><code>[root@localhost ~]# docker ps -a
+CONTAINER ID   IMAGE          COMMAND       CREATED              STATUS                   PORTS     NAMES
+12c63d2ef119   centos:7       "/bin/bash"   About a minute ago   Created                            mystifying_tharp</code></pre>
+      <p>查询没有启动的容器</p>
+      <pre><code>[root@localhost ~]# docker ps -f status=exited</code></pre>
+
+      <h4>4.3 删除容器</h4>
+      <pre><code>docker rm 容器id
+[root@localhost ~]# docker rm 12c63d2ef119
+12c63d2ef119</code></pre>
+
+      <h4>4.4 启动容器</h4>
+      <pre><code>docker start 容器id/容器名
+[root@localhost ~]# docker start 442c9c957bbe</code></pre>
+
+      <h4>4.5 进入容器</h4>
+      <pre><code># docker exec -it  容器ID /bin/bash
+[root@localhost ~]# docker exec -it  442c9c957bbe /bin/bash</code></pre>
+
+      <h4>4.6 退出容器</h4>
+      <pre><code>exit</code></pre>
+
+      <h4>4.7 关停容器</h4>
+      <pre><code># docker stop
+[root@localhost ~]# docker stop 442c9c957bbe
+442c9c957bbe
+或者
+[root@localhost ~]# docker kill 442c9c957bbe
+442c9c957bbe</code></pre>
+
+      <h4>4.8 创建并且启动容器</h4>
+      <pre><code>docker run [选项] 镜像 只写命令
+
+
+选项
+    -d    后台启动容器
+    -i    交互模式运行容器
+    -t    给容器分配伪终端
+    -p    指定端口映射
+    -P    随机端口映射
+    -name    指定容器名称</code></pre>
+      <pre><code>[root@localhost ~]# docker run -itd --name nginxw -p 8989:80 1d668e06f1e5 /bin/bash
+c8dc5ea090a3e7696b36d99d99afc5b4613c009e4fab30026506d87fb11bae08
+[root@localhost ~]# docker ps -a
+CONTAINER ID   IMAGE          COMMAND                   CREATED          STATUS                       PORTS                                   NAMES
+c8dc5ea090a3   1d668e06f1e5   "/docker-entrypoint.…"   10 seconds ago   Up 10 seconds                0.0.0.0:8989-&gt;80/tcp, :::8989-&gt;80/tcp   nginxw</code></pre>
+
+      <h4>4.9 导出容器</h4>
+      <pre><code>#把nginx2容器导出为镜像，叫做nginx.aaa
+[root@localhost ~]# docker export nginxw &gt; nginx.aaa
+[root@localhost ~]# ls
+anaconda-ks.cfg  nginx.aaa</code></pre>
+
+      <h4>4.10 导入容器</h4>
+      <pre><code>#导入nginx.aaa 为nginx：w
+[root@localhost ~]# docker import nginx.aaa nginx:w
+sha256:b91a427885d34b1f37cd22609ef3b2195ca410ccc2ad3a34495f01af54ca2438
+[root@localhost ~]# docker images
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+nginx        w         b91a427885d3   1 second ago   186MB
+nginx        latest    1d668e06f1e5   7 days ago     188MB
+centos       7         eeb6ee3f44bd   2 years ago    204MB</code></pre>
+
+      <h4>4.11 导出容器和镜像区别</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th></th><th>容器</th><th>镜像</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>导出命令</td><td>docker export</td><td>docker save</td></tr>
+            <tr><td>导入命令</td><td>docker import</td><td>docker load</td></tr>
+            <tr><td>导出大小</td><td>镜像文件更小</td><td>镜像文件偏大</td></tr>
+            <tr><td>导入重命名</td><td>可以对镜像重命名</td><td>不可以重命名</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>4.12 删除容器（容器需要停止运行再删除）</h4>
+      <pre><code>docker stop 容器id
+docker rm 容器id</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== 应用部署 ==================== -->
+  <div class="file-card" id="sec-app-deploy">
+    <div class="file-card-header">
+      <h3>应用部署（Nginx / Tomcat / MySQL）</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>5.1 Nginx</h4>
+      <p>拉取镜像</p>
+      <pre><code>docker pull nginx</code></pre>
+      <p>基于镜像创建容器</p>
+      <pre><code>[root@localhost ~]# docker run -id --name nginx -p 90:80 nginx</code></pre>
+      <p>访问：<code>http://192.168.10.128:90</code></p>
+      <p>（图：nginx 访问页面截图）</p>
+
+      <hr>
+      <p>将容器内的配置文件拷贝到本机的指定路径</p>
+      <pre><code>[root@localhost ~]# mkdir -p /opt/date/nginx
+[root@localhost ~]# docker cp nginx:/etc/nginx /opt/date/nginx/
+Successfully copied 16.9kB to /opt/date/nginx/
+[root@localhost ~]# ls /opt/date/nginx/
+nginx
+
+
+[root@localhost ~]# mv /opt/date/nginx/nginx /opt/date/nginx/conf</code></pre>
+
+      <p>创建容器，并且把容器内的 /etc/nginx 和宿主机 /opt/date/nginx/conf 进行映射</p>
+      <ul>
+        <li><code>-v</code> 去挂载、映射目录</li>
+      </ul>
+      <pre><code>[root@localhost ~]# docker run -id --name nginx1 -p 100:80 -v /opt/date/nginx/conf/:/etc/nginx nginx</code></pre>
+      <p>访问：<code>http://192.168.10.128:100</code></p>
+      <p>（图：nginx1 映射目录后访问页面截图）</p>
+
+      <h4>5.2 Tomcat</h4>
+      <pre><code>docker pull docker</code></pre>
+      <pre><code>#创建容器、映射端口号
+[root@localhost ~]# docker run -id --name tomcat -p 8080:8080 tomcat
+#查询容器
+[root@localhost ~]# docker ps -a
+CONTAINER ID   IMAGE          COMMAND                   CREATED              STATUS              PORTS                                       NAMES
+a214ab3ea3dc   tomcat         "catalina.sh run"         About a minute ago   Up About a minute   0.0.0.0:8080-&gt;8080/tcp, :::8080-&gt;8080/tcp   tomcat</code></pre>
+      <p>（图：tomcat 容器查询结果截图）</p>
+      <pre><code>[root@localhost ~]# docker exec -it tomcat /bin/bash
+# 由于tomcat网页是放在/usr/local/tomcat/webapps/ROOT，所以需要复制
+[root@a214ab3ea3dc:/usr/local/tomcat# cp -rf webapps.dist/ROOT webapps</code></pre>
+      <p>（图：tomcat 复制 ROOT 后访问页面截图）</p>
+
+      <h4>5.3 MySQL</h4>
+      <p>拉取镜像</p>
+      <pre><code>docker pull mysql:8.0.21</code></pre>
+
+      <p>创建容器</p>
+      <pre><code>#创建容器设置端口映射
+[root@localhost ~]# docker run -id --name mysql1 -p 3333:3306 mysql:8.0.21 /bin/bash
+
+或者
+#创建容器、设置端口映射并且设置数据库的登录密码
+# 利用-e 设置数据库的登录密码
+[root@localhost ~]# docker run -id --name mysql2 -p 4444:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0.21</code></pre>
+
+      <p>登录数据库</p>
+      <pre><code>[root@localhost ~]# docker exec -it mysql2 /bin/bash
+`登录数据库`
+root@ecbc59157ffb:/# mysql -uroot -p123456
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.21 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql&gt;</code></pre>
+
+      <p>挂载容器内的文件到宿主机的目录</p>
+      <pre><code>[root@localhost ~]# docker cp  mysql2:/etc/mysql/conf.d /opt/date/
+Successfully copied 4.61kB to /opt/date/
+[root@localhost ~]# ls /opt/date/
+conf.d  nginx
+[root@localhost ~]# docker cp mysql2:/var/lib/mysql /opt/date/
+Successfully copied 194MB to /opt/date/
+[root@localhost ~]# ls /opt/date/
+conf.d  mysql  nginx
+[root@localhost ~]# docker run -id --name mysql8.0 -p 5555:3306 \
+-v /opt/date/conf.d:/etc/mysql/conf.d \
+-v /opt/date/mysql:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=123 mysql:8.0.21
+
+-------------------------------------------
+docker run  创建并启动一个容器
+-id  交互书后台运行
+--name mysql8.0  指定容器的名称
+-p 5555:3306 小写p，指定端口映射
+-v /opt/date/conf.d:/etc/mysql/conf.d     将容器内的/etc/mysql/conf.d挂载到/opt/date/conf.d
+-v /opt/date/mysql:/var/lib/mysql
+-e MYSQL_ROOT_PASSWORD=123     设置mysql数据库的登录密码
+mysql:8.0.21    指定基于那个镜像启动容器</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== Docker Commit 构建镜像 ==================== -->
+  <div class="file-card" id="sec-docker-commit">
+    <div class="file-card-header">
+      <h3>Docker Commit 构建镜像</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <p>创建并且启动容器</p>
+      <pre><code>[root@localhost ~]# docker run -id  --name centos7 centos:7</code></pre>
+
+      <p>拷贝资源到容器内</p>
+      <pre><code>[root@localhost ~]# docker cp jdk-11.0.14_linux-x64_bin.tar.gz  centos7:/root
+Successfully copied 169MB to centos7:/root
+
+[root@localhost ~]# docker cp apache-tomcat-9.0.78.tar.gz centos7:/root
+Successfully copied 11.7MB to centos7:/root</code></pre>
+
+      <p>配置资源</p>
+      <pre><code>[root@localhost ~]# docker exec -it centos7 /bin/bash
+[root@4a5032224c30 /]# cd root
+[root@4a5032224c30 ~]# ls
+anaconda-ks.cfg
+apache-tomcat-9.0.78.tar.gz
+jdk-11.0.14_linux-x64_bin.tar.gz
+[root@4a5032224c30 ~]# mkdir -p /usr/local/java
+[root@4a5032224c30 ~]# mkdir -p /usr/local/tomcat
+[root@4a5032224c30 ~]# tar zxf jdk-11.0.14_linux-x64_bin.tar.gz  -C /usr/local/java/
+[root@4a5032224c30 ~]# tar zxf apache-tomcat-9.0.78.tar.gz -C /usr/local/tomcat/
+
+
+[root@4a5032224c30 ~]# vi /etc/profile
+export JAVA_HOME=/usr/local/java/jdk-11.0.14
+export PATH=$PATH:$JAVA_HOME/bin
+[root@4a5032224c30 ~]# source /etc/profile
+[root@4a5032224c30 ~]# java --version
+java 11.0.14 2022-01-18 LTS
+Java(TM) SE Runtime Environment 18.9 (build 11.0.14+8-LTS-263)
+Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.14+8-LTS-263, mixed mode)</code></pre>
+
+      <h4>6.1 构建镜像</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>参数</th><th>含义</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>-a</td><td>作者</td></tr>
+            <tr><td>-c</td><td>应用 dockerfile 指令创建图像</td></tr>
+            <tr><td>-m</td><td>提交信息（描述信息）</td></tr>
+            <tr><td>-p</td><td>提交期间暂停容器（默认是 true）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code>#利用容器构建一个名称为mycentos，标签为7的镜像
+[root@localhost ~]# docker commit -a="wwh" -m="jdk&amp;&amp;tomcat" centos7 mycentos:7
+
+[root@localhost ~]# docker images
+REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+mycentos     7         005c26e909a2   14 seconds ago   682MB</code></pre>
+
+      <pre><code>#查询详细信息
+[root@localhost ~]# docker inspect mycentos:7</code></pre>
+      <p>（图：docker inspect mycentos:7 详细信息截图）</p>
+
+      <p>使用镜像构建容器</p>
+      <pre><code>[root@localhost ~]# docker run -id --name mycentos -p 6789:8080 mycentos:7</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== Dockerfile 构建镜像 ==================== -->
+  <div class="file-card" id="sec-dockerfile">
+    <div class="file-card-header">
+      <h3>Dockerfile 构建镜像</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>8.1 Dockerfile 的常用命令</h4>
+
+      <p><strong>FROM</strong></p>
+      <ul>
+        <li>指明构建镜像来自于那个基础镜像，如果你没有写 tag，那么默认还是 latest</li>
+        <li>如果在构建的时候，不需要基础镜像，FROM scratch</li>
+      </ul>
+      <pre><code>FROM &lt;镜像&gt;:&lt;tga&gt;</code></pre>
+
+      <p><strong>MAINTAINER</strong></p>
+      <ul>
+        <li>指明镜像的维护者，以及联系方式</li>
+        <li>推荐是 LABEL</li>
+      </ul>
+      <pre><code>MAINTAINER &lt;名字&gt;
+LABEL maintainer="名字"</code></pre>
+
+      <p><strong>RUN</strong></p>
+      <ul>
+        <li>创建镜像的时候运作的 shell 命令</li>
+        <li>比如：构建镜像的时候在 opt 目录下创建 a 目录</li>
+      </ul>
+      <pre><code>RUN mkdir -p /opt/a</code></pre>
+
+      <p><strong>ADD</strong></p>
+      <ul>
+        <li>拷贝文件或者目录到镜像里面</li>
+        <li>ADD 在拷贝压缩包时，会自动解压</li>
+      </ul>
+      <pre><code>ADD src dest</code></pre>
+
+      <p><strong>COPY</strong></p>
+      <ul>
+        <li>拷贝文件或者目录到镜像里面</li>
+        <li>COPY 在拷贝压缩包时，不会自动解压</li>
+      </ul>
+      <pre><code>COPY src dest</code></pre>
+
+      <p><strong>EXPOSE</strong></p>
+      <ul>
+        <li>暴漏容器运行时监听端口给外部，可以指定端口监听 TCP 或者时 UDP</li>
+        <li>默认 TCP</li>
+      </ul>
+      <pre><code>EXPOSE port</code></pre>
+
+      <p><strong>ENV</strong></p>
+      <ul>
+        <li>设置容器的环境变量</li>
+      </ul>
+      <pre><code>ENV JAVA_HOME=/JDK</code></pre>
+
+      <p><strong>CMD</strong></p>
+      <ul>
+        <li>启动容器时执行的 shell 命令</li>
+        <li>注意：在 docker file 文件只能由一个 cmd 命令
+          <ul>
+            <li>如果设置了多个 cmd 命令，只有最后一个会生效</li>
+          </ul>
+        </li>
+        <li>语法：
+          <ul>
+            <li>shell 格式：CMD 命令</li>
+            <li>exec 格式： CMD 可执行文件， 参数1……</li>
+            <li>参数列表格式： CMD 参数1，参数2，参数3……</li>
+          </ul>
+        </li>
+        <li>CMD 设置的命令会被 docker run 命令行指定的参数覆盖</li>
+      </ul>
+      <pre><code>CMD echo $JAVA_HOME
+----------------------------------
+
+docker run -it --name centos centos:7 echo "zhangsan"
+#本身已经在docker file文件内容定义了执行的语句，但是如果在创建并且启动容器的时候
+#重新赋予其他指令，那么在docker run 执行的语句设置的指令会覆盖CMD设置的指令
+#像上面这个案例，在docker run 执行的时候，不会输出java_home的值，而是输出zhangsan</code></pre>
+
+      <p><strong>ENTRYPOINT</strong></p>
+      <ul>
+        <li>指定一个容器启动的时候要运行的命令，和 CMD 应用都是指定容器在启动程序已经参数
+          <ul>
+            <li>ENTRYPOINT 不会被 docker run 命令行执行的指令参数覆盖</li>
+            <li>docker file 文件内容只能有一个 ENTRYPOINT 指令，如果设置多个，依旧只有最后一个生效</li>
+          </ul>
+        </li>
+      </ul>
+      <pre><code>ENTRYPOINT echo $JAVA_HOME</code></pre>
+
+      <p><strong>WORKDIR</strong></p>
+      <ul>
+        <li>指明在创建容器后，指定默认登录的目录</li>
+      </ul>
+      <pre><code>WORKDIR /dev</code></pre>
+
+      <p><strong>VOLUME</strong></p>
+      <ul>
+        <li>指定容器挂载点到宿主机自动生成目录或者其他容器</li>
+        <li>应用场景
+          <ul>
+            <li>一般使用的场景需要持久化存储数据</li>
+            <li>一般不会在 docker file 中使用</li>
+            <li>常见的时 docker run 使用利用 -v 指定数据卷</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>8.2 编写 Dockerfile 文件</h4>
+      <pre><code>vim dockerfile
+FROM centos:7
+# 基于centos7镜像构建新的镜像
+
+LABEL maintainer="zhangsan"
+# 指定作者信息
+
+WORKDIR /usr/local
+#设置工作目录
+
+ADD apache-tomcat-9.0.78.tar.gz /opt
+ADD jdk-11.0.14_linux-x64_bin.tar.gz /opt
+# 拷贝tar包到镜像中的opt目录并进行解压
+
+RUN cd /opt &amp;&amp; mv jdk-11.0.14 /usr/local/jdk11 &amp;&amp; mv apache-tomcat-9.0.78 /usr/local/tomcat9
+#移动文件重命名
+
+EXPOSE 8080
+#暴漏8080端口给外部
+
+ENV JAVA_HOME=/usr/local/jdk11
+ENV TOM_HOME=/usr/local/tomcat9
+ENV PATH=PATH:{JAVA_HOME}/bin:${TOM_HOME}/bin
+# 声明了环境变量
+
+CMD startup.sh &amp;&amp; tail -f ${TOM_HOME}/logs/catalina.out
+#启动tomcat并查询日志</code></pre>
+
+      <h4>8.3 构建镜像</h4>
+      <pre><code>[root@localhost ~]# docker build -f dockerfile -t whcentos:7 /root
+[+] Building 7.5s (10/10) FINISHED                                  docker:default
+ =&gt; [internal] load build definition from dockerfile                          0.0s
+ =&gt; =&gt; transferring dockerfile: 700B                                          0.0s
+ =&gt; [internal] load metadata for docker.io/library/centos:7                   0.0s
+ =&gt; [internal] load .dockerignore                                             0.0s
+ =&gt; =&gt; transferring context: 2B                                               0.0s
+ =&gt; [1/5] FROM docker.io/library/centos:7                                     0.0s
+ =&gt; [internal] load build context                                             1.3s
+ =&gt; =&gt; transferring context: 180.41MB                                         1.3s
+ =&gt; [2/5] WORKDIR /usr/local                                                  0.0s
+ =&gt; [3/5] ADD apache-tomcat-9.0.78.tar.gz /opt                                0.3s
+ =&gt; [4/5] ADD jdk-11.0.14_linux-x64_bin.tar.gz /opt                           2.2s
+ =&gt; [5/5] RUN cd /opt &amp;&amp; mv jdk-11.0.14 /usr/local/jdk11 &amp;&amp; mv apache-tomcat  2.0s
+ =&gt; exporting to image                                                        1.5s
+ =&gt; =&gt; exporting layers                                                       1.4s
+ =&gt; =&gt; writing image sha256:fe4e3c1bf380a9d2a1336c9f2479ed7128db9bd8e08c70d1  0.0s
+ =&gt; =&gt; naming to docker.io/library/whcentos:7</code></pre>
+
+      <hr>
+      <p>构建镜像时的写法：</p>
+      <ul>
+        <li>构建的时候，需要的包和 dockerfile 文件如果不在同一目录下，在构建的时候，需要指明存放相关包的路径
+          <ul>
+            <li>例如下列语句，需要的包存放在 /root 目录下</li>
+            <li><code>docker build -f dockerfile -t whcentos:7 /root</code></li>
+          </ul>
+        </li>
+        <li>如果需要构建 dockerfile 和需要的包在统一目录下可采用下面的方式
+          <ul>
+            <li><code>docker build -f dockerfile -t whcentos:7 .</code></li>
+          </ul>
+        </li>
+      </ul>
+
+      <hr>
+      <p>查询镜像</p>
+      <pre><code>[root@localhost ~]# docker images
+REPOSITORY   TAG       IMAGE ID       CREATED              SIZE
+whcentos     7         fe4e3c1bf380   About a minute ago   800MB
+mycentos     7         005c26e909a2   4 hours ago          682MB
+nginx        w         b91a427885d3   11 hours ago         186MB
+nginx        latest    1d668e06f1e5   7 days ago           188MB
+tomcat       latest    fca42eb4b550   9 days ago           455MB
+centos       7         eeb6ee3f44bd   2 years ago          204MB
+mysql        8.0.21    8e85dd5c3255   3 years ago          544MB</code></pre>
+
+      <h4>8.4 创建容器</h4>
+      <pre><code>[root@localhost ~]# docker run -id --name whcentos -p 1234:8080 whcentos:7
+37af2df0021a3ca0a22b4cf87f6a71ffaad5b5f25b33a4013de1dc4c74a846fd
+[root@localhost ~]# docker ps -a
+CONTAINER ID   IMAGE          COMMAND                   CREATED         STATUS                     PORTS                                                  NAMES
+37af2df0021a   whcentos:7     "/bin/sh -c 'startup…"   6 seconds ago   Up 5 seconds               0.0.0.0:1234-&gt;8080/tcp, :::1234-&gt;8080/tcp              whcentos</code></pre>
+      <p>（图：whcentos 容器运行及访问页面截图）</p>
+
+      <pre><code>[root@localhost ~]# docker exec -it whcentos /bin/bash
+[root@37af2df0021a local]# pwd
+/usr/local
+[root@37af2df0021a local]# java --version
+java 11.0.14 2022-01-18 LTS
+Java(TM) SE Runtime Environment 18.9 (build 11.0.14+8-LTS-263)
+Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.14+8-LTS-263, mixed mode)</code></pre>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="common.js"></script>
+
+</body>
+</html>

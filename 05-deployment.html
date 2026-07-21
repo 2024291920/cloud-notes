@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05 Linux 部署 - 云计算运维课程笔记</title>
+  <link rel="stylesheet" href="common.css">
+
+</head>
+<body>
+
+<div class="topbar">
+  
+  <span class="title"><span class="num" style="background:linear-gradient(90deg,#ec4899,#f43f5e)">05</span>Linux 部署</span>
+  <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
+    <div class="nav-btns">
+      <a href="04-ansible.html">&#8592;</a>
+      <a href="06-zabbix.html">&#8594;</a>
+  </div>
+</div>
+
+<div class="page-header">
+  <h1>05 Linux 部署</h1>
+  <p class="desc">Nginx 服务器配置、反向代理与负载均衡、Git+Maven 自动化部署、Jenkins CI/CD 流水线</p>
+</div>
+
+<div class="page-wrap">
+  <nav class="sidebar" id="sidebar">
+    <div class="side-title">本页导航</div>
+    <ul>
+      <li><a href="#sec-nginx">服务器 - Nginx 部署</a></li>
+      <li><a href="#sec-git-maven">自动化部署 - Git + Maven</a></li>
+      <li><a href="#sec-jenkins">Jenkins 自动化构建</a></li>
+    </ul>
+  </nav>
+  <div class="content">
+
+  <!-- ==================== 服务器-Nginx ==================== -->
+  <div class="file-card" id="sec-nginx">
+    <div class="file-card-header">
+      <h3>服务器 - Nginx 部署</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>HTTP 服务器</h4>
+      <p>接受 web 请求、响应 web 请求，在功能上还实现模块化结构设计，支持通用语言接口：例如 PHP\Perl\Python 等语言；同时还支持正向代理和反向代理、URL 重写、压缩传输、ssl 加密等等。</p>
+
+      <h4>Apache（httpd）（80）</h4>
+      <p>是一个开源跨平台的服务器，也称未 httpd，他是 Apache 基金会品牌产品。</p>
+
+      <h4>Nginx（80）</h4>
+      <ul>
+        <li>Nginx 也是开源，但是有个别功能是收费</li>
+        <li>它也是伊戈尔在 2004 年发布的 web 服务器，现在大多都是使用 nginx 作为 web 服务器</li>
+      </ul>
+      <p><strong>特点：</strong></p>
+      <ul>
+        <li>高性能、轻量级 web 服务器软件</li>
+        <li>跨平台使用</li>
+        <li>模块化设计、扩展性好</li>
+        <li>稳定性高</li>
+        <li>支持热部署，不统计更新配置文件</li>
+        <li>系统资源消耗低</li>
+        <li>对 http 并发连接处理速度高</li>
+      </ul>
+
+      <h4>Apache 和 Nginx 的区别</h4>
+      <ul>
+        <li>apache 请求处理模式：是把每一个请求作为一个新线程进行处理
+          <ul>
+            <li>多线程可以增加软件运行效率</li>
+            <li>缺点：多线程会消耗更多资源</li>
+          </ul>
+        </li>
+        <li>Nginx 使用事件驱动：一个线程处理多个请求，并且使用异步
+          <ul>
+            <li>没有使用多线程，避免资源占用</li>
+            <li>使用异步，提高吞吐量</li>
+          </ul>
+        </li>
+      </ul>
+      <ul>
+        <li>静态文件处理能力：Nginx 的处理能力是 Apache 的三倍以上</li>
+        <li>资源消耗：Nginx 低于 Apache</li>
+        <li>负载能力：Nginx 高于 Apache</li>
+        <li>配置文件：Nginx 简单</li>
+        <li>热部署：Nginx 支持热部署</li>
+      </ul>
+
+      <div class="key-box">
+        <strong>问题与解决方案：</strong><br>
+        IP、端口号是直接暴漏出去的；无法完成协作（两个猫眼程序不能互相协作）。<br>
+        解决方案：Nginx 反向代理、负载均衡。
+        <ul>
+          <li><strong>反向代理</strong>：中介代理房东，用户相当于租客；nginx 代理猫眼应用，用户访问时通过访问 Nginx 得到数据，黑客看到的只是 Nginx 提供的网址和端口。</li>
+          <li><strong>负载均衡</strong>：中介可以代理多个房主，Nginx 也可以代理多个服务器。轮询、加权轮询、最小轮询等。如果 A 服务器坏掉了，B 服务器可以承担压力。</li>
+        </ul>
+      </div>
+
+      <p>部署 Nginx（开一个新的虚拟机）：利用 Nginx 修改配置文件，让 Nginx 可以代理 192.168.10.128:8888 猫眼（反向代理）；利用 Nginx 代理多个，做负载均衡。</p>
+
+      <h4>二、部署 Nginx - 安装 Nginx</h4>
+      <p>上传安装包：</p>
+      <pre><code>nginx-1.22.1.tar.gz</code></pre>
+
+      <p>关闭防火墙、内核：</p>
+      <pre><code>[root@localhost opt]# systemctl  stop firewalld
+[root@localhost opt]# systemctl  disable  firewalld
+Removed symlink /etc/systemd/system/multi-user.target.wants/firewalld.service.
+Removed symlink /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service.
+[root@localhost opt]# setenforce  0
+setenforce: SELinux is disabled
+[root@localhost opt]# vim /etc/selinux/config
+SELINUX=disabled</code></pre>
+
+      <p>解压文件：</p>
+      <pre><code>[root@localhost opt]# tar zxf nginx-1.22.1.tar.gz
+[root@localhost opt]# ls
+nginx-1.22.1  nginx-1.22.1.tar.gz</code></pre>
+
+      <p>安装相关依赖包：</p>
+      <pre><code>[root@localhost opt]# yum -y install gcc  zilb zilb-devel pcre-devel openssl openssl-devel</code></pre>
+
+      <p>部署 nginx（源码编译安装）：</p>
+      <pre><code>[root@localhost nginx-1.22.1]# cd /opt/nginx-1.22.1
+[root@localhost nginx-1.22.1]# ./configure --prefix=/usr/local/nginx &amp;&amp; make &amp;&amp; make install</code></pre>
+
+      <p>启动 nginx：</p>
+      <pre><code>[root@localhost nginx-1.22.1]# cd /usr/local/nginx/sbin/
+[root@localhost sbin]# ./nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@localhost sbin]# ./nginx</code></pre>
+
+      <p>查询服务端口号：</p>
+      <pre><code>[root@localhost sbin]# yum -y install net-tools
+[root@localhost sbin]# netstat -anpt | grep 80
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      13236/nginx: master
+tcp        0      0 192.168.10.129:39452    202.141.160.110:80      TIME_WAIT   -</code></pre>
+
+      <p>访问服务：http://192.168.10.129:80</p>
+
+      <p>更换网页内容：</p>
+      <pre><code>[root@localhost sbin]# cd /usr/local/nginx/html/
+[root@localhost html]# ls
+50x.html  index.html  圣诞树.html
+[root@localhost html]# cp index.html{,.abk}
+[root@localhost html]# mv 圣诞树.html  index.html
+mv：是否覆盖"index.html"？ y</code></pre>
+
+      <h4>2.2 反向代理</h4>
+      <p><strong>安装目的：</strong>让用户在访问 192.168.10.129:80 看到 192.168.10.128:8888 对应的数据。</p>
+      <p>修改配置文件：</p>
+      <pre><code>[root@localhost nginx]# cd /usr/local/nginx/conf/
+[root@localhost conf]# cp nginx.conf{,.bak}
+    server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+         #   root   html;
+         #   index  index.html index.htm;
+         proxy_pass_header Server;
+         proxy_set_header Host $http_host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_pass http://192.168.10.128:8888;
+        }
+
+
+[root@localhost conf]# cd ../sbin/
+#检查配置文件
+[root@localhost sbin]# ./nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+
+
+[root@localhost sbin]# ./nginx  -s reload</code></pre>
+
+      <p><strong>验证反向代理：</strong>除了可以访问 192.168.10.128:8888/api/films/?currentindex=2&amp;cateld=5，还可以使用 192.168.10.129:80/api/films/?currentindex=2&amp;cateld=5。</p>
+
+      <h4>2.3 反向代理 + 负载均衡</h4>
+      <pre><code>[root@localhost sbin]# vim /usr/local/nginx/conf/nginx.conf
+    upstream cateye{    #声明一个服务组，里面定义要代理的服务IP：端口
+        server 192.168.10.128:8888;
+        server 192.168.10.128:8889;
+    }
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+         #   root   html;
+         #   index  index.html index.htm;
+         proxy_pass_header Server;
+         proxy_set_header Host $http_host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_pass http://cateye;    #代理的是服务站
+        }</code></pre>
+
+      <p>重启服务：</p>
+      <pre><code>[root@localhost sbin]# pwd
+/usr/local/nginx/sbin
+[root@localhost sbin]# ./nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@localhost sbin]# ./nginx -s reload</code></pre>
+
+      <p><strong>验证负载均衡：</strong></p>
+      <pre><code>http://192.168.10.129/api/films/?currentindex=2&amp;cateld=5</code></pre>
+
+      <h4>2.4 做真集群</h4>
+      <p>准备工作，克隆一个猫眼的机器：</p>
+      <ul>
+        <li>第一台：192.168.10.128:8888</li>
+        <li>第二台：192.168.10.130:8888</li>
+        <li>利用 192.168.10.129:80 去代理两个猫眼，做负载均衡</li>
+      </ul>
+
+      <p>192.168.10.128 服务器开启猫眼：</p>
+      <pre><code>[root@localhost ~]# cd /opt/gitdemo/cateye-pro/tar
+[root@localhost target]# nohup java -jar Cateye-pro.jar &gt; /opt/cateye.log 2&gt;&amp;1 --spring.config.location=/opt/gitdemo/application-dev.yml --httpPort=8888 &amp;</code></pre>
+
+      <p>192.168.10.130 服务器开启猫眼，操作同上。修改 Nginx 的配置文件，去代理两个猫眼：</p>
+      <pre><code>[root@localhost sbin]# vim /usr/local/nginx/conf/nginx.conf
+    upstream cateye{
+        server 192.168.10.128:8888;
+        server 192.168.10.130:8888;
+    }
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+         #   root   html;
+         #   index  index.html index.htm;
+         proxy_pass_header Server;
+         proxy_set_header Host $http_host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_pass http://cateye;
+        }
+
+[root@localhost sbin]# pwd
+/usr/local/nginx/sbin
+[root@localhost sbin]# ./nginx -t
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+[root@localhost sbin]# ./nginx -s reload</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== 自动化部署-Git+Maven ==================== -->
+  <div class="file-card" id="sec-git-maven">
+    <div class="file-card-header">
+      <h3>自动化部署 - Git + Maven</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>一、自动化部署</h4>
+      <p>开发人员开发完成，测试完成之后，把源码打包成部署包，发送到客户生产线上的这一系列操作就是部署。</p>
+      <ul>
+        <li>java 编译型，需要把源码打包成安装包或者部署包，JVM 进行解释</li>
+        <li>shell 时解释型，有解释器进行解释，让 cpu 执行</li>
+      </ul>
+
+      <p><strong>传统部署：</strong>由开发人员进行源码的编译、打包；通过运维对客户的生产线进行部署（使用工具把部署包发送到客户生产线想要位置，还需配置生产线的环境）。</p>
+
+      <h4>自动化部署工具</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>工具</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>git</td><td>源代码管理软件，开发的时候需要多人合作，每个人编辑自己的模块，最后要进行合并</td></tr>
+            <tr><td>Gitee</td><td>Gitee 介于 GitHub 而来的，Gitee 源码仓库：可以满足客户端 git 提交源代码和获取源代码的请求，假设在公有云上的</td></tr>
+            <tr><td>Gitlab</td><td>Gitlab 基本功能和 Gitee 一样，区别：Gitlab 时公司自己架设的源代码管理仓库</td></tr>
+            <tr><td>Maven</td><td>java 的 jar 包管理，jar 包的远程仓库，编译源代码为 jar 包，就是打包的意思，只要打包后才能部署</td></tr>
+            <tr><td>JDK</td><td>Java 开发和运行环境，Maven 的依赖</td></tr>
+            <tr><td>Nginx</td><td>静态资源服务器，访问静态资源、反向代理和负载均衡</td></tr>
+            <tr><td>Tomcat</td><td>JAVA 应用容器服务器，可以承载 java 应用，也可以承载 jenkins</td></tr>
+            <tr><td>Jenkins</td><td>自动化集成部署工具</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>二、Git 源代码管理工具</h4>
+      <p>打开方式：在文件内右键后选择 Git bash。</p>
+
+      <h4>2.1 初始化 git</h4>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c
+$ mkdir C:/gitdemo    #在C盘创建一个gitdemo文件夹
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c
+$ cd C:/gitdemo    #进入目录
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo
+$ git init
+Initialized empty Git repository in C:/gitdemo/.git/
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)</code></pre>
+      <p>初始化完成后，会发现在原本的路径显示上多了一个 master，这个是默认创建的分支。以后相关的源代码的管理都在默认分支下运行。</p>
+
+      <h4>2.2 增加内容</h4>
+      <p>创建文件：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ touch hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ echo "这个是我git的测试文件" &gt;&gt; hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ cat hello
+这个是我git的测试文件</code></pre>
+
+      <p>加入到版本库：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git add hello
+warning: in the working copy of 'hello', LF will be replaced by CRLF
+ the next time Git touches it</code></pre>
+      <pre><code>git add 本质是脚本目录，对内核git update-index的调用
+git update-index --add hello</code></pre>
+      <pre><code>如果你需要将某一个文件从版本库内移除，也可以使用update-index
+git update-index --force-remove hello</code></pre>
+
+      <p>commit：修改 hello 文件，向内追加新的内容。</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git status    #查询你当前状态
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached &lt;file&gt;..." to unstage)
+        new file:   hello
+
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ cat hello
+这个是我git的测试文件
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ echo "这个是新的数据，来测试文件" &gt;&gt; hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached &lt;file&gt;..." to unstage)
+        new file:   hello
+
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directo
+ry)
+        modified:   hello</code></pre>
+
+      <p>把修改的内容提交到缓冲区内：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git add .
+warning: in the working copy of 'hello', LF will be replaced by CRLF
+ the next time Git touches it</code></pre>
+
+      <div class="key-box">
+        <strong>提交时出现 Author identity unknown 问题：</strong><br>
+        在提交的时候出现下面的问题，如何解决：
+        <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git commit -m "diff"
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: unable to auto-detect email address (got 'admin@DESKTOP-KAC3R
+QQ.(none)')</code></pre>
+        解决方案，添加邮箱和用户名即可：
+        <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git config --global user.email "111111111@163.com"
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git config --global user.name "wwh"</code></pre>
+        添加完成后再次重新提交就可以了：
+        <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git commit -m "diff"
+[master (root-commit) 3d92d20] diff
+ 1 file changed, 2 insertions(+)
+ create mode 100644 hello</code></pre>
+      </div>
+
+      <p>diff：git diff 命令可以做的效果：比较当前工作目录和版本库中差异。</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ echo "这个数据，是为了和版本内的数据做对比" &gt;&gt; hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git diff
+warning: in the working copy of 'hello', LF will be replaced by CRLF the n
+ext time Git touches it
+diff --git a/hello b/hello
+index ebe65b2..3c23f78 100644
+--- a/hello
++++ b/hello
+@@ -1,2 +1,3 @@
+ 这个是我git的测试文件
+ 这个是新的数据，来测试文件
++这个数据，是为了和版本内的数据做对比</code></pre>
+
+      <h4>2.3 管理分支</h4>
+      <p>查看分支：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git branch
+* master</code></pre>
+
+      <p>常见的分支策略：创建一个属于自己的个人开发分支，可以避免对主分支 master 的干扰，也方便和其他人沟通；高风险区、不稳定的代码，都在其他分支运行。</p>
+
+      <p>创建分支：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git branch
+* master
+  saly</code></pre>
+
+      <p>切换分支：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git checkout saly
+Switched to branch 'saly'
+M       hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (saly)</code></pre>
+
+      <p>创建分支并切换：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (saly)
+$ git checkout -b salys
+Switched to a new branch 'salys'
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git branch
+  master
+  saly
+* salys</code></pre>
+
+      <p>删除分支：分支在被占用的时候，是不能直接删除的；如果需要删除，需先切换到其他分支，再进行删除。</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git branch -d saly    #删除分支saly
+Deleted branch saly (was 3d92d20).
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git branch -d salys    #删除分支salys，报错了，因为分支正在被使用
+error: Cannot delete branch 'salys' checked out at 'C:/gitdemo'
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git checkout master
+Switched to branch 'master'
+M       hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git branch -d salys
+Deleted branch salys (was 3d92d20).</code></pre>
+
+      <p>分支合并：重新建立分支并向文件内新增数据。</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git checkout -b salys
+Switched to a new branch 'salys'
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ echo "这个数据是在salys分支添加的新的数据" &gt;&gt; hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git add .
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git commit -m "salys分支提交的数据"
+[salys 447868b] salys分支提交的数据
+ 1 file changed, 2 insertions(+)</code></pre>
+
+      <p>切回 master 分支，修改 hello 文件：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (salys)
+$ git checkout master
+Switched to branch 'master'
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ echo "这个是master分支提交的数据" &gt;&gt; hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git add .
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git commit  -m "master分支的修改"
+[master 9e1c332] master分支的修改
+ 1 file changed, 1 insertion(+)</code></pre>
+
+      <p>分支对比：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git show-branch
+* [master] master分支的修改
+ ! [salys] salys分支提交的数据
+--
+*  [master] master分支的修改
+ + [salys] salys分支提交的数据
+*+ [master^] diff</code></pre>
+
+      <p>把 salys 分支的内容合并到 master 分支：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git merge -m "合并salys分支的内容" salys
+Auto-merging hello
+CONFLICT (content): Merge conflict in hello
+Automatic merge failed; fix conflicts and then commit the result.</code></pre>
+
+      <div class="key-box">
+        <strong>合并分支报错：</strong>因为两个分支同时修改了文件，并且都做了提交，导致文件内容不一致，这个时候合并，会出现不知道覆盖谁的。
+      </div>
+
+      <p>解决合并分支的冲突问题：hello 文件打开后的内容</p>
+      <pre><code>这个是我git的测试文件
+这个是新的数据，来测试文件
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+这个是master分支提交的数据
+=======
+这个数据，是为了和版本内的数据做对比
+这个数据是在salys分支添加的新的数据
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; salys</code></pre>
+
+      <p>如果需要保留两个分支不同数据：</p>
+      <pre><code>这个是我git的测试文件
+这个是新的数据，来测试文件
+这个是master分支提交的数据
+这个数据，是为了和版本内的数据做对比
+这个数据是在salys分支添加的新的数据</code></pre>
+
+      <p>将修改完成内容，再次进行提交：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master|MERGING)
+$ git add hello
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master|MERGING)
+$ git commit -m "这个是解决了合并分支问题的"
+[master b7286cf] 这个是解决了合并分支问题的</code></pre>
+
+      <p>git log 查询日志：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git log
+commit b7286cfe98d1378ed3c1eeeb49de7051c7d674b8 (HEAD -&gt; master)
+Merge: 9e1c332 447868b
+Author: wwh &lt;111111111@163.com&gt;
+Date:   Tue Apr 9 15:17:48 2024 +0800
+
+    这个是解决了合并分支问题的
+
+commit 9e1c332bf544c5936bc47ececfcbcbb295d3702c
+Author: wwh &lt;111111111@163.com&gt;
+Date:   Tue Apr 9 14:28:05 2024 +0800
+
+    master分支的修改
+
+commit 447868b271edb9da5b547b9b2218792813510436 (salys)
+Author: wwh &lt;111111111@163.com&gt;
+Date:   Tue Apr 9 14:22:48 2024 +0800
+
+    salys分支提交的数据
+
+commit 3d92d2063439bb2b2cf65b79e36cd84806d36cd6
+Author: wwh &lt;111111111@163.com&gt;
+Date:   Tue Apr 9 13:48:17 2024 +0800
+
+    diff</code></pre>
+
+      <h4>三、Gitee 的使用</h4>
+      <p>创建仓库：打开 Gitee.com，登录账号，建立仓库。</p>
+
+      <p>密钥文件管理：查询邮箱和用户名</p>
+      <pre><code>$ git config --list --show-origin
+………
+file:C:/Users/admin/.gitconfig  user.email=111111111@163.com
+file:C:/Users/admin/.gitconfig  user.name=wwh
+……</code></pre>
+
+      <p>创建密钥文件：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ ssh-keygen -t rsa -C "111111111@163.com"
+
+`下面的一直回车就行`
+Generating public/private rsa key pair.
+Enter file in which to save the key (/c/Users/admin/.ssh/id_rsa):
+Created directory '/c/Users/admin/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /c/Users/admin/.ssh/id_rsa
+Your public key has been saved in /c/Users/admin/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:CMJHw5qriWeBgDG/8/6uBFUR6m5ojPKLB4J8mHeNfBU 111111111@163.com</code></pre>
+
+      <p>连接远程仓库：</p>
+      <pre><code>`将远程仓库添加到本地`
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git remote  add origin git@gitee.com:wei-wen-hui/yw15.git
+
+`查询连接的远程仓库`
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git remote -v
+origin  git@gitee.com:wei-wen-hui/yw15.git (fetch)
+origin  git@gitee.com:wei-wen-hui/yw15.git (push)</code></pre>
+
+      <p>从远程仓库拉取数据：</p>
+      <pre><code>git pull origin master</code></pre>
+
+      <p>拉取时本地和远程仓库版本不一致，导致拉取失败和解决方案：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git pull origin master
+From gitee.com:wei-wen-hui/yw15
+ * branch            master     -&gt; FETCH_HEAD
+fatal: refusing to merge unrelated histories
+
+解决方案
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git pull origin master --allow-unrelated-histories
+From gitee.com:wei-wen-hui/yw15
+ * branch            master     -&gt; FETCH_HEAD
+Merge made by the 'ort' strategy.
+ README.en.md | 36 ++++++++++++++++++++++++++++++++++++
+ README.md    | 39 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 75 insertions(+)
+ create mode 100644 README.en.md
+ create mode 100644 README.md</code></pre>
+
+      <p>向远程仓库推送数据：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git push  -u origin master
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (14/14), 1.35 KiB | 1.35 MiB/s, done.
+Total 14 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Powered by GITEE.COM [GNK-6.4]
+To gitee.com:wei-wen-hui/yw15.git
+   b0d6fc2..ad6ff5e  master -&gt; master
+branch 'master' set up to track 'origin/master'.</code></pre>
+
+      <h4>3.4.3 在远程仓库创建分支</h4>
+      <p><strong>方法一：</strong>通过 Gitee 网页界面直接创建分支。在仓库页面点击分支下拉按钮 → 选择"新建分支" → 填写分支名称→ 创建完成后该分支即可供团队成员使用。</p>
+      <p><strong>方法二：</strong>本地创建分支，将本地分支 wwh 推送到远程仓库。</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git branch wwh
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git checkout wwh
+Switched to branch 'wwh'
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (wwh)
+$ echo "这个是我新创建wwh分支" &gt;&gt; w.txt
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (wwh)
+$ git add .
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (wwh)
+$ git commit -m "wwh分支推送的文件"
+[wwh 5f39f1a] wwh分支推送的文件
+ 1 file changed, 1 insertion(+)
+ create mode 100644 w.txt
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (wwh)
+$ git push origin wwh
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 318 bytes | 318.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Powered by GITEE.COM [GNK-6.4]
+remote: Create a pull request for 'wwh' on Gitee by visiting:
+remote:     https://gitee.com/wei-wen-hui/yw15/pull/new/wei-wen-hui:wwh...wei-w
+en-hui:master
+To gitee.com:wei-wen-hui/yw15.git
+ * [new branch]      wwh -&gt; wwh</code></pre>
+
+      <p>克隆分支到本地：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c
+$ git clone -b wwh git@gitee.com:wei-wen-hui/yw15.git
+Cloning into 'yw15'...
+remote: Enumerating objects: 21, done.
+remote: Counting objects: 100% (21/21), done.
+remote: Compressing objects: 100% (16/16), done.
+remote: Total 21 (delta 5), reused 0 (delta 0), pack-reused 0
+Receiving objects: 100% (21/21), done.
+Resolving deltas: 100% (5/5), done.</code></pre>
+
+      <h4>3.5 成员管理</h4>
+      <p>在 Gitee 仓库中进行成员管理，让团队成员可以协作开发。首先需要成员将自己的 SSH 公钥添加到自己的 Gitee 账号中，然后由仓库拥有者将成员添加到仓库中。</p>
+      <p>步骤：进入仓库页面 → 点击顶部"管理"选项卡 → 左侧菜单选择"仓库成员管理" → 点击"添加仓库成员"→ "邀请用户"。可以通过链接邀请、直接添加或通过仓库邀请成员的方式添加团队成员。</p>
+
+      <p>合并分支：</p>
+      <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c
+$ cd gitdemo/
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (wwh)
+$ git checkout master
+Switched to branch 'master'
+Your branch is up to date with 'origin/master'.
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git pull . wwh
+From .
+ * branch            wwh        -&gt; FETCH_HEAD
+Updating ad6ff5e..5f39f1a
+Fast-forward
+ w.txt | 1 +                           `增加了一个文件`
+ 1 file changed, 1 insertion(+)
+ create mode 100644 w.txt
+
+admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
+$ git push
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+remote: Powered by GITEE.COM [GNK-6.4]
+To gitee.com:wei-wen-hui/yw15.git
+   ad6ff5e..5f39f1a  master -&gt; master</code></pre>
+
+      <h4>四、Linux 部署 Git</h4>
+      <p>安装编译器、依赖包、安装源、扩展包：</p>
+      <pre><code>[root@localhost opt]# yum -y install gcc zlib-devel perl-ExtUtils-MakeMaker package</code></pre>
+
+      <p>拉取安装包：</p>
+      <pre><code>[root@localhost ~]# yum -y install wget
+[root@localhost ~]# 
+wget https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.18.0.tar.gz
+
+[root@localhost ~]# mv git-2.18.0.tar.gz /opt/</code></pre>
+
+      <p>部署 Git：</p>
+      <pre><code>[root@localhost opt]# tar zxf git-2.18.0.tar.gz
+#配置并且指定安装目录
+[root@localhost opt]# cd git-2.18.0
+[root@localhost git-2.18.0]# ./configure --prefix=/usr/local/git
+#编译
+[root@localhost git-2.18.0]# make
+#安装
+[root@localhost git-2.18.0]# make install</code></pre>
+
+      <p>验证安装结果：</p>
+      <pre><code>[root@localhost git-2.18.0]# ls /usr/local/git/
+bin  libexec  share</code></pre>
+
+      <p>配置环境变量：</p>
+      <pre><code>[root@localhost git-2.18.0]# vim /etc/profile
+export GIT_HOME=$PATH:/usr/local/git
+export PATH=$PATH:$GIT_HOME/bin
+[root@localhost git-2.18.0]# source /etc/profile
+[root@localhost git-2.18.0]# git version
+git version 2.18.0</code></pre>
+
+      <p>管理 Git：创建目录完成初始化</p>
+      <pre><code>[root@localhost opt]# mkdir gitdemo
+[root@localhost opt]# cd gitdemo/
+[root@localhost gitdemo]# git init
+已初始化空的 Git 仓库于 /opt/gitdemo/.git/
+[root@localhost gitdemo]# ls -a
+.  ..  .git</code></pre>
+
+      <p>添加远程仓库：</p>
+      <pre><code>[root@localhost gitdemo]# git remote add origin git@gitee.com:wei-wen-hui/yw15.git
+[root@localhost gitdemo]# git remote -v
+origin  git@gitee.com:wei-wen-hui/yw15.git (fetch)
+origin  git@gitee.com:wei-wen-hui/yw15.git (push)</code></pre>
+
+      <p>设置密钥并上传公钥：</p>
+      <pre><code>[root@localhost gitdemo]# git config --global user.email "111111111@163.com"
+[root@localhost gitdemo]# git config --global user.name "wwh"
+[root@localhost gitdemo]# ssh-keygen -t rsa -C "111111111@163.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):
+Created directory '/root/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.</code></pre>
+
+      <p>添加公钥到远程 gitee 仓库：</p>
+      <pre><code>[root@localhost gitdemo]# cat /root/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHsRXEBJn0GcPyeefFXhhBB2UMMt3piSqneHbm/Qu4TXg2+JGEQX7FrOhp+qV2zBPMRraXV2VqudZaUKd1uLdMvZRythCG7KMlokuXmiLIhcbrcsCG/IawNBJPYwC2cJ+4QL6vwhjWhblEAonOu5i2ADpOK98y8un0VYr9SbGb90GQ/9F7CcF+1EgMUvq+r0hxkvPXVjRBsXwsSgJQRuQnOcjWYmO0Bt5PMewcoj6153Szc5RVXU+na4LZvgDlvLgyDI6BT6h+ddvBvbOoqtv4Z73Qf3/wFnGIE0+dwc4CInoVvOAVcYgCB9ORU8wQtNyBGiwlIfMi/1yTHPF41La/ 111111111@163.com</code></pre>
+
+      <p>从远程仓库拉取文件：</p>
+      <pre><code>[root@localhost gitdemo]# git pull origin master
+The authenticity of host 'gitee.com (180.76.198.77)' can't be established.
+ECDSA key fingerprint is SHA256:FQGC9Kn/eye1W8icdBgrQp+KkGYoFgbVr17bmjey0Wc.
+Are you sure you want to continue connecting (yes/no)? yesxiak
+Warning: Permanently added 'gitee.com,180.76.198.77' (ECDSA) to the list of known hosts.
+remote: Enumerating objects: 21, done.
+remote: Counting objects: 100% (21/21), done.
+remote: Compressing objects: 100% (16/16), done.
+remote: Total 21 (delta 5), reused 0 (delta 0), pack-reused 0
+展开对象中: 100% (21/21), 完成.
+来自 gitee.com:wei-wen-hui/yw15
+ * branch            master     -&gt; FETCH_HEAD
+ * [新分支]          master     -&gt; origin/master
+[root@localhost gitdemo]# ls
+hello  README.en.md  README.md  w.txt</code></pre>
+
+      <h4>五、Gitlab 的搭建</h4>
+      <p>gitee 是他人在公共网络上架设好的远程代码仓库；Gitlab 也是远程代码仓库，但是是架设在公司内网内，需要自己进行搭建部署。</p>
+
+      <p>安装 curl、依赖包、postfix：</p>
+      <pre><code>[root@localhost gitdemo]# yum -y install curl policycoreutils-python openssh-server
+[root@localhost gitdemo]# yum -y install postfix</code></pre>
+
+      <p>安装 gitlab（安装过程会略慢，等待）：</p>
+      <pre><code>[root@localhost opt]# rpm -i gitlab-ce-14.9.5-ce.0.el7.x86_64.rpm
+警告：gitlab-ce-14.9.5-ce.0.el7.x86_64.rpm: 头V4 RSA/SHA1 Signature, 密钥 ID f27eab47: NOKEY
+It looks like GitLab has not been configured yet; skipping the upgrade script.
+
+       *.                  *.
+      ***                 ***
+     *****               *****
+    .******             *******
+    ********            ********
+   ,,,,,,,,,***********,,,,,,,,,
+  ,,,,,,,,,,,*********,,,,,,,,,,,
+  .,,,,,,,,,,,*******,,,,,,,,,,,,
+      ,,,,,,,,,*****,,,,,,,,,.
+         ,,,,,,,****,,,,,,
+            .,,,***,,,,
+                ,*,.
+
+
+
+     _______ __  __          __
+    / ____(_) /_/ /   ____ _/ /_
+   / / __/ / __/ /   / __ `/ __ \
+  / /_/ / / /_/ /___/ /_/ / /_/ /
+  \____/_/\__/_____/\__,_/_.___/
+
+
+Thank you for installing GitLab!</code></pre>
+
+      <p>关闭防火墙、内核：</p>
+      <pre><code>[root@localhost opt]# setenforce 0
+setenforce: SELinux is disabled
+[root@localhost opt]# systemctl  stop firewalld</code></pre>
+
+      <p>修改配置文件：</p>
+      <pre><code>[root@localhost opt]# cp /etc/gitlab/gitlab.rb{,.bak}
+[root@localhost opt]# vim /etc/gitlab/gitlab.rb
+#32行
+#设定gitlab仓库的访问地址，设置端口的时候给大一点，防止冲突
+external_url 'http://192.168.10.128:9999'</code></pre>
+
+      <p>初始化 Gitlab（不要多次执行）：</p>
+      <pre><code>[root@localhost opt]# gitlab-ctl reconfigure</code></pre>
+
+      <p>重启 gitlab：</p>
+      <pre><code>[root@localhost opt]# gitlab-ctl restart
+ok: run: alertmanager: (pid 103195) 0s
+ok: run: gitaly: (pid 103213) 0s
+ok: run: gitlab-exporter: (pid 103235) 0s
+ok: run: gitlab-kas: (pid 103243) 1s
+ok: run: gitlab-workhorse: (pid 103252) 0s
+ok: run: grafana: (pid 103261) 0s
+ok: run: logrotate: (pid 103282) 1s
+ok: run: nginx: (pid 103291) 0s
+ok: run: node-exporter: (pid 103305) 1s
+ok: run: postgres-exporter: (pid 103312) 0s
+ok: run: postgresql: (pid 103323) 1s
+ok: run: prometheus: (pid 103338) 0s
+ok: run: puma: (pid 103451) 0s
+ok: run: redis: (pid 103462) 0s
+ok: run: redis-exporter: (pid 103468) 1s
+ok: run: sidekiq: (pid 103501) 0s</code></pre>
+
+      <p>访问 gitlab：http://192.168.10.128:9999</p>
+
+      <p>查看默认密码：</p>
+      <pre><code>[root@localhost ~]# cat /etc/gitlab/initial_root_password
+# WARNING: This value is valid only in the following conditions
+#          1. If provided manually (either via `GITLAB_ROOT_PASSWORD` environment variable or via `gitlab_rails['initial_root_password']` setting in `gitlab.rb`, it was provided before database was seeded for the first time (usually, the first reconfigure run).
+#          2. Password hasn't been changed manually, either via UI or via command line.
+
+Password: 7YxGIsyfSJiT5dBf8hR0aMONWN2YyCXl66id63ufR5E=
+
+# NOTE: This file will be automatically deleted in the first reconfigure run after 24 hours.</code></pre>
+
+      <p>上传公钥到 Gitlab 仓库：</p>
+      <pre><code>[root@localhost ~]# cat /root/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHsRXEBJn0GcPyeefFXhhBB2UMMt3piSqneHbm/Qu4TXg2+JGEQX7FrOhp+qV2zBPMRraXV2VqudZaUKd1uLdMvZRythCG7KMlokuXmiLIhcbrcsCG/IawNBJPYwC2cJ+4QL6vwhjWhblEAonOu5i2ADpOK98y8un0VYr9SbGb90GQ/9F7CcF+1EgMUvq+r0hxkvPXVjRBsXwsSgJQRuQnOcjWYmO0Bt5PMewcoj6153Szc5RVXU+na4LZvgDlvLgyDI6BT6h+ddvBvbOoqtv4Z73Qf3/wFnGIE0+dwc4CInoVvOAVcYgCB9ORU8wQtNyBGiwlIfMi/1yTHPF41La/ 111111111@163.com</code></pre>
+
+      <p>添加远程仓库到本地：</p>
+      <pre><code>[root@localhost opt]# mkdir gitlabdemo
+[root@localhost opt]# cd gitlabdemo/
+[root@localhost gitlabdemo]# git init
+已初始化空的 Git 仓库于 /opt/gitlabdemo/.git/
+[root@localhost gitlabdemo]# git remote add origin git@192.168.10.128:root/yw15.git
+[root@localhost gitlabdemo]# git remote -v
+origin  git@192.168.10.128:root/yw15.git (fetch)
+origin  git@192.168.10.128:root/yw15.git (push)</code></pre>
+
+      <p>从远程仓库去拉取数据：</p>
+      <pre><code>#再未拉取是，本地重新不到分支
+[root@localhost gitlabdemo]# git branch
+
+#从远程仓库拉取数据
+[root@localhost gitlabdemo]# git pull origin main
+The authenticity of host '192.168.10.128 (192.168.10.128)' can't be established.
+ECDSA key fingerprint is SHA256:sjJOeNbp8WBhber0kZiIR2eCNu7jxEuSwh4NGBRQ/pw.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.10.128' (ECDSA) to the list of known hosts.
+remote: Enumerating objects: 3, done.
+remote: Counting objects: 100% (3/3), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+展开对象中: 100% (3/3), 完成.
+来自 192.168.10.128:root/yw15
+ * branch            main       -&gt; FETCH_HEAD
+ * [新分支]          main       -&gt; origin/main
+
+#拉取成功之后，会默认生成一个新的分支master
+[root@localhost gitlabdemo]# git branch
+* master
+
+
+#切换到远程仓库分支后查询时两个分支
+[root@localhost gitlabdemo]# git checkout main
+分支 'main' 设置为跟踪来自 'origin' 的远程分支 'main'。
+切换到一个新分支 'main'
+[root@localhost gitlabdemo]# git branch
+* main
+  master</code></pre>
+
+      <p>向远程仓库上传数据：</p>
+      <pre><code>[root@localhost gitlabdemo]# echo "这个是测试文件八零八零八零" &gt;&gt; test1.txt
+[root@localhost gitlabdemo]# git add test1.txt
+[root@localhost gitlabdemo]# git commit -m "测试文件"
+[main e567b6f] 测试文件
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test1.txt
+[root@localhost gitlabdemo]# git push
+枚举对象: 4, 完成.
+对象计数中: 100% (4/4), 完成.
+Delta compression using up to 4 threads.
+压缩对象中: 100% (2/2), 完成.
+写入对象中: 100% (3/3), 313 bytes | 313.00 KiB/s, 完成.
+Total 3 (delta 0), reused 0 (delta 0)
+To 192.168.10.128:root/yw15.git
+   d950b86..e567b6f  main -&gt; main</code></pre>
+
+      <p>克隆分支到本地：</p>
+      <pre><code>[root@localhost opt]# git clone -b main git@192.168.10.128:root/yw15.git
+正克隆到 'yw15'...
+remote: Enumerating objects: 6, done.
+remote: Counting objects: 100% (6/6), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 6 (delta 0), reused 0 (delta 0), pack-reused 0
+接收对象中: 100% (6/6), 完成.</code></pre>
+
+      <h4>六、上传猫眼项目</h4>
+      <p>上传猫眼项目到 gitee 仓库：</p>
+      <pre><code>[root@localhost gitdemo]# ls
+cateye-pro  hello  README.en.md  README.md  w.txt
+[root@localhost gitdemo]# git add cateye-pro
+[root@localhost gitdemo]# git status        #查询状态时，会发现有很多绿的文件，这些都是.java文件
+
+[root@localhost gitdemo]# git commit -m "猫眼项目1.0"
+
+#推送到gitee仓库
+
+[root@localhost gitdemo]# git push --set-upstream origin master
+枚举对象: 142, 完成.
+对象计数中: 100% (142/142), 完成.
+Delta compression using up to 4 threads.
+压缩对象中: 100% (131/131), 完成.
+写入对象中: 100% (141/141), 52.69 KiB | 4.39 MiB/s, 完成.
+Total 141 (delta 32), reused 0 (delta 0)
+remote: Resolving deltas: 100% (32/32), completed with 1 local object.
+remote: Powered by GITEE.COM [GNK-6.4]
+To gitee.com:wei-wen-hui/yw15.git
+   5f39f1a..e7a238e  master -&gt; master
+分支 'master' 设置为跟踪来自 'origin' 的远程分支 'master'。</code></pre>
+
+      <p>上传猫眼项目到 gitlab 仓库内：</p>
+      <pre><code>[root@localhost gitdemo]# cp -r cateye-pro /opt/gitlabdemo/
+[root@localhost gitdemo]# cd /opt/gitlabdemo/
+[root@localhost gitlabdemo]# git add . &amp;&amp; git commit -m "猫眼项目1.0" &amp;&amp; git push --set-upstream origin main</code></pre>
+
+      <h4>七、部署 JDK 环境</h4>
+      <pre><code>[root@localhost opt]# tar zxf jdk-11.0.14_linux-x64_bin.tar.gz -C /usr/local/
+[root@localhost opt]# ln -s /usr/local/jdk-11.0.14 /jdk
+[root@localhost opt]# rm -rf /usr/bin/java
+[root@localhost opt]# ln -s /jdk/bin/java /usr/bin/java
+[root@localhost opt]# vim /etc/profile
+export JAVA_HOME=/jdk
+
+[root@localhost opt]# source /etc/profile
+[root@localhost opt]# java --version
+java 11.0.14 2022-01-18 LTS
+Java(TM) SE Runtime Environment 18.9 (build 11.0.14+8-LTS-263)
+Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.14+8-LTS-263, mixed mode)</code></pre>
+
+      <h4>八、Maven 安装</h4>
+      <p>上传压缩包：apache-maven-3.9.3-bin.tar.gz。解压并且移动重命名：</p>
+      <pre><code>[root@localhost opt]# tar zxf apache-maven-3.9.3-bin.tar.gz
+[root@localhost opt]# mv apache-maven-3.9.3 /usr/local/maven
+export GIT_HOME=$PATH:/usr/local/git
+export PATH=$PATH:$GIT_HOME/bin
+export JAVA_HOME=/jdk
+export MAVEN_HOME=/usr/local/maven
+export PATH=$PATH:$GIT_HOME/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin
+
+[root@localhost opt]# source /etc/profile</code></pre>
+
+      <p>配置 MAVEN：</p>
+      <pre><code>[root@localhost opt]# cd /usr/local/maven/
+[root@localhost maven]# mkdir repo
+[root@localhost maven]# cp conf/settings.xml{,.bak}
+[root@localhost maven]# vim conf/settings.xml
+#55行添加，去指明jar存放仓库
+  &lt;localRepository&gt;/usr/local/maven/repo&lt;/localRepository&gt;
+
+
+#在160行左右添加下列内容
+#主要作用就是指明jar包仓库
+#默认时指向国外仓库，改为指向阿里云仓库
+    &lt;mirror&gt;
+      &lt;id&gt;aliyun-maven&lt;/id&gt;
+      &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;
+      &lt;name&gt;阿里云的maven仓库&lt;/name&gt;
+      &lt;url&gt;https://maven.aliyun.com/repository/public&lt;/url&gt;
+    &lt;/mirror&gt;</code></pre>
+
+      <p>验证 maven：</p>
+      <pre><code>[root@localhost maven]# mvn --version
+Apache Maven 3.9.3 (21122926829f1ead511c958d89bd2f672198ae9f)
+Maven home: /usr/local/maven
+Java version: 11.0.14, vendor: Oracle Corporation, runtime: /usr/local/jdk-11.0.14
+Default locale: zh_CN, platform encoding: UTF-8
+OS name: "linux", version: "3.10.0-1160.el7.x86_64", arch: "amd64", family: "unix"</code></pre>
+
+      <h4>九、部署猫眼项目</h4>
+      <p>获取项目：</p>
+      <pre><code>#创建仓库
+[root@localhost opt]# mkdir gitdemo
+[root@localhost opt]# cd gitdemo/
+#做初始化
+[root@localhost gitdemo]# git init
+已初始化空的 Git 仓库于 /opt/gitdemo/.git/
+#连接远程仓库
+[root@localhost gitdemo]# git remote add origin git@gitee.com:wei-wen-hui/yw15.git
+
+[root@localhost gitdemo]# git remote -v
+origin  git@gitee.com:wei-wen-hui/yw15.git (fetch)
+origin  git@gitee.com:wei-wen-hui/yw15.git (push)
+#拉取源码
+[root@localhost gitdemo]# git pull origin master
+remote: Enumerating objects: 162, done.
+remote: Counting objects: 100% (162/162), done.
+remote: Compressing objects: 100% (115/115), done.
+remote: Total 162 (delta 37), reused 142 (delta 32), pack-reused 0
+接收对象中: 100% (162/162), 56.26 KiB | 1.31 MiB/s, 完成.
+处理 delta 中: 100% (37/37), 完成.
+来自 gitee.com:wei-wen-hui/yw15
+ * branch            master     -&gt; FETCH_HEAD
+ * [新分支]          master     -&gt; origin/master
+
+
+[root@localhost gitdemo]# ls
+cateye-pro  hello  README.en.md  README.md  w.txt</code></pre>
+
+      <p>上传项目的配置文件 application-dev.yml 文件到 /opt/gitdemo 目录下：</p>
+      <pre><code>[root@localhost gitdemo]# vim application-dev.yml
+
+server:
+  port: 8888
+
+commIP: 192.168.10.137</code></pre>
+
+      <p>调试中间件服务器：检查 kafka 的配置文件</p>
+      <pre><code>[root@localhost ~]# vim /usr/local/kafka/config/server.properties
+listeners=PLAINTEXT://192.168.10.137:9092
+zookeeper.connect=192.168.10.137:2181</code></pre>
+
+      <p>启动进程：</p>
+      <pre><code>[root@localhost ~]# cd /opt/shell/
+[root@localhost shell]# ./sysgo.sh</code></pre>
+
+      <p>检查进程：3306 mysql、6379 redis、9200 9300 elastic、9092 kafka</p>
+      <pre><code>[root@localhost shell]# netstat -anpt | grep 3306
+tcp6       0      0 :::33060                :::*                    LISTEN      1046/mysqld
+tcp6       0      0 :::3306                 :::*                    LISTEN      1046/mysqld
+
+[root@localhost shell]# netstat -anpt | grep 6379
+tcp        0      0 0.0.0.0:6379            0.0.0.0:*               LISTEN      8827/redis-server 0
+tcp6       0      0 ::1:6379                :::*                    LISTEN      8827/redis-server 0
+
+
+[root@localhost shell]# netstat -anpt | grep 9200
+tcp6       0      0 :::9200                 :::*                    LISTEN      8749/java  
+[root@localhost shell]# netstat -anpt | grep 9300
+tcp6       0      0 :::9300                 :::*                    LISTEN      8749/java 
+
+ [root@localhost shell]# netstat -anpt | grep 9092
+tcp6       0      0 192.168.10.137:9092     :::*                    LISTEN      9251/java  </code></pre>
+
+      <p>检查防火墙和内核：</p>
+      <pre><code>[root@localhost ~]# getenforce    #查询内核状态
+Enforcing
+[root@localhost ~]# setenforce 0    #临时关闭
+SELINUX=disabled
+[root@localhost ~]# vim /etc/selinux/config
+SELINUX=disabled
+
+
+[root@localhost ~]# systemctl stop firewalld
+[root@localhost ~]# systemctl disable  firewalld</code></pre>
+
+      <pre><code>[root@localhost ~]# netstat  -anpt | grep 8888
+tcp6       0      0 :::8888                 :::*                    LISTEN      9254/java
+[root@localhost ~]# kill 9254
+[root@localhost ~]# netstat  -anpt | grep 8888
+tcp6       0      0 ::1:39882               ::1:8888                TIME_WAIT   -</code></pre>
+
+      <h4>十、Maven 的使用</h4>
+      <p>maven 打包：打包过程很长、等待即可；中间如果有短暂卡顿正常，等待即可；不要求网络很快，网络尽量稳定。</p>
+      <pre><code>[root@localhost cateye-pro]# pwd
+/opt/gitdemo/cateye-pro
+[root@localhost cateye-pro]# mvn install package</code></pre>
+
+      <p>打包完成后当前目录下会出现一个 jar 包：</p>
+      <pre><code>[root@localhost cateye-pro]# pwd
+/opt/gitdemo/cateye-pro
+[root@localhost cateye-pro]# ls
+pom.xml  src  target</code></pre>
+
+      <p>启动 jar 包：</p>
+      <pre><code>[root@localhost cateye-pro]# cd target/
+[root@localhost target]# nohup javpa -jar Cateye-pro.jar &gt; /opt/cateye.log 2&gt;&amp;1 --spring.config.location=/opt/gitdemo/application-dev.yml &amp;
+[1] 61787</code></pre>
+
+      <p>查询端口号：</p>
+      <pre><code>[root@localhost target]# netstat -anpt | grep 8888
+tcp6       0      0 :::8888                 :::*                    LISTEN      61787/java</code></pre>
+
+      <p>验证结果：通过访问 192.168.10.128:8888/api/films/?currentindex=2&amp;cateld=5</p>
+
+      <h4>伪集群</h4>
+      <ul>
+        <li>真集群：在两个不同 IP 的虚拟机启动猫眼应用，叫做真集群</li>
+        <li>伪集群：在一个虚拟机上启动两个不同端口号的猫眼应用，叫做伪集群</li>
+      </ul>
+
+      <p>开启第一个猫眼程序：</p>
+      <pre><code>[root@localhost target]# cd /opt/gitdemo/cateye-pro/target
+[root@localhost target]#  
+nohup java -jar Cateye-pro.jar &gt; /opt/cateye.log 2&gt;&amp;1 --spring.config.location=/opt/gitdemo/application-dev.yml &amp;
+[root@localhost target]# netstat  -anpt | grep 8888
+tcp6       0      0 :::8888                 :::*                    LISTEN      16212/java</code></pre>
+
+      <p>在一个集群上开启第二个猫眼程序，端口号和第一个猫眼不一样。修改配置文件，修改服务端口号：</p>
+      <pre><code>[root@localhost target]# vim /opt/gitdemo/application-dev.yml
+server:
+  port: 8889
+
+
+[root@localhost target]# nohup java -jar Cateye-pro.jar &gt; /opt/cateye.log 2&gt;&amp;1 --spring.config.location=/opt/gitdemo/application-dev.yml --httpPort=8889 &amp;
+[2] 21471
+[root@localhost target]# netstat  -anpt | grep 8889
+tcp6       0      0 :::8889                 :::*                    LISTEN      21471/java</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ==================== Jenkins自动化构建 ==================== -->
+  <div class="file-card" id="sec-jenkins">
+    <div class="file-card-header">
+      <h3>Jenkins 自动化构建</h3>
+      <span class="toggle-icon">&#9660;</span>
+    </div>
+    <div class="file-card-body">
+
+      <h4>主机角色分配</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>主机IP</th><th>主机角色</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>192.168.10.137</td><td>中间件（如果你的系统资源能运行四台就开机，不能的运行的话中间件服务器可以选择不开启）</td></tr>
+            <tr><td>192.168.10.128</td><td>Gitlab</td></tr>
+            <tr><td>192.168.10.146</td><td>Jenkins</td></tr>
+            <tr><td>192.168.10.150</td><td>测试机，最后测试部署项目</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>一、部署 Gitlab 服务器（128）</h4>
+      <p>部署基础环境：</p>
+      <pre><code>[root@localhost ~]# systemctl  stop firewalld
+[root@localhost ~]# setenforce 0
+[root@localhost ~]# systemctl  disable firewalld
+[root@localhost ~]# vi /etc/selinux/config
+SELINUX=disabled</code></pre>
+
+      <pre><code>[root@localhost ~]# yum -y install vim net-tools
+[root@localhost gitdemo]# yum -y install curl policycoreutils-python openssh-server
+[root@localhost gitdemo]# yum -y install postfix</code></pre>
+
+      <p>上传 Gitlab 安装包到 /opt 目录下：</p>
+      <pre><code>[root@localhost opt]# ls
+gitlab-ce-14.9.5-ce.0.el7.x86_64.rpm</code></pre>
+
+      <p>安装 gitlab（安装过程会比较慢，且会卡顿，正常等待即可）：</p>
+      <pre><code>[root@localhost opt]# rpm -ivh gitlab-ce-14.9.5-ce.0.el7.x86_64.rpm</code></pre>
+
+      <p>修改配置文件：</p>
+      <pre><code>[root@localhost opt]# cp /etc/gitlab/gitlab.rb{,.bak}
+[root@localhost opt]# vim /etc/gitlab/gitlab.rb
+#指定gitlab网页的访问IP和端口号，端口给大一些，防止冲突
+external_url 'http://192.168.10.128:9999'</code></pre>
+
+      <p>初始化 gitlab（时间较长，中间会出现卡顿，都是正常的，等待即可）：</p>
+      <pre><code>[root@localhost opt]# gitlab-ctl  reconfigure</code></pre>
+
+      <p>重启 gitlab：</p>
+      <pre><code>[root@localhost opt]# gitlab-ctl  restart</code></pre>
+
+      <p>登录网页：http://192.168.10.128:9999/</p>
+
+      <p>查询默认密码：</p>
+      <pre><code>[root@localhost opt]# cat /etc/gitlab/initial_root_password</code></pre>
+
+      <div class="key-box">
+        <strong>注意：</strong>到这里，你的 Gitlab 仓库部署暂时完成，还没有上传 ssh 密钥，稍后上传密钥。如果将来需要使用 gitee 仓库完成这个部署，操作方式一样的，只是需要注意在链接的时候仓库地址换一下。
+      </div>
+
+      <h4>二、Jenkins 服务器（146）</h4>
+      <p>基础环境：</p>
+      <pre><code>硬件配置：2G2核，4G内存，80G磁盘空间
+IP：192.168.10.146
+[root@localhost ~]# vi /etc/sysconfig/network-scripts/ifcfg-ens33
+修改IP，重启网络服务
+[root@localhost ~]# systemctl  restart network</code></pre>
+
+      <p>关闭防火墙、内核：</p>
+      <pre><code>[root@localhost ~]# systemctl  stop firewalld
+[root@localhost ~]# setenforce 0
+[root@localhost ~]# systemctl  disable firewalld
+[root@localhost ~]# vi /etc/selinux/config
+SELINUX=disabled</code></pre>
+
+      <h4>2.2 部署 Git 工具</h4>
+      <pre><code>[root@localhost opt]# cd /opt/software/
+[root@localhost software]# ls
+git-2.18.0.tar.gz</code></pre>
+
+      <p>安装依赖包：</p>
+      <pre><code>[root@localhost software]# yum -y install gcc zlib-devel perl-ExtUtils-MakeMaker package</code></pre>
+
+      <p>安装 Git 客户端工具：</p>
+      <pre><code>[root@localhost software]# tar zxf git-2.18.0.tar.gz
+[root@localhost software]# ls
+git-2.18.0  git-2.18.0.tar.gz
+[root@localhost software]# cd git-2.18.0
+[root@localhost git-2.18.0]# ./configure --prefix=/usr/local/git &amp;&amp; make &amp;&amp; make install</code></pre>
+
+      <p>配置环境变量：</p>
+      <pre><code>[root@localhost git-2.18.0]# vim /etc/profile
+export GIT_HOME=/usr/local/git
+export PATH=$PATH:$GIT_HOME/bin
+[root@localhost git-2.18.0]# source /etc/profile
+
+[root@localhost git-2.18.0]# git --version
+git version 2.18.0</code></pre>
+
+      <p>设置用户名和邮箱：</p>
+      <pre><code>[root@localhost git-2.18.0]# git config --global user.email "wwh@qq.com"
+[root@localhost git-2.18.0]# git config --global user.name "wwh"</code></pre>
+
+      <p>创建密钥：</p>
+      <pre><code>[root@localhost git-2.18.0]# ssh-keygen  -t rsa -C "wwh@qq.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):
+Created directory '/root/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:otByH0HOCgELCDwMM/ZT08a43nL5g4/UfNQcIOIP03Y wwh@qq.com</code></pre>
+
+      <p>给远程仓库上传公钥：</p>
+      <pre><code>[root@localhost git-2.18.0]# cat /root/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdY1IYc+8+q4ds3i9TNHJRlG+fk4ymbQgPn5QnC7N9Mb8MZDY5zjpxGoxr8q1wX3mr/rDt0yyndCbh93azevYbJAqzmZK+x8MBNwRzc781JMSmRY6SN5SkwVKVb+gl5uJBPwxeLkApRSG5dpEdBPYtve9Et3S4YfCKL1MBneI5KCsR6LLeo4IghAFEdAAIEKnTB+nLVv1NpCdyiDZyuDxd9JHw0pO+Pb9jRYLcWouIqhyThXlTGWd0A0ffkkbkkEkRDauE8MQHGvjNP4Q5e1ir/etp5fNF/CYyIlY5G4nk0+BdBjYIngzBTrjyYXCXomg5bFQ977qthaSLtrNPkIlh wwh@qq.com</code></pre>
+
+      <h4>2.3 [特殊步骤]模拟开发推送项目</h4>
+      <div class="key-box">
+        <strong>说明：</strong>Gitlab：没有源码，需要进行推送；Gitee：里面是有源码的，可以省略这一步。
+      </div>
+
+      <p>创建目录，初始化：</p>
+      <pre><code>[root@localhost git-2.18.0]# cd /opt/
+[root@localhost opt]# mkdir gitdemo
+[root@localhost opt]# cd gitdemo/
+[root@localhost gitdemo]# git init
+已初始化空的 Git 仓库于 /opt/gitdemo/.git/</code></pre>
+
+      <p>链接远程仓库，并上传源码：</p>
+      <pre><code>[root@localhost gitdemo]# git remote add origin git@192.168.10.128:root/maoyan.git
+[root@localhost gitdemo]# git remote -v
+origin  git@192.168.10.128:root/maoyan.git (fetch)
+origin  git@192.168.10.128:root/maoyan.git (push)</code></pre>
+
+      <pre><code>#拉取同步一次
+[root@localhost gitdemo]# git pull origin main
+
+#切换分支
+[root@localhost gitdemo]# git checkout main
+分支 'main' 设置为跟踪来自 'origin' 的远程分支 'main'。
+切换到一个新分支 'main'
+
+#将cateye-pro源码拖拽到/opt/gitdemo/
+[root@localhost gitdemo]# ls
+cateye-pro  README.md
+
+#添加到暂存区
+[root@localhost gitdemo]# git add .
+#提交到本地仓库
+[root@localhost gitdemo]# git commit -m "猫眼1.0"
+#推送到远程仓库main分支内
+[root@localhost gitdemo]# git push origin main</code></pre>
+
+      <h4>2.4 部署 JDK</h4>
+      <pre><code>#上传 jdk-11.0.14_linux-x64_bin.tar.gz 到/opt/software目录
+[root@localhost software]# ls
+git-2.18.0  git-2.18.0.tar.gz  jdk-11.0.14_linux-x64_bin.tar.gz
+
+[root@localhost software]# 
+tar zxf jdk-11.0.14_linux-x64_bin.tar.gz -C /usr/local
+
+[root@localhost software]# ln -s /usr/local/jdk-11.0.14 /jdk
+[root@localhost software]# rm -rf /usr/bin/java
+[root@localhost software]# ln -s /jdk/bin/java /bin/java</code></pre>
+
+      <p>配置环境变量：</p>
+      <pre><code>[root@localhost software]# vim /etc/profile
+export GIT_HOME=/usr/local/git
+export JAVA_HOME=/jdk
+export PATH=$PATH:$GIT_HOME/bin:$JAVA_HOME/bin
+
+
+[root@localhost software]# source /etc/profile
+[root@localhost software]# java --version
+java 11.0.14 2022-01-18 LTS
+Java(TM) SE Runtime Environment 18.9 (build 11.0.14+8-LTS-263)
+Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.14+8-LTS-263, mixed mode)</code></pre>
+
+      <h4>2.5 部署 Maven</h4>
+      <pre><code>#上传apache-maven-3.9.3-bin.tar.gz到/opt/software目录下
+[root@localhost software]# ls
+apache-maven-3.9.3-bin.tar.gz
+git-2.18.0
+git-2.18.0.tar.gz
+jdk-11.0.14_linux-x64_bin.tar.gz</code></pre>
+
+      <pre><code>[root@localhost software]# tar zxf apache-maven-3.9.3-bin.tar.gz
+[root@localhost software]# mv apache-maven-3.9.3 /usr/local/maven
+[root@localhost software]# vim /etc/profile
+export GIT_HOME=/usr/local/git
+export JAVA_HOME=/jdk
+export MAVEN_HOME=/usr/local/maven
+export PATH=$PATH:$GIT_HOME/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin
+
+[root@localhost software]# source /etc/profile
+[root@localhost software]# mvn --version
+Apache Maven 3.9.3 (21122926829f1ead511c958d89bd2f672198ae9f)
+Maven home: /usr/local/maven
+Java version: 11.0.14, vendor: Oracle Corporation, runtime: /usr/local/jdk-11.0.14
+Default locale: zh_CN, platform encoding: UTF-8
+OS name: "linux", version: "3.10.0-1160.el7.x86_64", arch: "amd64", family: "unix"</code></pre>
+
+      <p>修改 MAVEN 的配置文件：</p>
+      <pre><code>[root@localhost software]# cd /usr/local/maven/
+[root@localhost maven]# mkdir repo
+[root@localhost maven]# cp conf/settings.xml{,.bak}
+[root@localhost maven]# vim conf/settings.xml
+# 55行添加：  
+&lt;localRepository&gt;/usr/local/maven/repo&lt;/localRepository&gt;
+
+
+# 160行左右，去修改maven远程仓库地址
+    &lt;mirror&gt;
+      &lt;id&gt;maoyan&lt;/id&gt;
+      &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;
+      &lt;name&gt;阿里云maven仓库&lt;/name&gt;
+      &lt;url&gt;https://maven.aliyun.com/repository/public&lt;/url&gt;
+    &lt;/mirror&gt;</code></pre>
+
+      <h4>2.6 部署 Tomcat</h4>
+      <p>提供 Jenkins 访问操作，因为 Jenkins 通过浏览器访问的，实现自动化部署操作。</p>
+      <pre><code>#上传apache-tomcat-9.0.78.tar.gz安装包到/opt/software目录下
+[root@localhost software]# ls
+apache-maven-3.9.3-bin.tar.gz
+apache-tomcat-9.0.78.tar.gz
+git-2.18.0
+git-2.18.0.tar.gz
+jdk-11.0.14_linux-x64_bin.tar.gz
+
+
+[root@localhost software]# tar zxf apache-tomcat-9.0.78.tar.gz
+[root@localhost software]# mv apache-tomcat-9.0.78 /usr/local/tomcat</code></pre>
+
+      <p>修改环境变量文件：</p>
+      <pre><code>[root@localhost software]# vim /etc/profile
+export GIT_HOME=/usr/local/git
+export JAVA_HOME=/jdk
+export MAVEN_HOME=/usr/local/maven
+export TOM_HOME=/usr/local/tomcat
+export PATH=$PATH:$GIT_HOME/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin:$TOM_HOME/bin
+
+[root@localhost software]# source /etc/profile</code></pre>
+
+      <p>启动 tomcat：</p>
+      <pre><code>[root@localhost software]# cd /usr/local/tomcat/bin/
+[root@localhost bin]# ./startup.sh
+Using CATALINA_BASE:   /usr/local/tomcat
+Using CATALINA_HOME:   /usr/local/tomcat
+Using CATALINA_TMPDIR: /usr/local/tomcat/temp
+Using JRE_HOME:        /jdk
+Using CLASSPATH:       /usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar
+Using CATALINA_OPTS:
+Tomcat started.</code></pre>
+
+      <p>http://192.168.10.146:8080</p>
+
+      <h4>2.7 部署 Jenkins（war 包部署）</h4>
+      <pre><code>#上传jenkins.war到/usr/local/tomcat/webapps目录下
+[root@localhost bin]# cd /usr/local/tomcat/webapps
+[root@localhost webapps]# ls
+docs      host-manager  jenkins.war  ROOT   examples  jenkins      
+manager
+--------------------------------------------------------------
+ jenkins.war 自己上传的
+ jenkins  自动解压出来</code></pre>
+
+      <p>安装依赖包：</p>
+      <pre><code>[root@localhost webapps]# yum -y install fontconfig</code></pre>
+
+      <p>启动 Jenkins：</p>
+      <pre><code>[root@localhost webapps]# nohup  java -jar jenkins.war &gt; /dev/null 2&gt;&amp;1 --httpPort=9000 &amp;
+[1] 119702
+[root@localhost webapps]# netstat  -anpt | grep 9000
+tcp6       0      0 :::9000                 :::*                    LISTEN      119702/java</code></pre>
+
+      <p>访问 Jenkins：http://192.168.10.146:9000</p>
+
+      <h4>2.7.1 部署 Jenkins 功能插件</h4>
+      <p>Jenkins 功能插件的作用就是和具体操作功能进行对接。如果没有功能插件，则看不到系统配置无法配置电脑的功能。</p>
+      <p>操作步骤：进入 Jenkins 主页 → 点击左侧菜单"Manage Jenkins" → 进入插件管理页面，搜索并选择以下插件进行安装：</p>
+      <ul>
+        <li><strong>deploy（1个）</strong>：搜索 deploy，选择 Deploy to container 插件</li>
+        <li><strong>Maven（2个）</strong>：搜索 Maven，选择 Maven Integration plugin 和 Pipeline Maven Integration Plugin</li>
+        <li><strong>SSH（5个）</strong>：搜索 SSH，选择 SSH plugin、SSH Slave Agents plugin 等相关 SSH 插件</li>
+        <li><strong>Git（1个）</strong>：搜索 Git，选择 Git plugin</li>
+      </ul>
+      <p>选择完成后点击安装，等待安装完成即可。</p>
+
+      <div class="key-box">
+        <strong>Jenkins 暂时部署完毕。</strong>
+      </div>
+
+      <h4>三、应用服务器的部署（150）</h4>
+      <p>关闭防火墙、内核：</p>
+      <pre><code>[root@localhost ~]# systemctl  stop firewalld
+[root@localhost ~]# setenforce  0
+[root@localhost ~]# systemctl  disable firewalld
+Removed symlink /etc/systemd/system/multi-user.target.wants/firewalld.service.
+Removed symlink /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service.
+[root@localhost ~]# vim /etc/selinux/config
+SELINUX=disabled</code></pre>
+
+      <p>部署 JDK：</p>
+      <pre><code>#上传 jdk-11.0.14_linux-x64_bin.tar.gz 到/opt/software目录
+[root@localhost software]# ls
+git-2.18.0  git-2.18.0.tar.gz  jdk-11.0.14_linux-x64_bin.tar.gz
+
+[root@localhost software]# 
+tar zxf jdk-11.0.14_linux-x64_bin.tar.gz -C /usr/local
+
+[root@localhost software]# ln -s /usr/local/jdk-11.0.14 /jdk
+[root@localhost software]# rm -rf /usr/bin/java
+[root@localhost software]# ln -s /jdk/bin/java /bin/java</code></pre>
+
+      <p>配置环境变量：</p>
+      <pre><code>[root@localhost software]# vim /etc/profile
+export JAVA_HOME=/jdk
+export PATH=$PATH:$JAVA_HOME/bin
+
+
+[root@localhost software]# source /etc/profile
+[root@localhost software]# java --version
+java 11.0.14 2022-01-18 LTS
+Java(TM) SE Runtime Environment 18.9 (build 11.0.14+8-LTS-263)
+Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.14+8-LTS-263, mixed mode)</code></pre>
+
+      <h4>3.3 配置项目启动文件</h4>
+      <p>项目的启动文件，通常就是把将要执行的命令，写成一个脚本文件，省的敲命令。自己写脚本，或者开发提供。</p>
+      <pre><code>将startup.sh 放置到/opt目录
+[root@localhost opt]# vim startup.sh
+……
+nohup /usr/local/jdk/bin/java -jar /opt/apps/$CatEye &gt; /opt/apps/cateye.log 2&gt;&amp;1 --spring.config.location=/opt/apps/application-dev.yml &amp;
+……
+
+
+[root@localhost opt]# chmod  +x startup.sh</code></pre>
+
+      <p>上传项目的配置文件：</p>
+      <pre><code>#上传application-dev.yml到/opt/apps
+
+[root@localhost opt]# mkdir /opt/apps
+[root@localhost opt]# ls /opt/apps/
+application-dev.yml
+
+
+
+[root@localhost opt]# vim /opt/apps/application-dev.yml
+server:
+  port: 8888
+
+commIP: 192.168.10.137
+
+……</code></pre>
+
+      <h4>四、Jenkins 服务器（146）</h4>
+      <h4>4.1 创建用户给用户设置密钥</h4>
+      <p>利用 Jenkins 用户和 Gitlab/gitee 进行自动拉取推送：</p>
+      <pre><code>[root@localhost webapps]# cd /opt/
+[root@localhost opt]# useradd jenkins
+[root@localhost opt]# ssh-keygen -f jenkins
+Generating public/private rsa key pair.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in jenkins.
+Your public key has been saved in jenkins.pub.
+The key fingerprint is:
+SHA256:b87vBtKwUTJ4wS+icfOAPuhIBEjFF1fCnrOxPPxXQvQ root@localhost.localdomain
+[root@localhost opt]# ls
+gitdemo  jenkins  jenkins.pub  software
+
+
+
+[root@localhost opt]# cat jenkins.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC//w9yzAhpb65PgpHweaRjaaZ7kKCAbNMT73aRIY/uX9LkKCu8Wj7+vHbFVuTyu/GiF64Phu2AqeYRuQHCH7FtMwkAVG8Rhix1mkH/FChzWlrdjnMNlZs4i0dCJcaqyywoWujYF0Us4l/ZpQj01J08AHt99LDtbPmK8w/3fpGgu8HX5hBKBIgQKR9vC9bRmVqdgy0fCDfy3zmS3R5poB4a6kv6zNIwCValsx7dk5OhsMOTwwfEUZ1dOcALXDbHTFBxarhIU3j/jUtYNXifW8/Bcdf4NrkG4p1HxOgzoGQ7yn78Q41EabAI7iJWnksKGacs/rNG+n2/5r7gKQdmZBkd root@localhost.localdomain</code></pre>
+
+      <p>把 Jenkins 用户的公钥上传给仓库。</p>
+
+      <h4>4.2 配置 Jenkins 和 Gitlab 的交互</h4>
+      <div class="key-box">
+        <strong>说明：</strong>前面是创建 jenkins 用户，现在就是要和用户配置到 jenkins。让 jenkins 以这个用户的身份，和 Gitlab 仓库进行交互。上传用户的私钥，拉取源码之后的解密。
+      </div>
+
+      <h4>4.3 配置全局变量</h4>
+      <p>在 Jenkins 中配置全局变量（JDK、Git、Maven 等路径）。</p>
+
+      <h4>4.4 配置免密登录</h4>
+      <div class="key-box">
+        <strong>说明：</strong>Jenkins 在使用 git 进行内容推送的时候，用的自己的公钥进行加密，应用服务器 150 收到之后，需要私钥进行机密。免密登录解决远程应用服务器，root 用户密码的问题。在这边配置的，取消验证，在把自己的公钥、私钥都部署。
+      </div>
+
+      <h4>4.5 分发 Jenkins 的公钥给应用服务器</h4>
+      <pre><code>[root@localhost opt]# cd /root/.ssh/
+[root@localhost .ssh]# ssh-copy-id -i root@192.168.10.150
+#过程中输入一个yes和150的root用户的登录密码
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/root/.ssh/id_rsa.pub"
+The authenticity of host '192.168.10.150 (192.168.10.150)' can't be established.
+ECDSA key fingerprint is SHA256:LuBFE3B8y5SeAXpkCnPmJSPWh7FpvXemoPvr8Exc6EY.
+ECDSA key fingerprint is MD5:32:17:79:c7:05:b3:36:f4:d6:bc:21:90:8f:9f:fb:d2.
+Are you sure you want to continue connecting (yes/no)? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@192.168.10.150's password:
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'root@192.168.10.150'"
+and check to make sure that only the key(s) you wanted to add.</code></pre>
+
+      <div class="key-box">
+        <strong>到这里为止，128、146、150 之间关系、连接已经对应好了。</strong>
+      </div>
+
+      <h4>4.6 设置构建历史</h4>
+      <p>在 Jenkins 中设置构建历史的保留策略。</p>
+
+      <h4>4.7 构建项目</h4>
+      <p>在 Jenkins 中创建构建项目，配置源码管理、构建触发器、构建步骤等。</p>
+      <p>pom.xml 不能识别的话：</p>
+      <ul>
+        <li>cateye-pro/pom.xml</li>
+        <li>/opt/cateye-pro/pom.xml</li>
+        <li>opt/cateye-pro/pom.xml</li>
+        <li>opt/cateye/cateye-pro/pom.xml</li>
+      </ul>
+
+      <h4>正式编译部署</h4>
+      <p>在 Jenkins 中正式编译部署项目，构建完成后验证结果：</p>
+      <pre><code>192.168.10.150:8888/api/films/?currentindex=2&amp;cateld=5</code></pre>
+
+      <div class="key-box">
+        <strong>完整流程：</strong>开发者推送代码到 Gitlab/Gitee → Jenkins 拉取源码 → Maven 编译打包（mvn install package）→ 通过 SSH 免密登录分发到应用服务器（150）→ 启动 jar 包 → 验证服务（192.168.10.150:8888）。
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="common.js"></script>
+
+</body>
+</html>
