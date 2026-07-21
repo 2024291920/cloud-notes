@@ -357,6 +357,8 @@ k8s.gcr.io/pause                     3.1                 da86e6ba6ca1        6 y
 #指定master节点的IP</code></pre>
 
       <p>（kubeadm init 输出的 join 命令截图）</p>
+      <p class="img-p"><img src="images/K8S/2024-05-16-09-43-33-image.png" alt="2024-05-16-09-43-33-image.png" loading="lazy"></p>
+      
       <pre><code>kubeadm join 192.168.10.128:6443 --token p8u2v6.44vbj782gyk6omm5 \
     --discovery-token-ca-cert-hash sha256:debf046bb674f2839c278114692663ae161f76aa0c3ccb975af55d5eb236b874</code></pre>
 
@@ -443,6 +445,8 @@ node2    Ready    &lt;none&gt;   3h12m   v1.17.4</code></pre>
 
       <h4>pod工作流程</h4>
       <p>（pod工作流程图）</p>
+      <p class="img-p"><img src="images/K8S/2024-05-17-09-38-03-image.png" alt="2024-05-17-09-38-03-image.png" loading="lazy"></p>
+      
       <ul>
         <li>管理员要创建pod，kubuctl 向apiserver发起创建pod请求</li>
         <li>apiserver将pod的信息存储一份到etcd</li>
@@ -835,6 +839,8 @@ nginx-5578584966-trp2m   1/1     Running   0          103s</code></pre>
 
       <h4>service 资源</h4>
       <p>创建集群内可以访问的service：</p>
+      <p class="img-p"><img src="images/K8S/2024-05-17-16-36-26-image.png" alt="2024-05-17-16-36-26-image.png" loading="lazy"></p>
+      
       <pre><code>kubectl  expose deploy nginx --name=nginx --type=ClusterIP --port=80 -n dev</code></pre>
 
       <p>创建集群外可以访问的service：</p>
@@ -920,6 +926,22 @@ kubernetes   ClusterIP   10.96.0.1       &lt;none&gt;        443/TCP        4h42
 nginx        NodePort    10.96.104.218   &lt;none&gt;        80:30690/TCP   75s</code></pre>
 
       <p>（nginx service 访问截图）</p>
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-27-44-image.png" alt="2024-05-16-15-27-44-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-29-02-image.png" alt="2024-05-16-15-29-02-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-28-44-image.png" alt="2024-05-16-15-28-44-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-30-11-image.png" alt="2024-05-16-15-30-11-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-24-28-image.png" alt="2024-05-16-15-24-28-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-23-23-image.png" alt="2024-05-16-15-23-23-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/K8S/2024-05-16-15-22-23-image.png" alt="2024-05-16-15-22-23-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/K8S/2024-05-16-14-27-17-image.png" alt="2024-05-16-14-27-17-image.png" loading="lazy"></p>
+      
 
       <p>部署nginx程序：</p>
       <ul>
@@ -1057,6 +1079,8 @@ nginx           NodePort    10.96.104.218   &lt;none&gt;        80:30690/TCP    
 tomcatservice   NodePort    10.98.187.212   &lt;none&gt;        8080:32000/TCP   58s</code></pre>
 
       <p>（tomcat 部署访问截图）</p>
+      <p class="img-p"><img src="images/K8S/2024-05-16-16-28-57-image.png" alt="2024-05-16-16-28-57-image.png" loading="lazy"></p>
+      
 
     </div>
   </div>

@@ -81,6 +81,8 @@
         <strong>docker 误解：docker 是一个轻量级的虚拟机</strong>
       </div>
       <p>（图：Docker 与传统虚拟机架构对比图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-11-15-31-06-image.png" alt="2024-05-11-15-31-06-image.png" loading="lazy"></p>
+      
       <ul>
         <li>传统虚拟机
           <ul>
@@ -201,6 +203,8 @@ Share images, automate workflows, and more with a free Docker ID:
 For more examples and ideas, visit:
  https://docs.docker.com/get-started/</code></pre>
       <p>（图：docker run hello-world 运行结果截图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-13-10-17-45-image.png" alt="2024-05-13-10-17-45-image.png" loading="lazy"></p>
+      
 
     </div>
   </div>
@@ -241,6 +245,8 @@ rancher/nginx-ingress-controller                                                
 kasmweb/nginx                                     An Nginx image based off nginx:alpine and in…   7
 rancher/nginx-ingress-controller-defaultbackend                                                    2</code></pre>
       <p>（图：docker search nginx 搜索结果截图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-13-10-49-12-image.png" alt="2024-05-13-10-49-12-image.png" loading="lazy"></p>
+      
 
       <h4>3.2 拉取镜像</h4>
       <p>拉取 Nginx 镜像（拉取的时候不指定标签，默认是 latest）</p>
@@ -434,6 +440,8 @@ docker rm 容器id</code></pre>
       <p>基于镜像创建容器</p>
       <pre><code>[root@localhost ~]# docker run -id --name nginx -p 90:80 nginx</code></pre>
       <p>访问：<code>http://192.168.10.128:90</code></p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-13-16-09-14-image.png" alt="2024-05-13-16-09-14-image.png" loading="lazy"></p>
+      
       <p>（图：nginx 访问页面截图）</p>
 
       <hr>
@@ -453,6 +461,8 @@ nginx
       </ul>
       <pre><code>[root@localhost ~]# docker run -id --name nginx1 -p 100:80 -v /opt/date/nginx/conf/:/etc/nginx nginx</code></pre>
       <p>访问：<code>http://192.168.10.128:100</code></p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-13-16-24-30-image.png" alt="2024-05-13-16-24-30-image.png" loading="lazy"></p>
+      
       <p>（图：nginx1 映射目录后访问页面截图）</p>
 
       <h4>5.2 Tomcat</h4>
@@ -464,10 +474,14 @@ nginx
 CONTAINER ID   IMAGE          COMMAND                   CREATED              STATUS              PORTS                                       NAMES
 a214ab3ea3dc   tomcat         "catalina.sh run"         About a minute ago   Up About a minute   0.0.0.0:8080-&gt;8080/tcp, :::8080-&gt;8080/tcp   tomcat</code></pre>
       <p>（图：tomcat 容器查询结果截图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-14-09-54-00-image.png" alt="2024-05-14-09-54-00-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost ~]# docker exec -it tomcat /bin/bash
 # 由于tomcat网页是放在/usr/local/tomcat/webapps/ROOT，所以需要复制
 [root@a214ab3ea3dc:/usr/local/tomcat# cp -rf webapps.dist/ROOT webapps</code></pre>
       <p>（图：tomcat 复制 ROOT 后访问页面截图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-14-09-57-58-image.png" alt="2024-05-14-09-57-58-image.png" loading="lazy"></p>
+      
 
       <h4>5.3 MySQL</h4>
       <p>拉取镜像</p>
@@ -593,6 +607,8 @@ mycentos     7         005c26e909a2   14 seconds ago   682MB</code></pre>
       <pre><code>#查询详细信息
 [root@localhost ~]# docker inspect mycentos:7</code></pre>
       <p>（图：docker inspect mycentos:7 详细信息截图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-14-15-02-23-image.png" alt="2024-05-14-15-02-23-image.png" loading="lazy"></p>
+      
 
       <p>使用镜像构建容器</p>
       <pre><code>[root@localhost ~]# docker run -id --name mycentos -p 6789:8080 mycentos:7</code></pre>
@@ -797,6 +813,8 @@ mysql        8.0.21    8e85dd5c3255   3 years ago          544MB</code></pre>
 CONTAINER ID   IMAGE          COMMAND                   CREATED         STATUS                     PORTS                                                  NAMES
 37af2df0021a   whcentos:7     "/bin/sh -c 'startup…"   6 seconds ago   Up 5 seconds               0.0.0.0:1234-&gt;8080/tcp, :::1234-&gt;8080/tcp              whcentos</code></pre>
       <p>（图：whcentos 容器运行及访问页面截图）</p>
+      <p class="img-p"><img src="images/Docker 容器/2024-05-15-10-15-51-image.png" alt="2024-05-15-10-15-51-image.png" loading="lazy"></p>
+      
 
       <pre><code>[root@localhost ~]# docker exec -it whcentos /bin/bash
 [root@37af2df0021a local]# pwd

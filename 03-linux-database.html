@@ -29,6 +29,8 @@
         <li><a href="#sec-db-basics">数据库基础操作（DML / DQL / 索引类型 / 连接查询）</a></li>
         <li><a href="#sec-master-slave">主从复制搭建部署（IO/SQL 线程原理 / 异步半同步复制 / 部署步骤）</a></li>
         <li><a href="#sec-db-backup">数据库备份管理（MyISAM vs InnoDB / 温备份 mysqldump / 冷备份 tar / 增量备份 binlog）</a></li>
+      <p class="img-p"><img src="images/Linux 数据库/2024-04-17-13-42-52-image.png" alt="2024-04-17-13-42-52-image.png" loading="lazy"></p>
+      
       </ul>
     </nav>
     <div class="content">
@@ -443,7 +445,11 @@ mysql> create database Bceshizhucong;
 mysql> show databases;</code></pre>
 
         <h5>故障排查 - IO线程未启动</h5>
-        <pre><code># 1. 检查防火墙内核是否关闭
+        
+      <p class="img-p"><img src="images/Linux 数据库/
+      <p class="img-p"><img src="images/Linux 数据库/2024-04-23-14-09-51-image.png" alt="2024-04-23-14-09-51-image.png" loading="lazy"></p>
+      2024-04-23-16-22-05-image.png" alt="2024-04-23-16-22-05-image.png" loading="lazy"></p>
+      <pre><code># 1. 检查防火墙内核是否关闭
 # 2. 检查配置是否正确
 
 # 排查步骤：

@@ -22,6 +22,16 @@
 <div class="page-header">
   <h1>05 Linux 部署</h1>
   <p class="desc">Nginx 服务器配置、反向代理与负载均衡、Git+Maven 自动化部署、Jenkins CI/CD 流水线</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-16-07-49-image.png" alt="2024-04-08-16-07-49-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-16-16-11-image.png" alt="2024-04-08-16-16-11-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-15-24-43-image.png" alt="2024-04-08-15-24-43-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-16-10-59-image.png" alt="2024-04-08-16-10-59-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-16-09-49-image.png" alt="2024-04-08-16-09-49-image.png" loading="lazy"></p>
+      
+      
 </div>
 
 <div class="page-wrap">
@@ -63,6 +73,8 @@
         <li>支持热部署，不统计更新配置文件</li>
         <li>系统资源消耗低</li>
         <li>对 http 并发连接处理速度高</li>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-12-11-32-43-image.png" alt="2024-04-12-11-32-43-image.png" loading="lazy"></p>
+      
       </ul>
 
       <h4>Apache 和 Nginx 的区别</h4>
@@ -115,6 +127,12 @@ setenforce: SELinux is disabled
 SELINUX=disabled</code></pre>
 
       <p>解压文件：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-00-34-image.png" alt="2024-04-15-11-00-34-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-04-17-image.png" alt="2024-04-15-11-04-17-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-10-14-49-image.png" alt="2024-04-15-10-14-49-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost opt]# tar zxf nginx-1.22.1.tar.gz
 [root@localhost opt]# ls
 nginx-1.22.1  nginx-1.22.1.tar.gz</code></pre>
@@ -134,12 +152,16 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 [root@localhost sbin]# ./nginx</code></pre>
 
       <p>查询服务端口号：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-12-16-35-07-image.png" alt="2024-04-12-16-35-07-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost sbin]# yum -y install net-tools
 [root@localhost sbin]# netstat -anpt | grep 80
 tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      13236/nginx: master
 tcp        0      0 192.168.10.129:39452    202.141.160.110:80      TIME_WAIT   -</code></pre>
 
       <p>访问服务：http://192.168.10.129:80</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-12-14-22-28-image.png" alt="2024-04-12-14-22-28-image.png" loading="lazy"></p>
+      
 
       <p>更换网页内容：</p>
       <pre><code>[root@localhost sbin]# cd /usr/local/nginx/html/
@@ -182,6 +204,8 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 [root@localhost sbin]# ./nginx  -s reload</code></pre>
 
       <p><strong>验证反向代理：</strong>除了可以访问 192.168.10.128:8888/api/films/?currentindex=2&amp;cateld=5，还可以使用 192.168.10.129:80/api/films/?currentindex=2&amp;cateld=5。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-12-15-23-01-image.png" alt="2024-04-12-15-23-01-image.png" loading="lazy"></p>
+      
 
       <h4>2.3 反向代理 + 负载均衡</h4>
       <pre><code>[root@localhost sbin]# vim /usr/local/nginx/conf/nginx.conf
@@ -274,12 +298,42 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
 
       <h4>一、自动化部署</h4>
       <p>开发人员开发完成，测试完成之后，把源码打包成部署包，发送到客户生产线上的这一系列操作就是部署。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-11-11-00-image.png" alt="2024-04-09-11-11-00-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-11-10-50-image.png" alt="2024-04-09-11-10-50-image.png" loading="lazy"></p>
+      
       <ul>
         <li>java 编译型，需要把源码打包成安装包或者部署包，JVM 进行解释</li>
-        <li>shell 时解释型，有解释器进行解释，让 cpu 执行</li>
+        
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-09-53-12-image.png" alt="2024-04-11-09-53-12-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-16-14-16-image.png" alt="2024-04-10-16-14-16-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-16-05-45-image.png" alt="2024-04-09-16-05-45-image.png" loading="lazy"></p>
+      2024-04-10-15-01-55-image.png" alt="2024-04-10-15-01-55-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-12-26-image.png" alt="2024-04-10-10-12-26-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-16-10-58-image.png" alt="2024-04-09-16-10-58-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-16-10-38-image.png" alt="2024-04-09-16-10-38-image.png" loading="lazy"></p>
+      <li>shell 时解释型，有解释器进行解释，让 cpu 执行</li>
       </ul>
 
       <p><strong>传统部署：</strong>由开发人员进行源码的编译、打包；通过运维对客户的生产线进行部署（使用工具把部署包发送到客户生产线想要位置，还需配置生产线的环境）。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-10-58-35-image.png" alt="2024-04-15-10-58-35-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-04-45-image.png" alt="2024-04-15-11-04-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-03-45-image.png" alt="2024-04-15-11-03-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-01-49-image.png" alt="2024-04-15-11-01-49-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-10-59-15-image.png" alt="2024-04-15-10-59-15-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-10-23-15-image.png" alt="2024-04-15-10-23-15-image.png" loading="lazy"></p>
+      
 
       <h4>自动化部署工具</h4>
       <div class="table-wrap">
@@ -300,6 +354,10 @@ nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
         </table>
       </div>
 
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-16-18-24-image.png" alt="2024-04-08-16-18-24-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-08-16-17-35-image.png" alt="2024-04-08-16-17-35-image.png" loading="lazy"></p>
       <h4>二、Git 源代码管理工具</h4>
       <p>打开方式：在文件内右键后选择 Git bash。</p>
 
@@ -316,6 +374,10 @@ Initialized empty Git repository in C:/gitdemo/.git/
 
 admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)</code></pre>
       <p>初始化完成后，会发现在原本的路径显示上多了一个 master，这个是默认创建的分支。以后相关的源代码的管理都在默认分支下运行。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-11-21-22-image.png" alt="2024-04-09-11-21-22-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-11-21-12-image.png" alt="2024-04-09-11-21-12-image.png" loading="lazy"></p>
+      
 
       <h4>2.2 增加内容</h4>
       <p>创建文件：</p>
@@ -533,6 +595,10 @@ Automatic merge failed; fix conflicts and then commit the result.</code></pre>
       </div>
 
       <p>解决合并分支的冲突问题：hello 文件打开后的内容</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-15-08-32-image.png" alt="2024-04-09-15-08-32-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-15-09-07-image.png" alt="2024-04-09-15-09-07-image.png" loading="lazy"></p>
+      
       <pre><code>这个是我git的测试文件
 这个是新的数据，来测试文件
 &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
@@ -587,7 +653,11 @@ Date:   Tue Apr 9 13:48:17 2024 +0800
 
       <h4>三、Gitee 的使用</h4>
       <p>创建仓库：打开 Gitee.com，登录账号，建立仓库。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-16-03-32-image.png" alt="2024-04-09-16-03-32-image.png" loading="lazy"></p>
+      
 
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-15-29-56-image.png" alt="2024-04-09-15-29-56-image.png" loading="lazy"></p>
       <p>密钥文件管理：查询邮箱和用户名</p>
       <pre><code>$ git config --list --show-origin
 ………
@@ -644,6 +714,10 @@ Merge made by the 'ort' strategy.
  create mode 100644 README.md</code></pre>
 
       <p>向远程仓库推送数据：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-23-08-image.png" alt="2024-04-10-10-23-08-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-22-48-image.png" alt="2024-04-10-10-22-48-image.png" loading="lazy"></p>
+      
       <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
 $ git push  -u origin master
 Enumerating objects: 15, done.
@@ -659,6 +733,10 @@ branch 'master' set up to track 'origin/master'.</code></pre>
 
       <h4>3.4.3 在远程仓库创建分支</h4>
       <p><strong>方法一：</strong>通过 Gitee 网页界面直接创建分支。在仓库页面点击分支下拉按钮 → 选择"新建分支" → 填写分支名称→ 创建完成后该分支即可供团队成员使用。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-09-44-53-image.png" alt="2024-04-10-09-44-53-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-09-42-44-image.png" alt="2024-04-10-09-42-44-image.png" loading="lazy"></p>
+      
       <p><strong>方法二：</strong>本地创建分支，将本地分支 wwh 推送到远程仓库。</p>
       <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c/gitdemo (master)
 $ git branch wwh
@@ -692,8 +770,30 @@ remote:     https://gitee.com/wei-wen-hui/yw15/pull/new/wei-wen-hui:wwh...wei-w
 en-hui:master
 To gitee.com:wei-wen-hui/yw15.git
  * [new branch]      wwh -&gt; wwh</code></pre>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-15-29-22-image.png" alt="2024-04-09-15-29-22-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-16-02-18-image.png" alt="2024-04-09-16-02-18-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-16-01-05-image.png" alt="2024-04-09-16-01-05-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-15-28-32-image.png" alt="2024-04-09-15-28-32-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-09-15-26-29-image.png" alt="2024-04-09-15-26-29-image.png" loading="lazy"></p>
+      
 
       <p>克隆分支到本地：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-11-48-image.png" alt="2024-04-10-10-11-48-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-11-01-image.png" alt="2024-04-10-10-11-01-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-09-07-image.png" alt="2024-04-10-10-09-07-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-10-03-47-image.png" alt="2024-04-10-10-03-47-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-09-59-03-image.png" alt="2024-04-10-09-59-03-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-09-52-11-image.png" alt="2024-04-10-09-52-11-image.png" loading="lazy"></p>
+      
       <pre><code>admin@DESKTOP-KAC3RQQ MINGW64 /c
 $ git clone -b wwh git@gitee.com:wei-wen-hui/yw15.git
 Cloning into 'yw15'...
@@ -794,6 +894,24 @@ Your identification has been saved in /root/.ssh/id_rsa.
 Your public key has been saved in /root/.ssh/id_rsa.pub.</code></pre>
 
       <p>添加公钥到远程 gitee 仓库：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-09-44-35-image.png" alt="2024-04-11-09-44-35-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-09-48-34-image.png" alt="2024-04-11-09-48-34-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-09-46-49-image.png" alt="2024-04-11-09-46-49-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-05-39-image.png" alt="2024-04-15-11-05-39-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-11-05-03-image.png" alt="2024-04-15-11-05-03-image.png" loading="lazy"></p>
+      -11-09-46-00-image.png" alt="2024-04-11-09-46-00-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-09-38-31-image.png" alt="2024-04-11-09-38-31-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-09-37-35-image.png" alt="2024-04-11-09-37-35-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-14-03-12-image.png" alt="2024-04-15-14-03-12-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost gitdemo]# cat /root/.ssh/id_rsa.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHsRXEBJn0GcPyeefFXhhBB2UMMt3piSqneHbm/Qu4TXg2+JGEQX7FrOhp+qV2zBPMRraXV2VqudZaUKd1uLdMvZRythCG7KMlokuXmiLIhcbrcsCG/IawNBJPYwC2cJ+4QL6vwhjWhblEAonOu5i2ADpOK98y8un0VYr9SbGb90GQ/9F7CcF+1EgMUvq+r0hxkvPXVjRBsXwsSgJQRuQnOcjWYmO0Bt5PMewcoj6153Szc5RVXU+na4LZvgDlvLgyDI6BT6h+ddvBvbOoqtv4Z73Qf3/wFnGIE0+dwc4CInoVvOAVcYgCB9ORU8wQtNyBGiwlIfMi/1yTHPF41La/ 111111111@163.com</code></pre>
 
@@ -863,6 +981,8 @@ setenforce: SELinux is disabled
 external_url 'http://192.168.10.128:9999'</code></pre>
 
       <p>初始化 Gitlab（不要多次执行）：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-15-34-10-image.png" alt="2024-04-10-15-34-10-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost opt]# gitlab-ctl reconfigure</code></pre>
 
       <p>重启 gitlab：</p>
@@ -897,6 +1017,12 @@ Password: 7YxGIsyfSJiT5dBf8hR0aMONWN2YyCXl66id63ufR5E=
 # NOTE: This file will be automatically deleted in the first reconfigure run after 24 hours.</code></pre>
 
       <p>上传公钥到 Gitlab 仓库：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-16-13-18-image.png" alt="2024-04-10-16-13-18-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-16-14-04-image.png" alt="2024-04-10-16-14-04-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-10-15-54-57-image.png" alt="2024-04-10-15-54-57-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost ~]# cat /root/.ssh/id_rsa.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHsRXEBJn0GcPyeefFXhhBB2UMMt3piSqneHbm/Qu4TXg2+JGEQX7FrOhp+qV2zBPMRraXV2VqudZaUKd1uLdMvZRythCG7KMlokuXmiLIhcbrcsCG/IawNBJPYwC2cJ+4QL6vwhjWhblEAonOu5i2ADpOK98y8un0VYr9SbGb90GQ/9F7CcF+1EgMUvq+r0hxkvPXVjRBsXwsSgJQRuQnOcjWYmO0Bt5PMewcoj6153Szc5RVXU+na4LZvgDlvLgyDI6BT6h+ddvBvbOoqtv4Z73Qf3/wFnGIE0+dwc4CInoVvOAVcYgCB9ORU8wQtNyBGiwlIfMi/1yTHPF41La/ 111111111@163.com</code></pre>
 
@@ -993,6 +1119,8 @@ To gitee.com:wei-wen-hui/yw15.git
 分支 'master' 设置为跟踪来自 'origin' 的远程分支 'master'。</code></pre>
 
       <p>上传猫眼项目到 gitlab 仓库内：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-11-00-50-image.png" alt="2024-04-11-11-00-50-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost gitdemo]# cp -r cateye-pro /opt/gitlabdemo/
 [root@localhost gitdemo]# cd /opt/gitlabdemo/
 [root@localhost gitlabdemo]# git add . &amp;&amp; git commit -m "猫眼项目1.0" &amp;&amp; git push --set-upstream origin main</code></pre>
@@ -1080,6 +1208,8 @@ remote: Total 162 (delta 37), reused 142 (delta 32), pack-reused 0
 [root@localhost gitdemo]# ls
 cateye-pro  hello  README.en.md  README.md  w.txt</code></pre>
 
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-11-17-33-image.png" alt="2024-04-16-11-17-33-image.png" loading="lazy"></p>
       <p>上传项目的配置文件 application-dev.yml 文件到 /opt/gitdemo 目录下：</p>
       <pre><code>[root@localhost gitdemo]# vim application-dev.yml
 
@@ -1135,6 +1265,10 @@ tcp6       0      0 ::1:39882               ::1:8888                TIME_WAIT   
 
       <h4>十、Maven 的使用</h4>
       <p>maven 打包：打包过程很长、等待即可；中间如果有短暂卡顿正常，等待即可；不要求网络很快，网络尽量稳定。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-12-09-56-13-image.png" alt="2024-04-12-09-56-13-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-11-16-37-57-image.png" alt="2024-04-11-16-37-57-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost cateye-pro]# pwd
 /opt/gitdemo/cateye-pro
 [root@localhost cateye-pro]# mvn install package</code></pre>
@@ -1208,6 +1342,8 @@ tcp6       0      0 :::8889                 :::*                    LISTEN      
 
       <h4>一、部署 Gitlab 服务器（128）</h4>
       <p>部署基础环境：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-12-10-08-41-image.png" alt="2024-04-12-10-08-41-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost ~]# systemctl  stop firewalld
 [root@localhost ~]# setenforce 0
 [root@localhost ~]# systemctl  disable firewalld
@@ -1355,6 +1491,12 @@ tar zxf jdk-11.0.14_linux-x64_bin.tar.gz -C /usr/local
 [root@localhost software]# ln -s /jdk/bin/java /bin/java</code></pre>
 
       <p>配置环境变量：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-14-24-55-image.png" alt="2024-04-15-14-24-55-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-14-12-34-image.png" alt="2024-04-15-14-12-34-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-14-12-04-image.png" alt="2024-04-15-14-12-04-image.png" loading="lazy"></p>
+      
       <pre><code>[root@localhost software]# vim /etc/profile
 export GIT_HOME=/usr/local/git
 export JAVA_HOME=/jdk
@@ -1444,6 +1586,8 @@ Using CATALINA_OPTS:
 Tomcat started.</code></pre>
 
       <p>http://192.168.10.146:8080</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-15-54-19-image.png" alt="2024-04-15-15-54-19-image.png" loading="lazy"></p>
+      
 
       <h4>2.7 部署 Jenkins（war 包部署）</h4>
       <pre><code>#上传jenkins.war到/usr/local/tomcat/webapps目录下
@@ -1465,9 +1609,31 @@ manager
 tcp6       0      0 :::9000                 :::*                    LISTEN      119702/java</code></pre>
 
       <p>访问 Jenkins：http://192.168.10.146:9000</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-19-34-image.png" alt="2024-04-15-16-19-34-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-15-59-image.png" alt="2024-04-15-16-15-59-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-23-28-image.png" alt="2024-04-15-16-23-28-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-20-04-image.png" alt="2024-04-15-16-20-04-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-19-54-image.png" alt="2024-04-15-16-19-54-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-14-45-image.png" alt="2024-04-15-16-14-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-14-01-image.png" alt="2024-04-15-16-14-01-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-15-16-10-13-image.png" alt="2024-04-15-16-10-13-image.png" loading="lazy"></p>
+      
 
       <h4>2.7.1 部署 Jenkins 功能插件</h4>
       <p>Jenkins 功能插件的作用就是和具体操作功能进行对接。如果没有功能插件，则看不到系统配置无法配置电脑的功能。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-46-19-image.png" alt="2024-04-16-09-46-19-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-44-44-image.png" alt="2024-04-16-09-44-44-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-44-00-image.png" alt="2024-04-16-09-44-00-image.png" loading="lazy"></p>
+      
       <p>操作步骤：进入 Jenkins 主页 → 点击左侧菜单"Manage Jenkins" → 进入插件管理页面，搜索并选择以下插件进行安装：</p>
       <ul>
         <li><strong>deploy（1个）</strong>：搜索 deploy，选择 Deploy to container 插件</li>
@@ -1476,6 +1642,20 @@ tcp6       0      0 :::9000                 :::*                    LISTEN      
         <li><strong>Git（1个）</strong>：搜索 Git，选择 Git plugin</li>
       </ul>
       <p>选择完成后点击安装，等待安装完成即可。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-54-33-image.png" alt="2024-04-16-09-54-33-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-54-18-image.png" alt="2024-04-16-09-54-18-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-52-17-image.png" alt="2024-04-16-09-52-17-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-50-34-image.png" alt="2024-04-16-09-50-34-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-50-45-image.png" alt="2024-04-16-09-50-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-48-55-image.png" alt="2024-04-16-09-48-55-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-09-47-11-image.png" alt="2024-04-16-09-47-11-image.png" loading="lazy"></p>
+      
 
       <div class="key-box">
         <strong>Jenkins 暂时部署完毕。</strong>
@@ -1565,14 +1745,34 @@ gitdemo  jenkins  jenkins.pub  software
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC//w9yzAhpb65PgpHweaRjaaZ7kKCAbNMT73aRIY/uX9LkKCu8Wj7+vHbFVuTyu/GiF64Phu2AqeYRuQHCH7FtMwkAVG8Rhix1mkH/FChzWlrdjnMNlZs4i0dCJcaqyywoWujYF0Us4l/ZpQj01J08AHt99LDtbPmK8w/3fpGgu8HX5hBKBIgQKR9vC9bRmVqdgy0fCDfy3zmS3R5poB4a6kv6zNIwCValsx7dk5OhsMOTwwfEUZ1dOcALXDbHTFBxarhIU3j/jUtYNXifW8/Bcdf4NrkG4p1HxOgzoGQ7yn78Q41EabAI7iJWnksKGacs/rNG+n2/5r7gKQdmZBkd root@localhost.localdomain</code></pre>
 
       <p>把 Jenkins 用户的公钥上传给仓库。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-41-25-image.png" alt="2024-04-16-13-41-25-image.png" loading="lazy"></p>
+      
 
       <h4>4.2 配置 Jenkins 和 Gitlab 的交互</h4>
       <div class="key-box">
         <strong>说明：</strong>前面是创建 jenkins 用户，现在就是要和用户配置到 jenkins。让 jenkins 以这个用户的身份，和 Gitlab 仓库进行交互。上传用户的私钥，拉取源码之后的解密。
       </div>
 
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-54-28-image.png" alt="2024-04-16-13-54-28-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-51-40-image.png" alt="2024-04-16-13-51-40-image.png" loading="lazy"></p>
       <h4>4.3 配置全局变量</h4>
       <p>在 Jenkins 中配置全局变量（JDK、Git、Maven 等路径）。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-59-34-image.png" alt="2024-04-16-13-59-34-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-57-52-image.png" alt="2024-04-16-13-57-52-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-57-35-image.png" alt="2024-04-16-13-57-35-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-49-00-image.png" alt="2024-04-16-13-49-00-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-48-46-image.png" alt="2024-04-16-13-48-46-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-47-45-image.png" alt="2024-04-16-13-47-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-13-47-29-image.png" alt="2024-04-16-13-47-29-image.png" loading="lazy"></p>
+      
 
       <h4>4.4 配置免密登录</h4>
       <div class="key-box">
@@ -1603,9 +1803,39 @@ and check to make sure that only the key(s) you wanted to add.</code></pre>
 
       <h4>4.6 设置构建历史</h4>
       <p>在 Jenkins 中设置构建历史的保留策略。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-54-45-image.png" alt="2024-04-16-14-54-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-52-21-image.png" alt="2024-04-16-14-52-21-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-49-45-image.png" alt="2024-04-16-14-49-45-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-49-36-image.png" alt="2024-04-16-14-49-36-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-22-05-image.png" alt="2024-04-16-14-22-05-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-10-32-image.png" alt="2024-04-16-14-10-32-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-03-27-image.png" alt="2024-04-16-14-03-27-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-02-53-image.png" alt="2024-04-16-14-02-53-image.png" loading="lazy"></p>
+      
 
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-14-58-35-image.png" alt="2024-04-16-14-58-35-image.png" loading="lazy"></p>
       <h4>4.7 构建项目</h4>
       <p>在 Jenkins 中创建构建项目，配置源码管理、构建触发器、构建步骤等。</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-26-58-image.png" alt="2024-04-16-15-26-58-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-07-32-image.png" alt="2024-04-16-15-07-32-image.png" loading="lazy"></p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-31-12-image.png" alt="2024-04-16-15-31-12-image.png" loading="lazy"></p>
+      
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-02-15-image.png" alt="2024-04-16-15-02-15-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-00-51-image.png" alt="2024-04-16-15-00-51-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-00-09-image.png" alt="2024-04-16-15-00-09-image.png" loading="lazy"></p>
+      
       <p>pom.xml 不能识别的话：</p>
       <ul>
         <li>cateye-pro/pom.xml</li>
@@ -1616,6 +1846,12 @@ and check to make sure that only the key(s) you wanted to add.</code></pre>
 
       <h4>正式编译部署</h4>
       <p>在 Jenkins 中正式编译部署项目，构建完成后验证结果：</p>
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-43-20-image.png" alt="2024-04-16-15-43-20-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-38-47-image.png" alt="2024-04-16-15-38-47-image.png" loading="lazy"></p>
+      
+      <p class="img-p"><img src="images/Linux 部署/2024-04-16-15-34-17-image.png" alt="2024-04-16-15-34-17-image.png" loading="lazy"></p>
+      
       <pre><code>192.168.10.150:8888/api/films/?currentindex=2&amp;cateld=5</code></pre>
 
       <div class="key-box">
