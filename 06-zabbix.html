@@ -59,7 +59,7 @@
     <li><a href="#ch05-03">怎么实施Linux系统监控</a></li>
     <li><a href="#ch05-04">怎么实施Windows系统监控</a></li>
     <li><strong>第06章 Zabbix应用监控</strong></li>
-    <li><a href="#ch06-01">什么是应用监控</a></li>
+    <li><a href="#ch06-01">应用监控</a></li>
     <li><a href="#ch06-02">怎么实施nginx应用监控</a></li>
     <li><a href="#ch06-03">怎么实施java应用监控</a></li>
     <li><a href="#ch06-04">怎么实施mysql应用监控</a></li>
@@ -69,18 +69,18 @@
     <li><a href="#ch06-08">怎么实施k8s应用监控</a></li>
     <li><strong>第07章 Zabbix自动发现和注册</strong></li>
     <li><a href="#ch07-01">自动发现和自动注册概述</a></li>
-    <li><a href="#ch07-02">Zabbix自动发现</a></li>
-    <li><a href="#ch07-03">Zabbix自动注册</a></li>
-    <li><a href="#ch07-04">Zabbix低级别发现LLD</a></li>
+    <li><a href="#ch07-02">zabbix自动发现</a></li>
+    <li><a href="#ch07-03">zabbix自动注册</a></li>
+    <li><a href="#ch07-04">Zabbix低级别发现Low-level discovery（LLD）</a></li>
     <li><strong>第08章 Zabbix分布式</strong></li>
-    <li><a href="#ch08-01">什么是分布式监控</a></li>
+    <li><a href="#ch08-01">分布式监控</a></li>
     <li><a href="#ch08-02">zabbix proxy概述</a></li>
     <li><a href="#ch08-03">zabbix proxy实现分布式监控</a></li>
     <li><a href="#ch08-04">keepalived概述</a></li>
     <li><a href="#ch08-05">zabbix和keepalived实现高可用</a></li>
     <li><strong>第09章 图形化监控Grafana</strong></li>
     <li><a href="#ch09-01">图形化监控概述</a></li>
-    <li><a href="#ch09-02">grafana的安装</a></li>
+    <li><a href="#ch09-02">grafana的安装配置</a></li>
     <li><a href="#ch09-03">grafana展现zabbix数据</a></li>
     <li><strong>第10章 项目-基于Zabbix监控商城项目</strong></li>
     <li><a href="#ch10-01">商城项目介绍</a></li>
@@ -99,7 +99,7 @@
   <div class="content">
 <div class="file-card" id="ch01-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📊</span>
     <h3>业务系统的监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -240,10 +240,9 @@
 <p>Zabbix拥有庞大的用户群体和活跃的社区，为用户提供了丰富的资源和支持。无论是遇到技术问题还是需要寻求帮助，用户都可以在社区中找到答案或得到帮助。此外，Zabbix还拥有一批专业的技术支持和服务商，为企业提供更加专业的服务。</p>
   </div>
 </div>
-
 <div class="file-card" id="ch01-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">ℹ️</span>
     <h3>zabbix的简介</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -337,10 +336,9 @@
 <p>专门针对URL监控，比如php应用，只要我们能curl到这个ok.php，就认为这个服务是正常的，zabbix的Web monitoring也具有类似的功能</p>
   </div>
 </div>
-
 <div class="file-card" id="ch02-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📥</span>
     <h3>zabbix的安装方式</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -410,10 +408,9 @@
 <p>自2001年发布首个GPL版本后，Zabbix不断对其功能特性进行增强完善。Zabbix官方发布Zabbix的最新版本Zabbix 6.4。本实验选用Zabbix 5.x LTS版本。</p>
   </div>
 </div>
-
 <div class="file-card" id="ch02-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔧</span>
     <h3>yum方式安装zabbix5.x</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -699,10 +696,9 @@ DBPort=3306         # 改成数据库的端口
 DBName=zabbix        # 创建数据库的名称</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch02-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🧩</span>
     <h3>zabbix主要组件</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -772,10 +768,9 @@ DBName=zabbix        # 创建数据库的名称</code></pre>
 <p>报警方式：web页面、短信、邮件等等。</p>
   </div>
 </div>
-
 <div class="file-card" id="ch02-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">⚙️</span>
     <h3>源码方式安装zabbix5.x</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -1042,10 +1037,9 @@ certs  maintenance.inc.php  zabbix.conf.php  zabbix.conf.php.example</code></pre
 <p>安装配置完成，进入登录界面（用户名/密码：Admin/zabbix）</p>
   </div>
 </div>
-
 <div class="file-card" id="ch02-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🐳</span>
     <h3>docker上安装zabbix</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -1233,10 +1227,9 @@ docker ps -a</code></pre>
 </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch02-06">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">⬆️</span>
     <h3>安装zabbix6.0</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -1540,10 +1533,9 @@ certs  maintenance.inc.php  zabbix.conf.php  zabbix.conf.php.example</code></pre
 <p>安装配置完成，进入登录界面（用户名/密码：Admin/zabbix）</p>
   </div>
 </div>
-
 <div class="file-card" id="ch02-07">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">☸️</span>
     <h3>k8s上安装zabbix</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2013,10 +2005,9 @@ spec:
 kubectl get pod -n zabbix </code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch03-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📋</span>
     <h3>章节概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2112,10 +2103,9 @@ systemctl enable nginx</code></pre>
 <p>从宿主机浏览器访问http://nginx服务器ip:80/</p>
   </div>
 </div>
-
 <div class="file-card" id="ch03-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🌐</span>
     <h3>zabbix web界面概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2159,10 +2149,9 @@ systemctl enable nginx</code></pre>
 </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch03-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">➕</span>
     <h3>zabbix手动添加一台主机</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2300,10 +2289,9 @@ systemctl enable zabbix-agent</code></pre>
 </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch03-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔧</span>
     <h3>zabbix监控nginx（自定义监控）</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2561,10 +2549,9 @@ $1</code></pre>
 <p>Web页面管理端需做哪些配置？（自定义监控项、设置触发器）</p>
   </div>
 </div>
-
 <div class="file-card" id="ch03-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔤</span>
     <h3>处理zabbix监控项中文乱码问题</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2611,10 +2598,9 @@ rm -rf zabbix-web-font
 ln -s  /usr/share/fonts/dejavu/SIMFANG.TTF /etc/alternatives/zabbix-web-font</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch03-06">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🖥️</span>
     <h3>zabbix web界面详细介绍</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2722,10 +2708,9 @@ ln -s  /usr/share/fonts/dejavu/SIMFANG.TTF /etc/alternatives/zabbix-web-font</co
 <p>Configuration>Templates>Create template</p>
   </div>
 </div>
-
 <div class="file-card" id="ch04-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔔</span>
     <h3>zabbix告警概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2829,10 +2814,9 @@ ln -s  /usr/share/fonts/dejavu/SIMFANG.TTF /etc/alternatives/zabbix-web-font</co
 </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch04-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📧</span>
     <h3>zabbix-邮件告警</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -2997,10 +2981,9 @@ Original problem ID: {EVENT.ID}
 <p>server端识别到一台主机之后，可以为客户端的主机添加一个监控项item，items收集主机的一项具体数据之后，通过agent传递给server端，server端再设置一个触发器trigger，一旦这个item的值，超过了触发器设置的范围，触发器触发一个动作，可以通过media 项的设置来发送email邮件。</p>
   </div>
 </div>
-
 <div class="file-card" id="ch04-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">💬</span>
     <h3>zabbix-短信告警</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3133,10 +3116,9 @@ chown zabbix.zabbix /tmp/SMS.log   #记录日志文件</code></pre>
 systemctl stop nginx</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch04-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📌</span>
     <h3>zabbix-钉钉告警</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3267,10 +3249,9 @@ systemctl stop nginx</code></pre>
 <p>至此、zabbix 钉钉告警就完成了。</p>
   </div>
 </div>
-
 <div class="file-card" id="ch04-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">⚡</span>
     <h3>zabbix-页面告警</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3312,10 +3293,9 @@ cd /usr/share/zabbix/audio
 ll</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch04-06">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">💚</span>
     <h3>zabbix-微信告警</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3483,10 +3463,9 @@ systemctl stop nginx</code></pre>
 <p>至此、zabbix 企业微信告警就完成了。</p>
   </div>
 </div>
-
 <div class="file-card" id="ch04-07">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📊</span>
     <h3>zabbix各种告警媒介的比较</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3568,10 +3547,9 @@ systemctl stop nginx</code></pre>
 <p>告警信息过分泛滥，导致真正的“异常”出现时反应不过来的问题</p>
   </div>
 </div>
-
 <div class="file-card" id="ch05-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📈</span>
     <h3>监控指标</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3631,10 +3609,9 @@ systemctl stop nginx</code></pre>
 <p>zabbix监控的范畴包括硬件、系统、网络、java程序、服务端口、日志文件、各应用中间件、容器以及容器编排程序等等</p>
   </div>
 </div>
-
 <div class="file-card" id="ch05-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">💻</span>
     <h3>系统监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -3738,10 +3715,9 @@ systemctl stop nginx</code></pre>
 </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch05-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🐧</span>
     <h3>怎么实施Linux系统监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -4063,10 +4039,9 @@ com2sec notConfigUser  default       public</code></pre>
 <p>可以看到latestdata最新监控数据</p>
   </div>
 </div>
-
 <div class="file-card" id="ch05-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🪟</span>
     <h3>怎么实施Windows系统监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -4328,16 +4303,9 @@ nginx -s stop</code></pre>
 <h5>四、采用SNMP协议监控Windows</h5>
   </div>
 </div>
-  </div>
-</div>
-
-<script src="common.js"></script>
-</body>
-</html>
-
 <div class="file-card" id="ch06-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📱</span>
     <h3>应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -4361,7 +4329,7 @@ nginx -s stop</code></pre>
 </div>
 <div class="file-card" id="ch06-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔗</span>
     <h3>怎么实施nginx应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -4503,7 +4471,7 @@ $1</code></pre>
 </div>
 <div class="file-card" id="ch06-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">☕</span>
     <h3>怎么实施java应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -4744,7 +4712,7 @@ ps -ef | grep zabbix_server | grep java</code></pre>
 </div>
 <div class="file-card" id="ch06-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🗄️</span>
     <h3>怎么实施mysql应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -4999,7 +4967,7 @@ public interface BrandMapper {
 </div>
 <div class="file-card" id="ch06-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔴</span>
     <h3>怎么实施redis应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -5843,7 +5811,7 @@ Object obj= redisUtils.get("a");</code></pre>
 </div>
 <div class="file-card" id="ch06-06">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📨</span>
     <h3>怎么实施消息队列应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -6026,7 +5994,7 @@ rabbitTemplate.convertAndSend(
 </div>
 <div class="file-card" id="ch06-07">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📦</span>
     <h3>怎么实施docker应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -6217,7 +6185,7 @@ Query OK, 0 rows affected (0.01 sec)</code></pre>
 </div>
 <div class="file-card" id="ch06-08">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🌐</span>
     <h3>怎么实施k8s应用监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -7455,7 +7423,7 @@ https://blog.csdn.net/weixin_38299857/article/details/128422737</code></pre>
 </div>
 <div class="file-card" id="ch07-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔍</span>
     <h3>自动发现和自动注册概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -7485,7 +7453,7 @@ https://blog.csdn.net/weixin_38299857/article/details/128422737</code></pre>
 </div>
 <div class="file-card" id="ch07-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📡</span>
     <h3>zabbix自动发现</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -7565,7 +7533,7 @@ systemctl enable zabbix-agent</code></pre>
 </div>
 <div class="file-card" id="ch07-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📝</span>
     <h3>zabbix自动注册</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -7621,7 +7589,7 @@ Host metadata contains javaweb</code></pre>
 </div>
 <div class="file-card" id="ch07-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔎</span>
     <h3>Zabbix低级别发现Low-level discovery（LLD）</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -7817,7 +7785,7 @@ UserParameter=discovery.user,/bin/bash /etc/zabbix/scripts/discovery_user.sh</co
 </div>
 <div class="file-card" id="ch08-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🌐</span>
     <h3>分布式监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -7843,8 +7811,8 @@ UserParameter=discovery.user,/bin/bash /etc/zabbix/scripts/discovery_user.sh</co
 </div>
 <div class="file-card" id="ch08-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
-    <h3>zabbix proxy实现分布式监控</h3>
+    <span class="card-icon">🔀</span>
+    <h3>zabbix proxy概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
   <div class="file-card-body">
@@ -7893,7 +7861,7 @@ UserParameter=discovery.user,/bin/bash /etc/zabbix/scripts/discovery_user.sh</co
 </div>
 <div class="file-card" id="ch08-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🏗️</span>
     <h3>zabbix proxy实现分布式监控</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8028,7 +7996,7 @@ Include=/etc/zabbix/zabbix_agentd.d/*.conf
 </div>
 <div class="file-card" id="ch08-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🛡️</span>
     <h3>keepalived概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8055,7 +8023,7 @@ Include=/etc/zabbix/zabbix_agentd.d/*.conf
 </div>
 <div class="file-card" id="ch08-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔄</span>
     <h3>zabbix和keepalived实现高可用</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8413,7 +8381,7 @@ ip a</code></pre>
 </div>
 <div class="file-card" id="ch09-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📉</span>
     <h3>图形化监控概述</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8456,7 +8424,7 @@ ip a</code></pre>
 </div>
 <div class="file-card" id="ch09-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📥</span>
     <h3>grafana的安装配置</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8563,7 +8531,7 @@ systemctl restart grafana-server</code></pre>
 </div>
 <div class="file-card" id="ch09-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🎨</span>
     <h3>grafana展现zabbix数据</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8600,10 +8568,9 @@ systemctl restart grafana-server</code></pre>
 <h4>2.2 举例</h4>
   </div>
 </div>
-
 <div class="file-card" id="ch10-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🛒</span>
     <h3>商城项目介绍</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8677,10 +8644,9 @@ systemctl restart grafana-server</code></pre>
     </table>
   </div>
 </div>
-
 <div class="file-card" id="ch10-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🏗️</span>
     <h3>部署环境搭建</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8793,10 +8759,9 @@ systemctl disable iptables</code></pre>
     <p>便于后续实验，参加第2章</p>
   </div>
 </div>
-
 <div class="file-card" id="ch10-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🗃️</span>
     <h3>zabbix监控商城数据库</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -8956,10 +8921,9 @@ systemctl stop mysqld</code></pre>
     </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch10-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🖥️</span>
     <h3>zabbix监控商城后台</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9080,10 +9044,9 @@ Memory: Heap memory maximum size  (堆)内存总计
     </ul>
   </div>
 </div>
-
 <div class="file-card" id="ch10-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔌</span>
     <h3>zabbix监控商城api后端</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9147,10 +9110,9 @@ Memory: Heap memory maximum size  (堆)内存总计
     <p><a href="https://grafana.com/grafana/dashboards/5363-zabbix-full-server-status/" target="_blank">https://grafana.com/grafana/dashboards/5363-zabbix-full-server-status/</a></p>
   </div>
 </div>
-
 <div class="file-card" id="ch11-01">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🎬</span>
     <h3>影票项目介绍</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9292,10 +9254,9 @@ protected-mode no</code></pre>
     <pre><code>./redis-server ./redis.conf</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch11-02">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔌</span>
     <h3>zabbix监控影票api后端</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9363,10 +9324,9 @@ http://192.168.28.140:8088/cinema/12</code></pre>
 #端口：12346端口</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch11-03">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">🔴</span>
     <h3>zabbix监控影票redis中间件</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9454,10 +9414,9 @@ netstat -lnpt|grep 6379
 #检查zabbix的监控状态</code></pre>
   </div>
 </div>
-
 <div class="file-card" id="ch11-04">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">📨</span>
     <h3>zabbix监控影票消息队列中间件</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9571,10 +9530,9 @@ cat /etc/zabbix/zabbix_agentd.conf</code></pre>
     <h4>三、测试</h4>
   </div>
 </div>
-
 <div class="file-card" id="ch11-05">
   <div class="file-card-header">
-    <span class="card-icon">📄</span>
+    <span class="card-icon">☕</span>
     <h3>zabbix监控影票消费者java服务</h3>
     <span class="toggle-icon">▾</span>
   </div>
@@ -9649,8 +9607,7 @@ java -Djava.rmi.server.hostname=192.168.28.140\
     <h5>3.5 选座和生成订单</h5>
   </div>
 </div>
-  
-</div>
+  </div>
 </div>
 
 <script src="common.js"></script>
