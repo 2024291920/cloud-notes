@@ -301,6 +301,24 @@ a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
 .file-card-body ol li, .card-body ol li { margin-bottom: 0.25rem; }
 .file-card-body strong, .card-body strong { color: var(--ink); font-weight: 700; }
 
+/* === Images === */
+.file-card-body img, .card-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.6rem auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  cursor: zoom-in;
+}
+.file-card-body img:hover, .card-body img:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.file-card-body p.img-p, .card-body p.img-p {
+  margin: 0.6rem 0;
+  line-height: 0;
+}
+
 /* === Code blocks === */
 .file-card-body code, .card-body code {
   font-family: var(--font-mono); background: var(--bg2); padding: 0.12em 0.35em;
