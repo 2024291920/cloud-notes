@@ -2,6 +2,62 @@
 (function() {
   'use strict';
 
+  var bookmarkKey = 'cloud-notes-bookmarks';
+  var recentKey = 'cloud-notes-recent';
+  var sharedStatePrefix = 'cloud-notes-state:';
+
+  function readSharedState() {
+    if (window.name.indexOf(sharedStatePrefix) !== 0) return {};
+    try { return JSON.parse(window.name.slice(sharedStatePrefix.length)); } catch (_) { return {}; }
+  }
+
+  function mergeStoredItems(primary, secondary) {
+    var seen = {};
+    return primary.concat(secondary).filter(function(item) {
+      if (!item || !item.href || seen[item.href]) return false;
+      seen[item.href] = true;
+      return true;
+    });
+  }
+
+  function readStoredList(key) {
+    var local = [];
+    try { local = JSON.parse(localStorage.getItem(key) || '[]'); } catch (_) {}
+    var shared = readSharedState()[key] || [];
+    var merged = mergeStoredItems(shared, local);
+    var timeField = key === recentKey ? 'visitedAt' : 'bookmarkedAt';
+    merged.sort(function(a, b) { return (b[timeField] || 0) - (a[timeField] || 0); });
+    try { localStorage.setItem(key, JSON.stringify(merged)); } catch (_) {}
+    return merged;
+  }
+
+  function writeStoredList(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+    var state = readSharedState();
+    state[key] = value;
+    window.name = sharedStatePrefix + JSON.stringify(state);
+  }
+
+  function knowledgeItemFromCard(card) {
+    var button = card && card.querySelector('.bookmark-btn');
+    if (!button) return null;
+    return {
+      title: button.dataset.bookmarkTitle,
+      page: button.dataset.bookmarkPage,
+      href: button.dataset.bookmarkHref,
+      source: button.dataset.bookmarkSource
+    };
+  }
+
+  function rememberCard(card) {
+    var item = knowledgeItemFromCard(card);
+    if (!item) return;
+    var recent = readStoredList(recentKey).filter(function(entry) { return entry.href !== item.href; });
+    item.visitedAt = Date.now();
+    recent.unshift(item);
+    writeStoredList(recentKey, recent.slice(0, 10));
+  }
+
   // === 0. 面包屑导航（嵌入顶栏） ===
   (function initBreadcrumb() {
     var topbar = document.querySelector('.topbar');
@@ -39,7 +95,7 @@
 
     function updateBreadcrumbFromHash() {
       var hash = window.location.hash;
-      if (hash && hash.length > 1) {
+      if (hash && hash.length > 1 && hash.indexOf('#sec-') !== 0) {
         var keyword = decodeURIComponent(hash.substring(1));
         if (keyword && bcCardTitle) {
           bcCardTitle.textContent = '搜索: ' + keyword;
@@ -63,11 +119,51 @@
 
     // Collapse toggle
     document.querySelectorAll('.file-card-header, .card-header').forEach(function(h) {
-      h.addEventListener('click', function() {
+      function toggleCard() {
         var card = h.closest('.file-card') || h.closest('.card');
         if (card) {
           card.classList.toggle('collapsed');
+          h.setAttribute('aria-expanded', card.classList.contains('collapsed') ? 'false' : 'true');
+          if (!card.classList.contains('collapsed')) rememberCard(card);
         }
+      }
+      h.addEventListener('click', function(e) {
+        if (e.target.closest('.bookmark-btn')) return;
+        toggleCard();
+      });
+      h.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleCard();
+        }
+      });
+    });
+
+    var bookmarks = readStoredList(bookmarkKey);
+    document.querySelectorAll('.bookmark-btn').forEach(function(button) {
+      function refresh() {
+        var saved = bookmarks.some(function(item) { return item.href === button.dataset.bookmarkHref; });
+        button.classList.toggle('saved', saved);
+        button.textContent = saved ? '★' : '☆';
+        button.setAttribute('aria-label', saved ? '取消收藏' : '收藏笔记');
+        button.title = saved ? '取消收藏' : '收藏笔记';
+      }
+      refresh();
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var href = button.dataset.bookmarkHref;
+        var existing = bookmarks.findIndex(function(item) { return item.href === href; });
+        if (existing >= 0) bookmarks.splice(existing, 1);
+        else bookmarks.unshift({
+          title: button.dataset.bookmarkTitle,
+          page: button.dataset.bookmarkPage,
+          href: href,
+          source: button.dataset.bookmarkSource,
+          bookmarkedAt: Date.now()
+        });
+        writeStoredList(bookmarkKey, bookmarks.slice(0, 50));
+        refresh();
       });
     });
   })();
@@ -88,6 +184,9 @@
       card.offsetHeight;
       card.style.transition = '';
     }
+    var header = card.querySelector('.file-card-header, .card-header');
+    if (header) header.setAttribute('aria-expanded', 'true');
+    rememberCard(card);
     card.classList.add('scroll-target');
     setTimeout(function() {
       card.classList.remove('scroll-target');
@@ -187,7 +286,21 @@
       e.stopPropagation();
       var code = pre.querySelector('code');
       var text = code ? code.textContent : pre.textContent;
-      navigator.clipboard.writeText(text).then(function() {
+      var copyPromise;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        copyPromise = navigator.clipboard.writeText(text);
+      } else {
+        var helper = document.createElement('textarea');
+        helper.value = text;
+        helper.style.position = 'fixed';
+        helper.style.opacity = '0';
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand('copy');
+        helper.remove();
+        copyPromise = Promise.resolve();
+      }
+      copyPromise.then(function() {
         btn.textContent = '已复制';
         setTimeout(function() { btn.textContent = '复制'; }, 1500);
       });
@@ -257,7 +370,7 @@
   // === 7. URL hash 搜索（从 index.html 跳转时） ===
   function checkHashSearch() {
     var hash = window.location.hash;
-    if (hash && hash.length > 1) {
+    if (hash && hash.length > 1 && hash.indexOf('#sec-') !== 0) {
       var keyword = decodeURIComponent(hash.substring(1));
       if (keyword && keyword.length > 0) {
         var searchInput = document.querySelector('.search-box');
@@ -270,10 +383,29 @@
   }
   setTimeout(checkHashSearch, 300);
 
+  function openHashTarget() {
+    var hash = window.location.hash;
+    if (!hash || hash.indexOf('#sec-') !== 0) return;
+    var target = document.getElementById(hash.substring(1));
+    if (!target) return;
+    highlightTarget(target);
+    setTimeout(function() {
+      var topbarH = (document.querySelector('.topbar') || {}).offsetHeight || 52;
+      var toolbarH = (document.querySelector('.toolbar') || {}).offsetHeight || 36;
+      window.scrollTo(0, target.getBoundingClientRect().top + window.scrollY - topbarH - toolbarH - 8);
+    }, 50);
+  }
+  setTimeout(openHashTarget, 120);
+  window.addEventListener('hashchange', openHashTarget);
+
   // === 8. 页内搜索框 ===
   var searchInput = document.querySelector('.search-box');
   if (searchInput) {
     var searchTimeout;
+    var searchCount = document.createElement('span');
+    searchCount.className = 'search-count';
+    searchCount.setAttribute('aria-live', 'polite');
+    searchInput.insertAdjacentElement('afterend', searchCount);
     searchInput.addEventListener('input', function() {
       clearTimeout(searchTimeout);
       var query = searchInput.value.trim().toLowerCase();
@@ -285,21 +417,31 @@
           document.querySelectorAll('.file-card.search-hidden, .card.search-hidden').forEach(function(c) {
             c.classList.remove('search-hidden');
           });
+          sideLinks.forEach(function(link) { link.closest('li').classList.remove('search-hidden'); });
+          searchCount.textContent = '';
           return;
         }
         var allCards = document.querySelectorAll('.file-card, .card');
+        var visibleCount = 0;
         allCards.forEach(function(card) {
           var body = card.querySelector('.file-card-body') || card.querySelector('.card-body');
           if (!body) return;
-          var text = body.textContent.toLowerCase();
+          var text = card.textContent.toLowerCase();
+          var sideLink = document.querySelector('.sidebar a[href="#' + card.id + '"]');
           if (text.indexOf(query) === -1) {
             card.classList.add('search-hidden');
+            if (sideLink) sideLink.closest('li').classList.add('search-hidden');
           } else {
+            visibleCount += 1;
             card.classList.remove('search-hidden');
             card.classList.remove('collapsed');
+            var header = card.querySelector('.file-card-header, .card-header');
+            if (header) header.setAttribute('aria-expanded', 'true');
+            if (sideLink) sideLink.closest('li').classList.remove('search-hidden');
             highlightText(body, query);
           }
         });
+        searchCount.textContent = visibleCount + ' 篇';
       }, 200);
     });
 
@@ -574,7 +716,7 @@
     var currentPage = document.location.pathname.split('/').pop();
     var pages = ['01-linux-core.html','02-linux-service.html','03-linux-database.html',
                  '04-ansible.html','05-deployment.html','06-zabbix.html',
-                 '07-docker.html','08-k8s.html'];
+                 '07-docker.html','08-k8s.html','09-appendix.html'];
     var idx = pages.indexOf(currentPage);
     var prevPage = idx > 0 ? pages[idx - 1] : null;
     var nextPage = idx < pages.length - 1 ? pages[idx + 1] : null;
@@ -747,8 +889,77 @@
     }
   })();
 
-  // === 18. 页面编辑模式 ===
+  // === 18. 图片放大查看 ===
+  (function initImageViewer() {
+    var images = Array.prototype.slice.call(document.querySelectorAll('.file-card-body img, .card-body img'));
+    if (!images.length) return;
+
+    var current = 0;
+    var viewer = document.createElement('div');
+    viewer.className = 'image-viewer';
+    viewer.setAttribute('role', 'dialog');
+    viewer.setAttribute('aria-modal', 'true');
+    viewer.setAttribute('aria-label', '图片查看器');
+    viewer.innerHTML =
+      '<button class="viewer-close" type="button" title="关闭" aria-label="关闭">×</button>' +
+      '<button class="viewer-prev" type="button" title="上一张" aria-label="上一张">‹</button>' +
+      '<img alt="课程笔记图片">' +
+      '<button class="viewer-next" type="button" title="下一张" aria-label="下一张">›</button>' +
+      '<div class="viewer-caption"></div>';
+    document.body.appendChild(viewer);
+
+    var preview = viewer.querySelector('img');
+    var caption = viewer.querySelector('.viewer-caption');
+
+    function show(index) {
+      current = (index + images.length) % images.length;
+      var source = images[current];
+      preview.src = source.currentSrc || source.src;
+      preview.alt = source.alt || '课程笔记图片';
+      caption.textContent = (current + 1) + ' / ' + images.length + ' · ' + (source.dataset.sourceName || source.alt || '课程截图');
+    }
+
+    function open(index) {
+      show(index);
+      viewer.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      viewer.querySelector('.viewer-close').focus();
+    }
+
+    function close() {
+      viewer.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    images.forEach(function(image, index) {
+      image.setAttribute('tabindex', '0');
+      image.setAttribute('role', 'button');
+      image.setAttribute('aria-label', '放大查看图片');
+      image.addEventListener('click', function() { open(index); });
+      image.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          open(index);
+        }
+      });
+    });
+
+    viewer.querySelector('.viewer-close').addEventListener('click', close);
+    viewer.querySelector('.viewer-prev').addEventListener('click', function() { show(current - 1); });
+    viewer.querySelector('.viewer-next').addEventListener('click', function() { show(current + 1); });
+    viewer.addEventListener('click', function(event) { if (event.target === viewer) close(); });
+    document.addEventListener('keydown', function(event) {
+      if (!viewer.classList.contains('open')) return;
+      if (event.key === 'Escape') close();
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'ArrowRight') show(current + 1);
+    });
+  })();
+
+  // === 19. 页面编辑模式 ===
   (function initEditMode() {
+    // 自动生成页面以原始 Markdown 为唯一数据源，禁用会造成内容漂移的浏览器本地编辑。
+    if (document.body.dataset.generated === 'true') return;
     var ADMIN_PASSWORD = 'admin123';
     var STORAGE_KEY = 'cloud-notes-edits-' + location.pathname.split('/').pop();
     var isEditMode = false;

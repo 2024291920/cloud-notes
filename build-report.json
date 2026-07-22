@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-07-22T16:04:27.721Z",
+  "sourceRoot": "D:\\Users\\20242\\Desktop\\运维\\课程笔记\\云计算15",
+  "topics": 9,
+  "documents": 106,
+  "imageReferencesCopied": 631,
+  "unresolvedImages": 0,
+  "correctionRules": 12,
+  "pages": [
+    {
+      "title": "Linux 核心",
+      "files": 12,
+      "images": 62,
+      "filename": "01-linux-core.html"
+    },
+    {
+      "title": "Linux 服务",
+      "files": 9,
+      "images": 44,
+      "filename": "02-linux-service.html"
+    },
+    {
+      "title": "Linux 数据库",
+      "files": 4,
+      "images": 4,
+      "filename": "03-linux-database.html"
+    },
+    {
+      "title": "Ansible 自动化",
+      "files": 3,
+      "images": 18,
+      "filename": "04-ansible.html"
+    },
+    {
+      "title": "Linux 部署",
+      "files": 3,
+      "images": 118,
+      "filename": "05-deployment.html"
+    },
+    {
+      "title": "Zabbix 监控",
+      "files": 65,
+      "images": 354,
+      "filename": "06-zabbix.html"
+    },
+    {
+      "title": "Docker 容器",
+      "files": 1,
+      "images": 9,
+      "filename": "07-docker.html"
+    },
+    {
+      "title": "Kubernetes",
+      "files": 4,
+      "images": 12,
+      "filename": "08-k8s.html"
+    },
+    {
+      "title": "课程附录",
+      "files": 5,
+      "images": 30,
+      "filename": "09-appendix.html"
+    }
+  ],
+  "problems": []
+}
