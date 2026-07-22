@@ -74,11 +74,8 @@
 
         <h4>1.2 OSI 七层模型</h4>
         <p>[图：OSI 七层模型示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-18-16-00-27-image.png" alt="2024-03-18-16-00-27-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-26-10-34-12-image.png" alt="2024-03-26-10-34-12-image.png" loading="lazy"></p>
-      
-        <p>各层对应的设备：</p>
+
+<p>各层对应的设备：</p>
         <ul>
           <li>物理层：网卡</li>
           <li>数据链路层：交换机</li>
@@ -101,11 +98,8 @@
         <h4>特殊 IP 地址</h4>
         <ul>
           <li>特殊 IP 不能被作为主机 IP 使用，特殊 IP 本身就是特殊用途</li>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-09-41-53-image.png" alt="2024-03-19-09-41-53-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-09-42-03-image.png" alt="2024-03-19-09-42-03-image.png" loading="lazy"></p>
-      
-          <li><code>192.168.10.0</code> 网段</li>
+
+<li><code>192.168.10.0</code> 网段</li>
           <li><code>127.0.0.1</code> 本地回环地址</li>
           <li><code>192.168.10.1</code> 网关</li>
           <li><code>192.168.10.255</code> 广播地址</li>
@@ -128,9 +122,7 @@
           <li>每层封装后数据单元都是有不同的叫法</li>
         </ul>
         <p>[图：各层数据单元名称示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-10-00-11-image.png" alt="2024-03-19-10-00-11-image.png" loading="lazy"></p>
-      
-      </div>
+</div>
     </div>
 
     <!-- TCP/IP 网络模型 -->
@@ -142,9 +134,7 @@
       </div>
       <div class="card-body">
         <h4>OSI 七层 与 TCP/IP 五层 对应关系</h4>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-10-13-27-image.png" alt="2024-03-19-10-13-27-image.png" loading="lazy"></p>
-      
-        <div class="table-wrap"><table>
+<div class="table-wrap"><table>
           <thead><tr><th>OSI 七层</th><th>TCP/IP 五层</th><th>对应的设备</th><th>作用</th></tr></thead>
           <tbody>
             <tr><td>应用层</td><td>应用层</td><td>计算机</td><td>提供应用程序间通信</td></tr>
@@ -157,19 +147,10 @@
           </tbody>
         </table></div>
         <p>[图：TCP/IP 五层模型示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-10-05-18-image.png" alt="2024-03-19-10-05-18-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-10-05-12-image.png" alt="2024-03-19-10-05-12-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-10-50-55-image.png" alt="2024-03-19-10-50-55-image.png" loading="lazy"></p>
-      
 
-        <h4>TCP 和 UDP 协议</h4>
+<h4>TCP 和 UDP 协议</h4>
         <p>[图：TCP/UDP 协议对比图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-10-51-17-image.png" alt="2024-03-19-10-51-17-image.png" loading="lazy"></p>
-      
-
-        <h4>TCP 协议</h4>
+<h4>TCP 协议</h4>
         <ul>
           <li>面向连接：在传输数据的时候，要建立客户端和服务器的连接，才能传输数据</li>
           <li>可靠的通信：TCP 传输数据的时候，会基于内部的各种机制保证数据传输到目的地</li>
@@ -205,9 +186,7 @@
 
         <h4>TCP 四次挥手</h4>
         <p>[图：TCP 四次挥手示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-14-10-55-image.png" alt="2024-03-19-14-10-55-image.png" loading="lazy"></p>
-      
-        <ul>
+<ul>
           <li>客户端发送一个 FIN，用来关闭客户端到服务端的数据发送</li>
           <li>服务端在收到 FIN 的时候，会返回一个 ACK 给客户端</li>
           <li>服务端发送一个 FIN 给客户端，用来关闭服务端到客户端的数据发送</li>
@@ -321,9 +300,7 @@ userlist_deny=NO       # 黑名单
         <pre><code>[root@localhost ~]# chmod  -R 777 /var/ftp</code></pre>
 
         <p><strong>2.6 设置 FTP 用户</strong></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-15-25-20-image.png" alt="2024-03-19-15-25-20-image.png" loading="lazy"></p>
-      
-        <pre><code>[root@localhost ~]# useradd ftp_sc
+<pre><code>[root@localhost ~]# useradd ftp_sc
 [root@localhost ~]# echo "123" | passwd --stdin ftp_sc
 更改用户 ftp_sc 的密码 。
 passwd：所有的身份验证令牌已经成功更新。</code></pre>
@@ -366,10 +343,7 @@ ftp_sc</code></pre>
 230 Login successful.
 ftp&gt;</code></pre>
         <p>[图：FTP 登录成功示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-15-28-08-image.png" alt="2024-03-19-15-28-08-image.png" loading="lazy"></p>
-      
-
-        <h4>三、windows 登录 FTP 服务器</h4>
+<h4>三、windows 登录 FTP 服务器</h4>
 
         <p><strong>3.1 准备一个测试文件</strong></p>
         <pre><code>[root@localhost ~]# cd /var/ftp/pub/
@@ -395,12 +369,8 @@ ftp: 收到 62 字节，用时 0.00秒 62.00千字节/秒。</code></pre>
 150 Opening BINARY mode data connection for 1 (0 bytes).
 226 Transfer complete.</code></pre>
         <p>[图：get 命令下载文件示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-15-58-13-image.png" alt="2024-03-19-15-58-13-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-19-15-50-04-image.png" alt="2024-03-19-15-50-04-image.png" loading="lazy"></p>
-      
 
-        <p><strong>3.4 通过 put 命令上传文件</strong></p>
+<p><strong>3.4 通过 put 命令上传文件</strong></p>
         <pre><code>ftp&gt; lcd C:\云计算15    #切换到本地目录
 目前的本地目录 C:\云计算15。
 
@@ -481,9 +451,7 @@ lftp ftp_sc@192.168.10.128:~&gt; get 1</code></pre>
         <h4>五、FTP 工作模式</h4>
 
         <p><strong>5.1 主动模式</strong></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-20-11-25-56-image.png" alt="2024-03-20-11-25-56-image.png" loading="lazy"></p>
-      
-        <p>工作原理：</p>
+<p>工作原理：</p>
         <ul>
           <li>FTP 客户端连接 FTP 服务器开放的 21 端口，发送用户名、密码登录</li>
           <li>客户端随机开放一个端口（1024 以上），把随机端口给到服务器</li>
@@ -500,10 +468,7 @@ lftp ftp_sc@192.168.10.128:~&gt; get 1</code></pre>
           <li>客户端主动连接服务器随机端口，建立数据连接</li>
         </ul>
         <p>[图：FTP 被动模式示意图]</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-20-13-45-58-image.png" alt="2024-03-20-13-45-58-image.png" loading="lazy"></p>
-      
-
-        <p><strong>5.3 如何选择</strong></p>
+<p><strong>5.3 如何选择</strong></p>
         <ul>
           <li>如果你们是在一个局域网，或者你在一个计算机上，可以使用主动模式</li>
           <li>如果是在公网，比如阿里云服务器建议使用被动模式</li>
@@ -557,9 +522,7 @@ public (active)
       <div class="card-body">
         <h4>1.1 什么是 DHCP</h4>
         <p>DHCP（动态主机配置协议），是一个局域网的网络协议，使用 UDP 协议。</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-25-11-13-04-image.png" alt="2024-03-25-11-13-04-image.png" loading="lazy"></p>
-      
-        <p>作用：给内外主机自动分配 IP 地址，给用户或者内部的网络管理员作为管理所有计算机的手段。</p>
+<p>作用：给内外主机自动分配 IP 地址，给用户或者内部的网络管理员作为管理所有计算机的手段。</p>
         <p>DHCP 是 C/S 模型：DHCP 客户端和服务器要保持通信，DHCP 是基于 UDP 协议，双方都有可能主动向对方发起通信，因此双方都需要监听端口：</p>
         <ul>
           <li>server 端：<code>67/UDP</code></li>
@@ -819,9 +782,7 @@ server 192.168.10.128</code></pre>
         </ul>
 
         <p><strong>1.2 PXE 服务器和客户机的工作流程</strong></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-26-11-22-56-image.png" alt="2024-03-26-11-22-56-image.png" loading="lazy"></p>
-      
-        <p>[图：PXE 工作流程示意图]</p>
+<p>[图：PXE 工作流程示意图]</p>
         <ol>
           <li>pxe 客户机发送 DHCP 请求，向服务器申请 IP 地址</li>
           <li>DHCP 服务器响应 PXE 客户机的请求，自动从 IP 地址池分配 IP 地址给客户机，并告知 TFTP 服务器 IP 地址和 pxe 引导程序 pxelinux.0</li>
@@ -1001,7 +962,6 @@ import    导入
 --name=Centos7     导入之后的名称
 --arch=x86_64    系统cpu
 
-
 task started: 2024-03-25_230417_import
 task started (id=Media import, time=Mon Mar 25 23:04:17 2024)
 Found a candidate signature: breed=suse, version=opensuse15.0
@@ -1023,8 +983,6 @@ need to process repo/comps: /var/www/cobbler/ks_mirror/Centos7-x86_64
 looking for /var/www/cobbler/ks_mirror/Centos7-x86_64/repodata/*comps*.xml
 Keeping repodata as-is :/var/www/cobbler/ks_mirror/Centos7-x86_64/repodata
 *** TASK COMPLETE ***
-
-
 
 [root@localhost os]# cobbler list        #列出 cobbler 内的镜像
 distros:
@@ -1112,11 +1070,8 @@ Added user smb_root.
 [==========================100.0%==========================]
 操作成功完成。</code></pre>
         <p>写入命令到 startnet.cmd 文件：</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-26-16-09-33-image.png" alt="2024-03-26-16-09-33-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-26-15-53-58-image.png" alt="2024-03-26-15-53-58-image.png" loading="lazy"></p>
-      
-        <pre><code># PING  samba 服务器 IP 地址，确保可以 ping 通
+
+<pre><code># PING  samba 服务器 IP 地址，确保可以 ping 通
 echo ping -n 5 -l 69 192.168.10.128 &gt;&gt; D:\winpex\mount\Windows\System32\startnet.cmd
 
 # 使用 samba 用户名和密码登录 samba
@@ -1131,9 +1086,7 @@ echo cd win2019 &gt;&gt; D:\winpex\mount\Windows\System32\startnet.cmd
 # 运行应答文件和启动文件
 echo setup.exe /unattend:AutoRunWin2019.xml &gt;&gt; D:\winpex\mount\Windows\System32\startnet.cmd</code></pre>
         <p>卸载 mount 目录：</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-10-10-32-image.png" alt="2024-03-27-10-10-32-image.png" loading="lazy"></p>
-      
-        <pre><code>Dism /unmount-image /mountdir:D:\winpex\mount /commit
+<pre><code>Dism /unmount-image /mountdir:D:\winpex\mount /commit
 正在保存映像
 [==========================100.0%==========================]
 正在卸载映像
@@ -1267,43 +1220,10 @@ echo "双休好短暂，还没过够呢！！！！"</code></pre>
 双休好短暂，还没过够呢！！！！</code></pre>
 
         <p><strong>3.4 使用新进程</strong></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-27-36-image.png" alt="2024-03-27-14-27-36-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-36-03-image.png" alt="2024-03-27-14-36-03-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-18-04-image.png" alt="2024-03-27-14-18-04-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-17-50-image.png" alt="2024-03-27-14-17-50-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-17-34-image.png" alt="2024-03-27-14-17-34-image.png" loading="lazy"></p>
-      2024-03-27-14-19-58-image.png" alt="2024-03-27-14-19-58-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-12-15-image.png" alt="2024-03-27-14-12-15-image.png" loading="lazy"></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-15-23-14-image.png" alt="2024-03-27-15-23-14-image.png" loading="lazy"></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-16-46-image.png" alt="2024-03-27-14-16-46-image.png" loading="lazy"></p>
-      
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-16-23-image.png" alt="2024-03-27-14-16-23-image.png" loading="lazy"></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-16-40-image.png" alt="2024-03-27-14-16-40-image.png" loading="lazy"></p>
-      
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-16-15-image.png" alt="2024-03-27-14-16-15-image.png" loading="lazy"></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-16-29-image.png" alt="2024-03-27-14-16-29-image.png" loading="lazy"></p>
-      
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-16-09-image.png" alt="2024-03-27-14-16-09-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-14-53-image.png" alt="2024-03-27-14-14-53-image.png" loading="lazy"></p>
-      
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-11-58-image.png" alt="2024-03-27-14-11-58-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-11-47-image.png" alt="2024-03-27-14-11-47-image.png" loading="lazy"></p>
-      
-      <p class="img-p"><img src="images/Linux 服务/2024-03-27-14-11-38-image.png" alt="2024-03-27-14-11-38-image.png" loading="lazy"></p>
-      
-        <pre><code>[root@localhost opt]# echo $$
+alt="
+loading="lazy"></p>
+
+<pre><code>[root@localhost opt]# echo $$
 61520
 [root@localhost opt]# vim check.sh
 #! /bin/bash
@@ -1337,7 +1257,6 @@ name="李四"</code></pre>
 name="zhangsan"
 echo name
 echo $name
-
 
 [root@localhost opt]# . bl.sh
 name
@@ -1374,11 +1293,8 @@ echo $myweb02
         </ul>
 
         <p><strong>4.5 把命令的结果赋值给变量</strong></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-04-07-14-31-36-image.png" alt="2024-04-07-14-31-36-image.png" loading="lazy"></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-04-07-15-54-17-image.png" alt="2024-04-07-15-54-17-image.png" loading="lazy"></p>
-      
-      
-        <pre><code>#! /bin/bash
+
+<pre><code>#! /bin/bash
 
 yw=$(cat /etc/passwd)    #较为推荐使用这种方式
 echo $yw
@@ -1783,7 +1699,6 @@ pam[name]="zhangsan"
 pam[age]="18"
 pam[addr]="北京颐和园"
 
-
 echo "${pam[name]}马上放学了"
 echo "${pam[name]}今年刚满${pam[age]}岁"
 echo "${pam[name]}住在${pam[addr]}"
@@ -1808,7 +1723,6 @@ echo "统计关联数组内的所有key键"
 echo ${!pam[@]}
 echo ${!pam[*]}
 
-
 echo "显示数组内的所有元素"
 echo ${pam[@]}
 echo ${pam[*]}
@@ -1816,8 +1730,6 @@ echo ${pam[*]}
 echo "显示数组长度"
 echo ${#pam[*]}
 echo ${#pam[@]}
-
-
 
 [root@localhost opt]# ./6.sh  zz
 zz马上放学了
@@ -1859,7 +1771,6 @@ read -p "请输入你的登录密码：" passwd
 read -p "请输入你要登录的网址：" url
 
 echo "欢迎${name}登录${url},您的登录密码是${passwd}"
-
 
 [root@localhost opt]# ./7.sh
 请输入你登录账号：巴啦啦
@@ -1903,7 +1814,6 @@ else
   echo "密码不一致，请核实密码"
 fi
 
-
 [root@localhost opt]# chmod +x 9.sh
 [root@localhost opt]# ./9.sh
 请输入你的密码：
@@ -1927,8 +1837,6 @@ then
 else
   echo "密码不一致，请核实密码"
 fi
-
-
 
 [root@localhost opt]# ./9.sh
 请输入你的密码：密码创建成功</code></pre>
@@ -2042,7 +1950,6 @@ if (($age&gt;18 || $iq&lt;60))
 then
   echo "可以使用二寸照片"
 fi
-
 
 [root@localhost opt]# ./13.sh
 请输入你的年龄：22
@@ -2214,7 +2121,6 @@ else
   echo "普通用户登录"
 fi
 
-
 [root@localhost opt]# ./17.sh
 请输入你的用户名：admin
 管理员登录
@@ -2236,7 +2142,6 @@ then
 else
   echo "特殊字符"
 fi
-
 
 [root@localhost opt]# ./18.sh
 请输入一个字符：1
@@ -2266,7 +2171,6 @@ echo "==========================="
 
 echo "判断字符串是否包含另一个字符串"
 [[ $st1 == *"san"* ]] &amp;&amp; echo true || echo false
-
 
 [root@localhost opt]# ./19.sh
 比较两个字符串是否相等
@@ -2318,7 +2222,6 @@ case $var in
     echo "特殊字符"
     ;;
 esac
-
 
 [root@localhost opt]# ./20.sh
 请输入一个字符：1
@@ -2441,7 +2344,6 @@ do
       ;;
   esac
 done
-
 
 [root@localhost opt]# ./24.sh
 1) 启动服务
@@ -3527,10 +3429,7 @@ zhaoliu 70
 
         <h4>1.2 中间件服务器</h4>
         <p>在Linux-centos系统内安装很多商业中间件软件和服务</p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-25-16-31-00-image.png" alt="2024-03-25-16-31-00-image.png" loading="lazy"></p>
-      
-
-        <p><strong>1.2.1 Mysql数据库（3306）</strong></p>
+<p><strong>1.2.1 Mysql数据库（3306）</strong></p>
         <ul>
           <li>操作数据模型：增加数据、删除数据、更新数据、查询数据、触发器、存储过程</li>
           <li>数据库的作用：存储和查询应用程序所需要的数据</li>
@@ -3617,9 +3516,7 @@ mysql&gt; select * from type;
         </ul>
 
         <p><strong>1.2.4 Kafka（9092）</strong></p>
-      <p class="img-p"><img src="images/Linux 服务/2024-03-26-10-03-40-image.png" alt="2024-03-26-10-03-40-image.png" loading="lazy"></p>
-      
-        <ul>
+<ul>
           <li>满足异步操作和实施刷盘（存储磁盘）的要求</li>
           <li>满足大并发量的需求</li>
         </ul>
@@ -3628,7 +3525,6 @@ mysql&gt; select * from type;
 [root@localhost ~]# vim /usr/local/kafka/config/server.properties
 listeners=PLAINTEXT://192.168.10.137:9092    #修改成自己的IP地址
 zookeeper.connect=192.168.10.137:2181 #修改成自己的IP地址
-
 
 修改完成后，保存退出，重启机器</code></pre>
 
@@ -3654,7 +3550,6 @@ Starting zookeeper ... STARTED
 [root@localhost shell]# ./cateyego.sh
 [root@localhost shell]# echo "Application is Run....."
 Application is Run.....
-
 
 #脚本运行完成后，查询端口号
 `kafka 9092   mysql 3306  redis 6379 els 9200 9300  猫眼进程号 8888`
