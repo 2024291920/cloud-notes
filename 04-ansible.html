@@ -3,449 +3,2852 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>04 Linux 自动化运维（Ansible） - 云计算运维课程笔记</title>
+  <meta name="description" content="Ad-hoc、Playbook、变量、角色及进阶自动化运维">
+  <title>04 Ansible 自动化 - 云计算运维课程知识库</title>
   <link rel="stylesheet" href="common.css">
-
 </head>
-<body>
+<body data-generated="true">
   <div class="topbar">
-    
-    <span class="title"><span class="num" style="background:linear-gradient(90deg,#8b5cf6,#7c3aed)">04</span>Linux 自动化运维（Ansible）</span>
-    <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
-    <div class="nav-btns">
-      <a href="03-linux-database.html">&#8592;</a>
-      <a href="05-deployment.html">&#8594;</a>
-    </div>
+    <span class="title"><span class="num" style="background:linear-gradient(90deg,#8b5cf6,#7c3aed)">04</span>Ansible 自动化</span>
+    <div class="search-box-wrap"><input class="search-box" type="search" placeholder="搜索本页… (Ctrl+K)" aria-label="搜索本页"></div>
+    <div class="nav-btns"><a href="03-linux-database.html" title="上一主题">←</a><a href="05-deployment.html" title="下一主题">→</a></div>
   </div>
-  <div class="page-header">
-    <h1>04 Linux 自动化运维（Ansible）</h1>
-    <p class="desc">涵盖ad-hoc临时命令（19个模块详解）、Ansible-playbook（YAML规范/变量系统/Register/Loop/Handlers/Tags/Include/异常处理）、Ansible进阶（Delegate委派/Jinja2模板引擎/密码加密）等知识点</p>
-  </div>
+  <header class="page-header">
+    <h1>04 Ansible 自动化</h1>
+    <p class="desc">Ad-hoc、Playbook、变量、角色及进阶自动化运维</p>
+  </header>
   <div class="page-wrap">
-    <nav class="sidebar" id="sidebar">
-      <div class="side-title">本页导航</div>
-      <ul>
-        <li><a href="#sec-ad-hoc">ad-hoc 临时命令（语法 / 19 个模块详解表格）</a></li>
-        <li><a href="#sec-playbook">Ansible-playbook（YAML 规范 / 变量系统 / Register / Loop / Handlers / Tags / Include / 异常处理）</a></li>
-        <li><a href="#sec-ansible-advanced">Ansible 进阶版（Delegate 委派 / Jinja2 模板引擎 / 密码加密）</a></li>
-      </ul>
+    <nav class="sidebar" id="sidebar" aria-label="本页笔记目录">
+      <div class="side-title">本页导航 <span>3</span></div>
+      <ul><li><a href="#sec-04-01" title="ad-hoc">ad-hoc</a></li><li><a href="#sec-04-02" title="Ansible-进阶版">Ansible-进阶版</a></li><li><a href="#sec-04-03" title="Ansible-playbook">Ansible-playbook</a></li></ul>
     </nav>
-    <div class="content">
+    <main class="content">
+      <article class="file-card" id="sec-04-01" data-source="Linux 自动化运维/ad-hoc.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="true">
+          <div class="card-title-group"><span class="card-icon">⚙</span><div><h3>ad-hoc</h3><span class="source-path">Linux 自动化运维/ad-hoc.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="ad-hoc" data-bookmark-page="Ansible 自动化" data-bookmark-href="04-ansible.html#sec-04-01" data-bookmark-source="Linux 自动化运维/ad-hoc.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>4 图</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>Ansible 自动化运维</h4>
+<h4>一、ansible 入门</h4>
+<h5>1.1  什么是ansible</h5>
+<ul>
+<li>
+<p>Ansible是IT自动化管理工具，集成了很多模块以及功能组件，可以通过一个命令完成一系列，减少工作的复杂性</p>
+</li>
+<li>
+<p>工作内容：主要是集中在管理、安装、部署等等</p>
+<ul>
+<li>比如：10个Linux服务器，现在需要安装mysql服务，可以利用ansible。它是可以他是操作10台机器</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">Ansible和Jenkins没有可比性
 
-    <!-- ad-hoc 临时命令 -->
-    <div class="file-card" id="sec-ad-hoc">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#9889;</span>
-        <h3>ad-hoc 临时命令（语法 / 19 个模块详解表格）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>Ansible 简介</h4>
-        <ul>
-          <li>Ansible是IT自动化管理工具，Python语言开发，通过SSH协议通信</li>
-          <li>特点：容易学习、无需代理、操作灵活、模块丰富、安全性高、移植性强</li>
-          <li>主要功能：批量执行远程命令、批量配置软件服务、编排改进IT任务</li>
-        </ul>
 
-        <h4>配置文件优先级</h4>
-        <p>从高到低：<code>$ANSIBLE_CONFIG</code>（环境变量）> 当前目录 <code>ansible.cfg</code> > 安装目录 <code>ansible.cfg</code> > <code>/etc/ansible/ansible.cfg</code></p>
+    Jenkins：自动化部署，它是Java开发的，需要JDK环境
+            主要用于部署java语言开发的项目，集成内置插件
+            可以连接gitee、gitlab、gitub，拉取、推送
+            利用maven做打包项目、发布 
+            可以同时推送到多台设备-集群，同时部署项目
 
-        <h4>Inventory 主机清单</h4>
-        <pre><code># /etc/ansible/hosts
-cp /etc/ansible/hosts{,.bak}   # 修改前备份
-vim /etc/ansible/hosts
 
-[webservers]    # 主机组的名字可以自定义
-192.168.10.129  # 被管理的主机的IP
-192.168.10.130</code></pre>
+    Ansible：自动化运维，它是python语言开发，需要python环境
+            主要用于运维工作，管理所有的互联网服务器
+            可以实现同时执行：命令、安装、部署等等
+            可以在一个文件，管理所有的设备，还可以进行针对性的处理
+</code></pre>
+<h5>1.2 ansible 主要功能</h5>
+<ul>
+<li>
+<p>批量执行远程命令，可以对N台主机同时运行命令</p>
+</li>
+<li>
+<p>批量配置软件服务，可以进行自动化配置和管理服务器</p>
+</li>
+<li>
+<p>实现软件开发，Jumserver底层就是ansible</p>
+</li>
+<li>
+<p>编排改进IT任务，Ansible有一个:playbook，属于ansible自己的编程语言，支持自定义开发</p>
+</li>
+</ul>
+<h5>1.3  Ansible特点</h5>
+<ul>
+<li>
+<p>容易学习，无需代理</p>
+</li>
+<li>
+<p>操作灵活，模块很多，功能强大，还可以使用playbook进行编程辅助</p>
+</li>
+<li>
+<p>安全性高，使用ssh协议进行通信的</p>
+</li>
+<li>
+<p>移植性很高，可以把写好Playbook拷贝到任何服务器运行</p>
+</li>
+</ul>
+<h4>二、 部署ansible</h4>
+<pre><code class="language-shell">#教学案例
+    1台ansible，管理互联网内的所有设备
+    同学们的电脑如果无法运行三个机器，那么就打开两个
+----------------------------------------
+192.168.10.128     Ansible主机
+192.168.10.129     网络主机
+192.168.10.130     网络主机
+</code></pre>
+<ul>
+<li>
+<p>基础环境准备</p>
+<ul>
+<li>
+<p>开启三台虚拟机，配置IP保证可以正常连接外网</p>
+</li>
+<li>
+<p>关闭防火墙、内核</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost ~]# systemctl stop firewalld
+[root@localhost ~]# systemctl disable firewalld
+Removed symlink /etc/systemd/system/multi-user.target.wants/firewalld.service.
+Removed symlink /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service.
+[root@localhost ~]# setenforce 0
+[root@localhost ~]# vi /etc/selinux/config
+SELINUX=disabled
+</code></pre>
+<ul>
+<li>部署Ansible主机（128）</li>
+</ul>
+<pre><code class="language-shell">#配置安装源
+[root@localhost ~]# yum -y install epel-release
 
-        <h4>ad-hoc 执行过程</h4>
-        <ol>
-          <li>加载 <code>ansible.cfg</code> 配置文件</li>
-          <li>读取 <code>hosts</code> 主机清单，查找目标主机</li>
-          <li>加载对应模块</li>
-          <li>将模块生成 <code>.py</code> 文件，传输到被控端 <code>$HOME/.ansible/tmp/</code></li>
-          <li>添加执行权限并执行</li>
-          <li>返回执行结果到主控端</li>
-          <li>清理被控端临时文件</li>
-        </ol>
+#部署Ansible
+[root@localhost ~]# yum -y install ansible
+</code></pre>
+<h4>三、 Ansible 配置说明</h4>
+<h5>3.1 配置文件说明</h5>
+<pre><code class="language-shell">[root@localhost ~]# ls /etc/ansible/
+ansible.cfg  hosts  roles
+注意： 以下文件不要随便改动，搞错了重装
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>路径</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/etc/ansible/ansible.cfg</td>
+<td>主配置文件，辅助ansible的工作特性</td>
+</tr>
+<tr>
+<td>/etc/ansible/hosts</td>
+<td>配置主机清单的文件</td>
+</tr>
+<tr>
+<td>/etc/ansible/roles</td>
+<td>存放ansible角色的命令</td>
+</tr>
+</tbody>
+</table></div>
+<h5>3.2 ansible配置优先级</h5>
+<ul>
+<li>
+<p>首先查找：$ANSIBLE_CONFIG变量，获取软件配置文件目录</p>
+</li>
+<li>
+<p>然后查找当前目录下的:ansible.cfg</p>
+</li>
+<li>
+<p>接着再去安装目录：ansible.cfg</p>
+</li>
+<li>
+<p>最后查找：/etc/ansible/ansible.cfg</p>
+</li>
+</ul>
+<h4>四、Inventory</h4>
+<h5>4.1 Inventory概念</h5>
+<ul>
+<li>
+<p>主要用来填写被管理的主机信息</p>
+</li>
+<li>
+<p>默认文件：/etc/ansible/hosts</p>
+</li>
+</ul>
+<h5>4.2 配置密钥连接</h5>
+<ul>
+<li>ansible(128):配置IP地址清单</li>
+</ul>
+<pre><code class="language-shell">[root@localhost ~]# cp /etc/ansible/hosts{,.bak}
+[root@localhost ~]# vim /etc/ansible/hosts
+#20行左右，系统是通过了参考模块，可以修改模板，也可以自己编辑
 
-        <h4>ad-hoc 语法</h4>
-        <table>
-          <thead><tr><th>主命令</th><th>主机名称</th><th>指定模块</th><th>模块</th><th>动作</th><th>命令</th></tr></thead>
-          <tbody>
-            <tr><td>ansible</td><td>all / 主机组 / IP</td><td>-m（固定）</td><td>模块名</td><td>-a（固定）</td><td>模块参数</td></tr>
-          </tbody>
-        </table>
+[webservers]    #主机组的名字可以自定义
+192.168.10.129  #被管理的主机的IP
+192.168.10.130
+</code></pre>
+<p><img src="assets/media/0111-fd6e8693.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-24-11-02-48-image.png"></p>
+<ul>
+<li>生产密钥</li>
+</ul>
+<pre><code class="language-shell">[root@localhost ~]# ssh-keygen  -t rsa
+`中间一直回车就可以`
+</code></pre>
+<ul>
+<li>然后把密钥推送到被控端</li>
+</ul>
+<pre><code class="language-shell">`在推送过程中输入一次yes，一次被控端的登录密码`
+[root@localhost ~]# ssh-copy-id -i root@192.168.10.130
+[root@localhost ~]# ssh-copy-id -i root@192.168.10.129
+</code></pre>
+<ul>
+<li>测试：ansible是否可以正常管理被控端</li>
+</ul>
+<pre><code class="language-shell">#返回的颜色时绿色的说明时成功了
+[root@localhost ~]# ansible all -m ping
+192.168.10.129 | SUCCESS =&gt; {
+    &quot;ansible_facts&quot;: {
+        &quot;discovered_interpreter_python&quot;: &quot;/usr/bin/python&quot;
+    },
+    &quot;changed&quot;: false,
+    &quot;ping&quot;: &quot;pong&quot;
+}
+192.168.10.130 | SUCCESS =&gt; {
+    &quot;ansible_facts&quot;: {
+        &quot;discovered_interpreter_python&quot;: &quot;/usr/bin/python&quot;
+    },
+    &quot;changed&quot;: false,
+    &quot;ping&quot;: &quot;pong&quot;
+}
+</code></pre>
+<p><img src="assets/media/0112-9f9f43c8.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-24-11-11-58-image.png"></p>
+<h4>五、Ansible ad-hoc</h4>
+<h5>5.1  什么是ad-hoc</h5>
+<ul>
+<li>ad-hoc指的是临时指令：临时命令，执行完毕后就结束了，不会保存</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>主命令</th>
+<th>主机名称</th>
+<th>指定模块</th>
+<th>模块</th>
+<th>动作</th>
+<th>命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ansible</td>
+<td><mark>all（所有主机）\主机组\IP  <code>自定义</code></mark></td>
+<td>-m（固定参数）</td>
+<td><mark>ping</mark></td>
+<td>-a</td>
+<td><mark>df -h</mark></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p>上述标黄的内容，都是可以进行修改</p>
+<p>主机名称：可以自定义指定单个主机、主机组或者是所有被动端</p>
+<p>模块：各种模块功能，可以自己更改</p>
+<p>命令：在被控端执行linux命令</p>
+</blockquote>
+<h5>5.2  ad-hoc执行过程</h5>
+<ul>
+<li>
+<p>加载配置文件：/etc/ansible/ansible.cfg</p>
+</li>
+<li>
+<p>查找对应的主机配置文件</p>
+</li>
+<li>
+<p>加载对应的功能模块文件，比如：ping</p>
+</li>
+<li>
+<p>通过ansible将模块生成对应的文件：.py（python格式的文件）；把文件传输给被控端：$HOME/.ansible/tmp/ansible-tmp-number/**.py</p>
+</li>
+<li>
+<p>然后给.py文件添加执行权限</p>
+</li>
+<li>
+<p>然后执行，返回结果</p>
+</li>
+<li>
+<p>删除.py的临时文件</p>
+</li>
+<li>
+<p>退出</p>
+</li>
+</ul>
+<h5>5.3  ad-hoc的执行状态</h5>
+<pre><code class="language-shell">[root@localhost ~]# ansible all -m shell -a 'ls /opt'
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
 
-        <h4>部署 Ansible</h4>
-        <pre><code># 安装EPEL源和Ansible
-yum -y install epel-release
-yum -y install ansible
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
 
-# 配置文件
-/etc/ansible/ansible.cfg    # 主配置文件
-/etc/ansible/hosts          # 主机清单
-/etc/ansible/roles          # 角色目录
+[root@localhost ~]# ansible all -m shell -a 'ls /o'
 
-# 配置密钥连接
-ssh-keygen -t rsa            # 生成密钥（一路回车）
-ssh-copy-id -i root@192.168.10.129    # 推送密钥到被控端
-ssh-copy-id -i root@192.168.10.130
+192.168.10.129 | FAILED | rc=2 &gt;&gt;
+ls: 无法访问/o: 没有那个文件或目录non-zero return code
+192.168.10.130 | FAILED | rc=2 &gt;&gt;
+ls: 无法访问/o: 没有那个文件或目录non-zero return code
+</code></pre>
+<p><img src="assets/media/0113-6c58215e.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-24-13-37-29-image.png"></p>
+<ul>
+<li>
+<p>绿色：代表被控主机没有发送改变</p>
+</li>
+<li>
+<p>黄色：代表被控主机发生了变动（宇当前执行的时候不同）</p>
+</li>
+<li>
+<p>红色：代表被控主机发生了故障</p>
+</li>
+</ul>
+<h4>六、 Ansible常用模块</h4>
+<h5>6.1 command模块（默认）</h5>
+<pre><code class="language-shell">-m command
+    在被控端执行一个shell命令
+    它是默认模块，定义的时候，可以不写-m
 
-# 测试连通
-ansible all -m ping</code></pre>
 
-        <h4>ad-hoc 执行状态</h4>
-        <table>
-          <thead><tr><th>颜色</th><th>含义</th></tr></thead>
-          <tbody>
-            <tr><td>绿色（SUCCESS/ok）</td><td>被控主机没有发生改变</td></tr>
-            <tr><td>黄色（CHANGED/changed）</td><td>被控主机发生了变动</td></tr>
-            <tr><td>红色（FAILED/failed）</td><td>被控主机发生了故障</td></tr>
-          </tbody>
-        </table>
+注意：它只支持一个独立的命令，不支持管道符
+#标准写
+ansible '主机' -m command -a '指令'
+#缺省-m
+ansible '主机' -a '指令'
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chdir=（路径）</td>
+<td>chdir=/opt</td>
+<td>执行ansible切换到/opt目录</td>
+</tr>
+<tr>
+<td>creates=</td>
+<td>create=/date/file</td>
+<td>判断，如果文件存在，跳过执行</td>
+</tr>
+<tr>
+<td>removes=</td>
+<td>removes=/date/file</td>
+<td>判断，如果文件不存在，跳过执行</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#切换到opt目录并且创建一个文件
+[root@localhost ~]# 
+ansible webservers -m command -a 'chdir=/opt touch huluwa.txt'
 
-<h4>19 个常用模块详解</h4>
-        <table>
-          <thead><tr><th>序号</th><th>模块名</th><th>功能说明</th><th>常用参数</th><th>示例</th></tr></thead>
-          <tbody>
-            <tr><td>1</td><td>command</td><td>在被控端执行shell命令（默认模块，不支持管道符）</td><td>chdir=, creates=, removes=</td><td>ansible webservers -a 'ls /opt'</td></tr>
-            <tr><td>2</td><td>shell</td><td>在被控端执行shell命令（支持管道符）</td><td>chdir=, creates=, removes=</td><td>ansible webservers -m shell -a 'ls | grep txt'</td></tr>
-            <tr><td>3</td><td>script</td><td>在远程被控端批量执行本地shell脚本</td><td>脚本路径</td><td>ansible webservers -m script -a '1.sh'</td></tr>
-            <tr><td>4</td><td>yum</td><td>管理被控端的软件包</td><td>name=, state=, enablerepo=, disablerepo=</td><td>ansible webservers -m yum -a 'name=httpd state=latest'</td></tr>
-            <tr><td>5</td><td>service</td><td>管理被控端服务的状态</td><td>name=, state=, enabled=</td><td>ansible webservers -m service -a 'name=httpd state=started enabled=yes'</td></tr>
-            <tr><td>6</td><td>copy</td><td>文件复制操作</td><td>src=, dest=, owner=, group=, mode=, backup=, content=</td><td>ansible webservers -m copy -a 'src=/opt/f dest=/opt/'</td></tr>
-            <tr><td>7</td><td>hostname</td><td>修改被控端主机名称</td><td>name=</td><td>ansible 192.168.10.129 -m hostname -a 'name=129'</td></tr>
-            <tr><td>8</td><td>selinux</td><td>管理内核SELinux</td><td>state=</td><td>ansible webservers -m selinux -a 'state=disabled'</td></tr>
-            <tr><td>9</td><td>file</td><td>在被控端创建文件或目录</td><td>path=, state=, owner=, group=, mode=, recurse=</td><td>ansible webservers -m file -a 'path=/opt/f.txt state=touch mode=644'</td></tr>
-            <tr><td>10</td><td>lineinfile</td><td>修改或删除文件内容（类似sed）</td><td>path=, regexp=, insertbefore=, insertafter=, line=, state=</td><td>ansible all -m lineinfile -a 'path=/opt/a regexp="^test" line="updated"'</td></tr>
-            <tr><td>11</td><td>replace</td><td>文本内容替换</td><td>path=, regexp=, before=, after=, replace=</td><td>ansible all -m replace -a 'path=/opt/a regexp="old" replace="new"'</td></tr>
-            <tr><td>12</td><td>get_url</td><td>通过网络下载文件到被控端</td><td>url=, dest=, checksum=, timeout=</td><td>ansible all -m get_url -a 'url=http://x/a.jar dest=/opt/'</td></tr>
-            <tr><td>13</td><td>group</td><td>管理被控端用户组</td><td>name=, gid=, state=, system=</td><td>ansible webservers -m group -a 'name=news gid=1500 state=present'</td></tr>
-            <tr><td>14</td><td>user</td><td>管理被控端用户</td><td>name=, uid=, password=, group=, groups=, shell=, create_home=, state=, remove=</td><td>ansible webservers -m user -a 'name=wwh password=123456 uid=1200'</td></tr>
-            <tr><td>15</td><td>cron</td><td>管理被控端的定时计划任务</td><td>name=, job=, minute=, hour=, day=, month=, weekday=, disabled=</td><td>ansible webservers -m cron -a 'name=1min job="ls /opt >>/root/1.txt"'</td></tr>
-            <tr><td>16</td><td>archive</td><td>管理被控端打包压缩</td><td>path=, dest=, format=, remove=</td><td>ansible all -m archive -a 'path=/opt/a.txt dest=/opt/aa.tar.gz'</td></tr>
-            <tr><td>17</td><td>unarchive</td><td>解压缩被控端的压缩包</td><td>src=, dest=, remote_src=, owner=, group=, mode=</td><td>ansible webservers -m unarchive -a 'src=/opt/a.tar.gz dest=/opt'</td></tr>
-            <tr><td>18</td><td>firewalld</td><td>管理控制防火墙</td><td>service=, port=, state=, zone=, permanent=, immediate=</td><td>ansible webservers -m firewalld -a 'service=http state=enabled permanent=yes immediate=yes'</td></tr>
-            <tr><td>19</td><td>setup</td><td>收集被控端设备信息</td><td>filter=</td><td>ansible webservers -m setup -a 'filter=ansible_memory_mb'</td></tr>
-          </tbody>
-        </table>
+#查询结果
+[root@localhost ~]# ansible webservers -a 'ls /opt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
 
-        <h4>command 模块参数详解</h4>
-        <table>
-          <thead><tr><th>参数</th><th>示例</th><th>说明</th></tr></thead>
-          <tbody>
-            <tr><td>chdir=路径</td><td>chdir=/opt</td><td>切换到指定目录后执行</td></tr>
-            <tr><td>creates=文件</td><td>creates=/opt/file</td><td>文件存在则跳过执行</td></tr>
-            <tr><td>removes=文件</td><td>removes=/opt/file</td><td>文件不存在则跳过执行</td></tr>
-          </tbody>
-        </table>
+#单独管理一个主机
+[root@localhost ~]# ansible 192.168.10.129 -a 'ls /opt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
 
-        <h4>user 模块参数详解</h4>
-        <table>
-          <thead><tr><th>参数</th><th>说明</th></tr></thead>
-          <tbody>
-            <tr><td>name</td><td>创建或删除的用户名</td></tr>
-            <tr><td>uid</td><td>设置用户ID</td></tr>
-            <tr><td>password</td><td>设置登录密码</td></tr>
-            <tr><td>group</td><td>设置基本组</td></tr>
-            <tr><td>groups</td><td>设置附加组</td></tr>
-            <tr><td>shell</td><td>设置登录shell</td></tr>
-            <tr><td>create_home</td><td>是否创建家目录（默认yes）</td></tr>
-            <tr><td>state</td><td>present(创建) / absent(删除)</td></tr>
-            <tr><td>remove</td><td>删除用户时是否删除家目录（state=absent时生效，默认no）</td></tr>
-            <tr><td>generate_ssh_key</td><td>是否生成SSH密钥（默认no）</td></tr>
-            <tr><td>ssh_key_bits</td><td>SSH密钥位数（默认2048）</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+#多个IP，逗号隔开
+[root@localhost ~]# ansible 192.168.10.129,192.168.10.130 -a 'ls /opt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
 
-    <!-- Ansible-playbook -->
-    <div class="file-card" id="sec-playbook">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#128214;</span>
-        <h3>Ansible-playbook（YAML 规范 / 变量系统 / Register / Loop / Handlers / Tags / Include / 异常处理）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>Playbook 简介</h4>
-        <ul>
-          <li>Playbook是yml语法编写的文本文件，由 play 和 task 组成</li>
-          <li>play：定义主机、主机组（用 hosts: 定义）</li>
-          <li>task：定义对主机或主机组的任务（用 tasks: 定义）</li>
-          <li>playbook 是 ad-hoc 的一种编排方式，可以持续运行，适合复杂任务</li>
-        </ul>
 
-        <h4>YAML 编写规范</h4>
-        <pre><code>1. 禁止使用Tab缩进，必须使用空格，且空格数必须是双数（2、4、6、8...）
-2. 文件编码格式必须与操作系统匹配（默认utf-8）
-3. 缩进：每个缩进由双数空格对应，通常2个空格代表一层
-4. 冒号：除了以冒号结尾的，所有冒号后面必须有一个空格
-5. 减号：减号代表项，减号后面必须有空格</code></pre>
+#### 判断-creates
+#### 切换到opt目录下，判断是否存在huluwa。txt文件，如果存在就跳过ls命令
+[root@localhost ~]# ansible webservers -a 'chdir=/opt creates=huluwa.txt ls'
+192.168.10.130 | SUCCESS | rc=0 &gt;&gt;
+skipped, since huluwa.txt exists
+192.168.10.129 | SUCCESS | rc=0 &gt;&gt;
+skipped, since huluwa.txt exists    #跳过，因为huluwa.txt文件存在
 
-        <h4>Playbook 基础案例</h4>
-        <pre><code># 在被控端创建文件
+#判断/opt命令下huluwa文件是否存在，存在就跳过命令，不存在就执行命令
+[root@localhost ~]# ansible webservers -a 'chdir=/opt creates=huluwa ls'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
+
+
+
+#判断-removes
+#判断huluwa文件不存在，跳过执行命令
+[root@localhost ~]# ansible webservers -a 'chdir=/opt removes=huluwa ls'
+192.168.10.130 | SUCCESS | rc=0 &gt;&gt;
+skipped, since huluwa does not exist
+192.168.10.129 | SUCCESS | rc=0 &gt;&gt;
+skipped, since huluwa does not exist
+
+#判断huluwa.txt文件存在，执行命令
+[root@localhost ~]# ansible webservers -a 'chdir=/opt removes=huluwa.txt ls'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+jiuyeye.txt
+</code></pre>
+<hr>
+<p>在执行命令的时候，出现了下面的警告内容</p>
+<p><img src="assets/media/0114-b8a72e9c.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-24-14-00-58-image.png"></p>
+<pre><code class="language-shell">[root@localhost ~]# vim /etc/ansible/ansible.cfg
+#188 取消注释就可以了
+command_warnings = False
+</code></pre>
+<h5>6.2 shell 模块</h5>
+<pre><code class="language-shell">-m shell
+    在远程被控端执行shell命令，支持管道符，执行脚本命令
+    可以使用shell代替command模块
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chdir=（路径）</td>
+<td>chdir=/opt</td>
+<td>执行ansible切换到/opt目录</td>
+</tr>
+<tr>
+<td>creates=</td>
+<td>create=/date/file</td>
+<td>判断，如果文件存在，跳过执行</td>
+</tr>
+<tr>
+<td>removes=</td>
+<td>removes=/date/file</td>
+<td>判断，如果文件不存在，跳过执行</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#切换/opt命令，判断huluwa.txt,如果文件存在就执行命令
+#ls 列出目录下的内容，结合管道符和grep 过滤huluwa.txt文件
+[root@localhost ~]# ansible webservers -m shell -a 'chdir=/opt removes=huluwa.txt ls | grep huluwa.txt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+huluwa.txt
+</code></pre>
+<h5>6.3  script 模块</h5>
+<pre><code class="language-shell">-m script 
+    这个模块在远程被控端批量执行本地shell脚本
+    可以先提前定义脚本，远程一次性执行
+</code></pre>
+<pre><code class="language-shell">[root@localhost ~]# cd /opt/
+[root@localhost opt]# vim  1.sh
+#! /bin/bash
+
+echo &quot;这个是控制端的脚本在被控端执行&quot; &gt;&gt; /opt/a.txt
+
+#远程在被控端执行1.sh脚本
+[root@localhost opt]# ansible webservers -m script -a '1.sh'
+192.168.10.129 | CHANGED =&gt; {
+    &quot;changed&quot;: true,
+    &quot;rc&quot;: 0,
+    &quot;stderr&quot;: &quot;Shared connection to 192.168.10.129 closed.\r\n&quot;,
+    &quot;stderr_lines&quot;: [
+        &quot;Shared connection to 192.168.10.129 closed.&quot;
+    ],
+    &quot;stdout&quot;: &quot;&quot;,
+    &quot;stdout_lines&quot;: []
+}
+192.168.10.130 | CHANGED =&gt; {
+    &quot;changed&quot;: true,
+    &quot;rc&quot;: 0,
+    &quot;stderr&quot;: &quot;Shared connection to 192.168.10.130 closed.\r\n&quot;,
+    &quot;stderr_lines&quot;: [
+        &quot;Shared connection to 192.168.10.130 closed.&quot;
+    ],
+    &quot;stdout&quot;: &quot;&quot;,
+    &quot;stdout_lines&quot;: []
+}
+
+#验证脚本执行结果
+[root@localhost opt]# ansible webservers -m shell -a 'cat /opt/a.txt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+这个是控制端的脚本在被控端执行
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+这个是控制端的脚本在被控端执行
+</code></pre>
+<h5>6.4  yum 模块</h5>
+<pre><code class="language-shell">-m yum
+    提供管理各个被控端的系统的软件包
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>nginx、httpd……</td>
+<td>指定安装软件的url</td>
+</tr>
+<tr>
+<td>state</td>
+<td>prnsent、installed、latest、absent、removed</td>
+<td>prnsent 默认安装；installed 安装；latest 安装最新版本；absent、removed表示卸载。允许多个软件一次性安装，使用逗号隔开就可以</td>
+</tr>
+<tr>
+<td>enablerepo</td>
+<td>epel、base</td>
+<td>指定从那些仓库获取软件，密钥等等</td>
+</tr>
+<tr>
+<td>disablerepo</td>
+<td>epel、base</td>
+<td>禁止从哪些仓库获取软件等等</td>
+</tr>
+<tr>
+<td>exclude</td>
+<td>httpd</td>
+<td>排除某些指定包</td>
+</tr>
+<tr>
+<td>download_only</td>
+<td>yes，no</td>
+<td>只下载不安装</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#在被控端安装httpd
+[root@localhost opt]# ansible webservers -m yum -a 'name=httpd state=latest'
+
+#删除httpd
+[root@localhost opt]# ansible webservers -m yum -a 'name=httpd state=absent'
+</code></pre>
+<h5>6.5  service/systemd模块</h5>
+<pre><code class="language-shell">-m service
+-m systemd
+    二者都是管理被控端服务的状态，一般不使用systemd，一般使用service
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>nginx、httpd</td>
+<td>指定需要控制的服务名称</td>
+</tr>
+<tr>
+<td>state</td>
+<td>started，stopped，restarted，reloaded</td>
+<td>指定服务状态</td>
+</tr>
+<tr>
+<td>enabled</td>
+<td>yes、no</td>
+<td>是否开机自启</td>
+</tr>
+<tr>
+<td>daemon_reload</td>
+<td>yes</td>
+<td>重启systemd服务</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#启动服务并设置开机自启
+[root@localhost opt]# ansible webservers -m service -a 'name=httpd state=started enabled=yes'
+
+#查询服务状态
+[root@localhost opt]# ansible webservers -m shell -a 'systemctl status httpd'
+
+
+#停止服务
+[root@localhost opt]# ansible webservers -m service -a 'name=httpd state=stopped'
+</code></pre>
+<h5>6.6  copy模块</h5>
+<pre><code class="language-shell">-m copy
+    提供文件复制操作功能
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>src</td>
+<td></td>
+<td>本地主机指定目录的文件</td>
+</tr>
+<tr>
+<td>dest</td>
+<td></td>
+<td>远程被控端的绝对路径</td>
+</tr>
+<tr>
+<td>owner</td>
+<td>root</td>
+<td>文件复制过去后，被控端默认属主是root</td>
+</tr>
+<tr>
+<td>group</td>
+<td>root</td>
+<td>文件复制过去后，被控端默认属组是root</td>
+</tr>
+<tr>
+<td>mode</td>
+<td>file、dir</td>
+<td>文件复制过去后，文件或者目录的权限</td>
+</tr>
+<tr>
+<td>backup</td>
+<td>yes</td>
+<td>备份被修改之前的文件</td>
+</tr>
+<tr>
+<td>content</td>
+<td></td>
+<td>新建文件并向文件内容增加内容，内容：content=“”</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#在被控端执行，将httpd的配置文件拷贝到主控端
+[root@localhost conf]# scp httpd.conf root@192.168.10.128:/opt
+
+
+#httpd默认端口时80，需要批量修改端口号为7777
+#在本地更改完成之后，拷贝到被控端
+
+
+#修改本地htppd的配置文件内的端口号为7777
+[root@localhost opt]# vim httpd.conf
+Listen 7777
+
+
+#将本地修改完成的配置文件拷贝到客户端指定目录下
+[root@localhost opt]# 
+ansible webservers -m copy -a 'src=/opt/httpd.conf dest=/etc/httpd/conf/httpd.conf owner=root group=root mode=664'
+
+
+#启动httpd
+[root@localhost opt]# ansible webservers -m service -a 'name=httpd state=started'
+
+#安装net-tools
+[root@localhost opt]# ansible webservers -m service -a 'name=net-tools'
+
+
+#检查端口号
+[root@localhost opt]# ansible webservers -m shell -a 'netstat -anpt | grep 7777'
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+tcp6       0      0 :::7777                 :::*                    LISTEN      4089/httpd
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+tcp6       0      0 :::7777                 :::*                    LISTEN      14368/httpd
+</code></pre>
+<blockquote>
+<p>ansible    需要安装</p>
+<p>但是也不是安装后就可以直接使用的</p>
+<p>你得修改配置文件指定主机组</p>
+<p>还需要推送密钥</p>
+</blockquote>
+<h5>6.7  hostname模块</h5>
+<pre><code class="language-shell">-m hostname
+   修改被控端主机名称
+
+
+#单独修改192.168.10.129主机的主机名为129
+[root@localhost opt]# ansible 192.168.10.129 -m hostname -a 'name=129'
+
+#在被控端执行bash或者断开登录重新连接
+[root@localhost conf]# bash
+[root@129 conf]#
+</code></pre>
+<h5>6.8 selinux 模块</h5>
+<pre><code class="language-shell">-m selinux 
+    负责管理内核
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>state</td>
+<td>enforcing，disabled</td>
+<td>设置内核模式</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#关闭内核
+[root@localhost opt]# ansible webservers -m selinux -a 'state=disabled'
+#开启内容
+[root@localhost opt]# ansible webservers -m selinux -a 'state=enforcing'
+</code></pre>
+<h5>6.9 file模块</h5>
+<pre><code class="language-shell">-m file
+    在被控端创建文件或者目录，支持权限的设定等
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td></td>
+<td>指定被控端的路径</td>
+</tr>
+<tr>
+<td>recurse</td>
+<td></td>
+<td>递归方式操作</td>
+</tr>
+<tr>
+<td>state</td>
+<td>touch、directory、link</td>
+<td>文件或者目录的操作状态</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>owner</th>
+<th>root</th>
+<th>文件复制过去后，被控端默认属主是root</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>group</td>
+<td>root</td>
+<td>文件复制过去后，被控端默认属组是root</td>
+</tr>
+<tr>
+<td>mode</td>
+<td>file、dir</td>
+<td>文件复制过去后，文件或者目录的权限</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#在被控端创建一个文件，设置权限为644
+[root@localhost ~]# ansible webservers -m file -a 'path=/opt/file.txt state=touch mode=644'
+
+#预览情况
+[root@localhost ~]# ansible all -m shell -a 'ls -l  /opt'
+</code></pre>
+<h5>6.10 lineinfile 模块</h5>
+<pre><code class="language-shell">-m lineinfile
+    和sed类型。提供修改或者删除文件内容的操作
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td></td>
+<td>指定被控端需要操作的文件</td>
+</tr>
+<tr>
+<td>regexp</td>
+<td></td>
+<td>使用正则表示式匹配对应的行：当前行替换</td>
+</tr>
+<tr>
+<td>insertbefore</td>
+<td></td>
+<td>使用正则表示式匹配对应的行：之前插入</td>
+</tr>
+<tr>
+<td>insertafter</td>
+<td></td>
+<td>使用正则表示式匹配对应的行：之后插入</td>
+</tr>
+<tr>
+<td>line</td>
+<td></td>
+<td>修改的内容：必填</td>
+</tr>
+<tr>
+<td>state</td>
+<td>absent、present</td>
+<td>文件操作类型</td>
+</tr>
+<tr>
+<td>create</td>
+<td>yes、no</td>
+<td>当文件不存在的时候，是否创建文件</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">`案例环境`
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/a'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+testasdasdasd
+asdsdsd
+zhangsansdsdfsdfs
+lisiasdsdfdfgdf
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+testasdasdasd
+asdsdsd
+zhangsansdsdfsdfs
+lisiasdsdfdfgdf
+
+
+
+#匹配test开头行，更新数据
+[root@localhost opt]# ansible all -m lineinfile -a 'path=/opt/a regexp=&quot;^test&quot; line=&quot;这里的数据被更新啦&quot;'
+#验证结果
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/a'       
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+这里的数据被更新啦
+asdsdsd
+zhangsansdsdfsdfs
+lisiasdsdfdfgdf
+……
+
+#文件末尾追加新的内容
+[root@localhost opt]# ansible all -m lineinfile -a 'path=/opt/a line=&quot;这个是我新增的数据&quot;'
+#预览结果
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/a'       
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+这里的数据被更新啦
+asdsdsd
+zhangsansdsdfsdfs
+lisiasdsdfdfgdf
+这个是我新增的数据
+……
+
+
+
+#在某一行上方添加指定内容
+[root@localhost opt]# 
+ansible all -m lineinfile -a 'path=/opt/a insertbefore=&quot;^zhangsan&quot; line=&quot;这个式给张三开头的行的上方添加的内 容&quot;'
+
+#验证结果
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/a'       
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+这里的数据被更新啦
+asdsdsd
+这个式给张三开头的行的上方添加的内容
+zhangsansdsdfsdfs
+lisiasdsdfdfgdf
+这个是我新增的数据
+……
+
+
+#在指定行的下发添加数据
+[root@localhost opt]# 
+ansible all -m lineinfile -a 'path=/opt/a insertafter=&quot;^lisi&quot; line=&quot;这个式给李四开头的行的下方添加的内容&quot;'
+
+
+#创建文件，并向文件内写入数据
+[root@localhost opt]# 
+ansible all -m lineinfile -a 'path=/opt/bb create=yes line=&quot;bbbbbbbbbbbbbbbbbb&quot;'
+
+#预览结果
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/bb'      
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+bbbbbbbbbbbbbbbbbb
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+bbbbbbbbbbbbbbbbbb
+</code></pre>
+<h5>6.11 replace 模块</h5>
+<pre><code class="language-shell">-m replace
+    做文本内容替换，针对的式内容
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td></td>
+<td>指定被控端需要操作的文件</td>
+</tr>
+<tr>
+<td>regexp</td>
+<td></td>
+<td>使用正则表达式匹配对应内容：当前替换</td>
+</tr>
+<tr>
+<td>before</td>
+<td></td>
+<td>使用正则表达式匹配对应内容：之前插入</td>
+</tr>
+<tr>
+<td>after</td>
+<td></td>
+<td>使用正则表达式匹配对应内容：之后插入</td>
+</tr>
+<tr>
+<td>replace</td>
+<td></td>
+<td>需要修改的内容：必写</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#替换：将zh换成zh123
+[root@localhost opt]#
+ ansible all -m replace -a 'path=/opt/a regexp=&quot;zh&quot; replace=&quot;zh123&quot;'
+
+#替换表内a为A
+[root@localhost opt]# 
+ansible all -m replace -a 'path=/opt/a regexp=&quot;a&quot; replace=&quot;A&quot;'
+
+
+#以zh123作为分割线，匹配修改zh123以下的内容
+#将zh123以下A变成a
+[root@localhost opt]# 
+ansible all -m replace -a 'path=/opt/a after=&quot;zh123&quot; regexp=&quot;A&quot; replace=&quot;a&quot;'
+#预览结果
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/a'       
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+这里的数据被更新啦
+Asdsdsd
+这个式给张三开头的行的上方添加的内容
+zh123angsansdsdfsdfs
+lisiasdsdfdfgdf
+这个式给李四开头的行的下方添加的内容
+这个是我新增的数据
+
+
+
+#以zh123作为分割线，修改分割线以上的A变成B
+[root@localhost opt]# 
+ansible all -m replace -a 'path=/opt/a before=&quot;zh123&quot; regexp=&quot;A&quot; replace=&quot;B&quot;'
+#预览结果
+[root@localhost opt]# ansible all -m shell -a 'cat /opt/a'       
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+这里的数据被更新啦
+Bsdsdsd
+这个式给张三开头的行的上方添加的内容
+zh123angsansdsdfsdfs
+lisiasdsdfdfgdf
+这个式给李四开头的行的下方添加的内容
+这个是我新增的数据
+</code></pre>
+<h5>6.12  get_url</h5>
+<pre><code class="language-shell">-m get_url
+    通过网络下载文件到被控端
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url</td>
+<td></td>
+<td>资源文件在互联网的地址：http或者https</td>
+</tr>
+<tr>
+<td>dest</td>
+<td></td>
+<td>被控端保存路径（最好写绝对路径）</td>
+</tr>
+<tr>
+<td>checksum</td>
+<td>MD5、sha256</td>
+<td>下载之后，对文件做资源验证</td>
+</tr>
+<tr>
+<td>timeout</td>
+<td>10</td>
+<td>请求超时时间（秒）</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#拉取的时候做校验
+ansible all -m get_url -a 'url=* dest=/opt checksum=*'
+#如果不使用校验码能够正常拉取，使用之后拉取失败
+    #校验码不对应
+    #官方提供的校验码没有更新
+[root@localhost opt]# ansible all -m get_url -a 'url=https://repo1.maven.org/maven2/HTTPClient/HTTPClient/0.3-3/HTTPClient-0.3-3.jar dest=/opt/yw15/ checksum=md5:a226700bfd3f7782ac9ebc07ddf5edab'
+
+
+#拉取时不做校验
+ansible all -m get_url -a 'url=* dest=/opt '
+#拉取网页
+[root@localhost opt]# ansible all -m get_url -a 'url=https://repo1.maven.org/maven2/ dest=/opt/'
+#拉取一个jar包
+[root@localhost opt]# ansible all -m get_url -a 'url=https://repo1.maven.org/maven2/HTTPClient/HTTPClient/0.3-3/HTTPClient-0.3-3.jar dest=/opt/'
+</code></pre>
+<h5>6.13  group模块</h5>
+<pre><code class="language-shell">-m group
+    管理被控端用户组
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td></td>
+<td>创建的 组名</td>
+</tr>
+<tr>
+<td>gid</td>
+<td></td>
+<td>设置组的ID</td>
+</tr>
+<tr>
+<td>state</td>
+<td>present，absent</td>
+<td>状态操作</td>
+</tr>
+<tr>
+<td>system</td>
+<td>yes，no</td>
+<td>是否是系统组</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#在被控端创建组：news  gid：1500
+[root@localhost opt]# ansible webservers -m group -a 'name=news gid=1500 state=present'
+</code></pre>
+<h5>6.14  user 模块</h5>
+<pre><code class="language-shell">-m user
+    管理被控端用户
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td></td>
+<td>创建或者删除的用户名</td>
+</tr>
+<tr>
+<td>uid</td>
+<td></td>
+<td>设置用户的id</td>
+</tr>
+<tr>
+<td>password</td>
+<td></td>
+<td>设置用户的登录密码</td>
+</tr>
+<tr>
+<td>group</td>
+<td></td>
+<td>设置用户的基本组</td>
+</tr>
+<tr>
+<td>groups</td>
+<td></td>
+<td>设置用户的附加组</td>
+</tr>
+<tr>
+<td>shell</td>
+<td></td>
+<td>设置用户的登录式shell</td>
+</tr>
+<tr>
+<td>create_home</td>
+<td>yes,no</td>
+<td>为用户创建家目录 /home，默认yes</td>
+</tr>
+<tr>
+<td>state</td>
+<td>present、absent</td>
+<td>操作状态，默认present</td>
+</tr>
+<tr>
+<td>remove</td>
+<td>yes，no</td>
+<td>删除用户相关的家目录；只有state=absent，它才生效，默认是no</td>
+</tr>
+<tr>
+<td>generate_ssh_key</td>
+<td>yes,no</td>
+<td>是否生成ssh密钥，默认no</td>
+</tr>
+<tr>
+<td>ssh_key_bits</td>
+<td>2048</td>
+<td>ssh密钥的位数</td>
+</tr>
+<tr>
+<td>ssh_key_file</td>
+<td></td>
+<td>ssh密钥文件，默认：.ssh/id_rsa*</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#创建wwh用户，设置密码、uid、基本组、附加组
+[root@localhost opt]# ansible webservers -m user -a 'name=wwh password=123456 uid=1200 group=news groups=root'
+
+#创建xixi用户，设置uid为1020，基本组为xixi，附加组为ops，news
+[root@localhost opt]# ansible webservers -m user -a 'name=xixi uid=1020 groups=ops,news'
+
+
+#删除xixi用户
+#删除用户并且删除家目录
+[root@localhost opt]# ansible webservers -m user -a 'name=xixi state=absent remove=yes'
+
+
+#只删除用户不删除家目录
+[root@localhost opt]# ansible webservers -m user -a 'name=xixi state=absent'
+</code></pre>
+<h5>6.15 cron模块</h5>
+<pre><code class="language-shell">-m cron
+    管理被控端的定时、计划任务
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td></td>
+<td>任务的名字</td>
+</tr>
+<tr>
+<td>job</td>
+<td></td>
+<td>任务的工作</td>
+</tr>
+<tr>
+<td>minute</td>
+<td>0-59</td>
+<td>分钟（默认）</td>
+</tr>
+<tr>
+<td>hour</td>
+<td>0-23</td>
+<td>小时</td>
+</tr>
+<tr>
+<td>day</td>
+<td>1-31</td>
+<td>天</td>
+</tr>
+<tr>
+<td>mouth</td>
+<td>1-12</td>
+<td>月</td>
+</tr>
+<tr>
+<td>weekday</td>
+<td>0-6</td>
+<td>周几，0代表周日</td>
+</tr>
+<tr>
+<td>disabled</td>
+<td>yes，no</td>
+<td>关闭</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#定时：每1分钟，查询opt目录，将查询到的结果输出到/root/1.txt
+[root@localhost opt]# ansible webservers -m cron -a 'name=1min job=&quot;ls /opt &gt;&gt;/root/1.txt&quot;'
+
+#验证结果
+[root@localhost opt]# ansible webservers -m shell -a 'cat /root/1.txt'
+
+
+#查询计划任务列表
+[root@localhost opt]# ansible webservers -m shell -a 'crontab -l'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+#Ansible: 1min
+* * * * * ls /opt &gt;&gt;/root/1.txt
+分时日月周
+
+
+#同一个任务名称，不同任务的话，前面的任务会被覆盖
+[root@localhost opt]# 
+ansible webservers -m cron -a 'name=1min job=&quot;ls /opt &gt;&gt;/dev/null&quot;'
+
+
+#关闭任务
+#关闭任务并不是直接被删除，是被注释
+[root@localhost opt]# ansible webservers -m cron -a 'name=1min job=&quot;ls /opt &gt;&gt;/dev/null&quot; disabled=yes'
+
+[root@localhost opt]# ansible webservers -m shell -a 'crontab -l'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+#Ansible: 1min
+#* * * * * ls /opt &gt;&gt;/dev/null
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+#Ansible: 1min
+#* * * * * ls /opt &gt;&gt;/dev/null
+
+
+
+#每天凌晨3点40的时候完成一个备份
+
+[root@localhost opt]# ansible webservers -m cron -a 'name=bf job=&quot;cp /opt/a.txt{,.bak}&quot; minute=40 hour=3'
+[root@localhost opt]# ansible webservers -m shell -a 'crontab -l'
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+#Ansible: 1min
+#* * * * * ls /opt &gt;&gt;/dev/null
+#Ansible: bf
+40 3 * * * cp /opt/a.txt{,.bak}
+
+
+
+#四月25号的下午6点执行一个查询opt目录
+[root@localhost opt]# 
+ansible webservers -m cron -a 'name=aa job=&quot;ls /opt&gt;&gt;/dev/null&quot; hour=18 day=25 month=4'
+</code></pre>
+<h5>6.16 archive 模块</h5>
+<pre><code class="language-shell">-m archive
+    管理被控端打包或者压缩的功能
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td></td>
+<td>被控端需要压缩或者打包的文件目录</td>
+</tr>
+<tr>
+<td>dest</td>
+<td></td>
+<td>压缩后存放的位置</td>
+</tr>
+<tr>
+<td>format</td>
+<td>bz2、gz、zip、tar</td>
+<td>制定压缩类型，默认gz</td>
+</tr>
+<tr>
+<td>remove</td>
+<td>yes，no</td>
+<td>打包之后，是否删除源文件，默认no</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#打包文件
+[root@localhost opt]# ansible all -m archive -a 'path=/opt/a.txt dest=/opt/aa.tar.gz'
+#预览结果
+[root@localhost opt]# ansible all -m shell -a 'ls /opt'   
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+a
+aa.tar.gz
+</code></pre>
+<h5>6.17 unarchive 模块</h5>
+<pre><code class="language-shell">-m unarchive
+    解压缩被控端的压缩包
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>src</td>
+<td></td>
+<td>压缩包文件</td>
+</tr>
+<tr>
+<td>dest</td>
+<td></td>
+<td>解压后文件存放路径</td>
+</tr>
+<tr>
+<td>remote_src</td>
+<td>yes,no</td>
+<td>本地压缩包是否分发给被控端，默认no</td>
+</tr>
+<tr>
+<td>owner</td>
+<td></td>
+<td>设置属主</td>
+</tr>
+<tr>
+<td>group</td>
+<td></td>
+<td>设置数组</td>
+</tr>
+<tr>
+<td>mode</td>
+<td></td>
+<td>权限</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#解压控制端的压缩包，下发到被控端
+[root@localhost opt]# ansible webservers -m unarchive -a 'src=/opt/apache-maven-3.9.3-bin.tar.gz dest=/opt'
+
+
+#预览结果
+[root@localhost opt]# ansible webservers -m shell -a 'ls /opt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+a
+aa.tar.gz
+apache-maven-3.9.3
+……
+</code></pre>
+<h5>6.18  firewalld 模块</h5>
+<pre><code class="language-shell">-m firewalld 
+    管理控制防火墙
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>service</td>
+<td>http\udp……</td>
+<td>添加或者删除服务、协议</td>
+</tr>
+<tr>
+<td>port</td>
+<td></td>
+<td>添加或者删除端口号</td>
+</tr>
+<tr>
+<td>state</td>
+<td>enabled、disabled</td>
+<td>开启或者禁止防火墙</td>
+</tr>
+<tr>
+<td>zone</td>
+<td>public</td>
+<td>设置防火墙区域</td>
+</tr>
+<tr>
+<td>permanent</td>
+<td>yes，no</td>
+<td>修改规则是否重启生效-永久，默认no</td>
+</tr>
+<tr>
+<td>immediate</td>
+<td>yes，no</td>
+<td>修改规则是否立即生效-临时，默认no</td>
+</tr>
+<tr>
+<td>masquerade</td>
+<td>yes，no</td>
+<td>启动或禁止防火墙地址伪装</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#永久放行http的服务流量
+[root@localhost opt]# 
+ansible webservers -m firewalld -a 'service=http immediate=yes permanent=yes state=enabled'
+</code></pre>
+<h5>6.19  setup模块</h5>
+<pre><code class="language-shell">-m setup
+    主要收集信息
+    通过facts组件实现功能
+        用于采集被控端设备信息一个途径
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指令参数</th>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>filter</td>
+<td></td>
+<td>采集信息</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-shell">#查询被控端的内存信息
+[root@localhost opt]# ansible webservers -m setup -a 'filter=ansible_memory_mb'
+#查询被控端的ip
+[root@localhost opt]# ansible webservers -m setup -a 'filter=ansible_all_ipv4_addresses'
+
+#查询被控端所有的信息
+[root@localhost opt]# ansible webservers -m setup -a 'filter=ansible*'
+</code></pre>
+</div>
+      </article>
+      <article class="file-card collapsed" id="sec-04-02" data-source="Linux 自动化运维/Ansible-进阶版.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="false">
+          <div class="card-title-group"><span class="card-icon">⚙</span><div><h3>Ansible-进阶版</h3><span class="source-path">Linux 自动化运维/Ansible-进阶版.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="Ansible-进阶版" data-bookmark-page="Ansible 自动化" data-bookmark-href="04-ansible.html#sec-04-02" data-bookmark-source="Linux 自动化运维/Ansible-进阶版.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>纯文本</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>一、命令参数属性化</h4>
+<ul>
+<li>
+<p>一个执行的ad-hoc中，是有很多命令参数</p>
+</li>
+<li>
+<p>playbook将ad-hoc中的内容。利用yml文件进行定义</p>
+</li>
+<li>
+<p>模块内命令参数在yml文件内对应：属性</p>
+</li>
+</ul>
+<hr>
+<ul>
+<li>
+<p>利用三种语法创建用户</p>
+<ul>
+<li>
+<p>由于用户密码不能是明文，它需要加密后的密文</p>
+</li>
+<li>
+<p>ad-hoc方式创建用户设置密码</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">#user模块
+[root@localhost ~]# ansible webservers -m user -a 'name=ctds password={{ &quot;123456&quot; | password_hash(&quot;sha512&quot;) }}'
+
+#### shell模块
+[root@localhost ~]# ansible webservers -m shell -a 'useradd ctds2 &amp;&amp; password={{ &quot;123456&quot; | password_hash(&quot;sha512&quot;) }}'
+
+#### 给用户提权
+[root@localhost ~]# ansible webservers -m lineinfile -a 'path=/etc/sudoers insertafter=&quot;^root&quot; line=&quot;ctds  ALL=(ALL) ALL&quot;'
+</code></pre>
+<ul>
+<li>yml格式创建用户</li>
+</ul>
+<pre><code class="language-yml">- hosts: webservers
+  tasks:
+    - name: &quot;创建用户&quot;
+      user: name=hlxjg password=&quot;{{ '123456' | password_hash('sha512') }}&quot;
+
+    - name: &quot;给用户提权&quot;
+      lineinfile: path=/etc/sudoers insertafter=&quot;^root&quot; line=&quot;hlxjg  ALL=(ALL) ALL&quot;
+</code></pre>
+<ul>
+<li>将模块的指令参数作为模块的属性</li>
+</ul>
+<pre><code class="language-yml">- hosts: webservers
+  tasks:
+    - name: &quot;创建用户&quot;
+      user: 
+        name=hlxjg 
+        password=&quot;{{ '123456' | password_hash('sha512') }}&quot;
+
+    - name: &quot;给用户提权&quot;
+      lineinfile: 
+        path=/etc/sudoers 
+        insertafter=&quot;^root&quot; 
+        line=&quot;hlxjg  ALL=(ALL) ALL&quot;
+</code></pre>
+<h4>二、ansibel delegate</h4>
+<h5>2.1 什么delegate</h5>
+<ul>
+<li>委托、委派：本来需要被控端主机执行的任务委派其他主机去运行</li>
+</ul>
+<h5>2.2 案例-委托给其他主机</h5>
+<ul>
+<li>
+<p>129机器上：做N个任务，把其中一个任务委派给130</p>
+</li>
+<li>
+<p>delegate_to： 委托指定设备完成任务</p>
+</li>
+</ul>
+<pre><code class="language-yml">[root@localhost opt]# cat an-20.yml
+- hosts: 192.168.10.129
+  tasks:
+    - name: &quot;添加一个host&quot;
+      shell:  echo &quot;www.baidu.com&quot; &gt;&gt; /etc/hosts
+
+    - name: &quot;添加一个hosts信息，委派到130主机执行&quot;
+      shell: echo &quot;www.wwh.com&quot; &gt;&gt; /etc/hosts
+      delegate_to: 192.168.10.130
+
+    - name: &quot;再次追加数据&quot;
+      shell: echo &quot;www.zhuijia.com&quot; &gt;&gt; /etc/hosts
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible webservers -m shell -a 'cat /etc/hosts'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+www.baidu.com
+www.zhuijia.com
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+www.wwh.com
+</code></pre>
+<h5>2.3 委派-当前主控机</h5>
+<ul>
+<li>
+<p>在主控机：创建wwh用户、生成密钥</p>
+</li>
+<li>
+<p>下发密钥到被控端</p>
+</li>
+</ul>
+<pre><code class="language-yml">- hosts: webservers
+  vars:
+    - username: wwh
+  tasks:
+    - name: &quot;委派给主控端，创建{{ username }},生成密码存放在指定位置&quot;
+      user:
+        name: &quot;{{ username }}&quot;
+        generate_ssh_key: yes
+        ssh_key_bits:2048
+        ssh_key_file: /opt/id_rsa
+      register: userinfo
+      delegate_to: localhost
+      run_once: true    #设置任务只运行一次
+
+    - name: &quot;预览任务一的执行结果&quot;
+      debug:
+        msg: &quot;{{ userinfo }}&quot;
+
+    - name: &quot;在被控端创建用户&quot;
+      user:
+        name: &quot;{{ username }}&quot;
+        password: &quot;{{ 'abc123' | password_hash('sha512') }}&quot;
+
+    - name: &quot;在被控端给wwh提权&quot;
+      lineinfile:
+        path: /etc/sudoers
+        insertafter: &quot;^root&quot;
+        line: &quot;{{ username }} ALL=(ALL) ALL&quot;
+
+    - name: &quot;被控端，创建用户组&quot;
+      group:
+        name: &quot;{{ username }}&quot;
+        state: present
+        system: yes
+
+    - name: &quot;用户家目录下创建.ssh&quot;
+      file:
+        path: &quot;/home/{{ username }}/.ssh&quot;
+        state: directory
+        owner: &quot;{{ username }}&quot;
+        group: &quot;{{ username }}&quot;
+        mode: 0770
+
+    - name: &quot;下发主控端生成的密钥给被控端&quot;
+      copy:
+        content: &quot;{{ userinfo.ssh_public_key }}&quot;
+        dest: &quot;/home/{{ username }}/.ssh/auto_keys&quot;
+        owner: &quot;{{ username }}&quot;
+        group: &quot;{{ username }}&quot;
+        mode: 0660
+</code></pre>
+<h4>三、Ansible JinJa2</h4>
+<h5>3.1 什么是jinja2</h5>
+<ul>
+<li>
+<p>是Python的全功能模板引擎</p>
+</li>
+<li>
+<p>ansible需要是要jinja2模板修改被控端的配置文件</p>
+<ul>
+<li>
+<p>假设：现在5台机器需要安装nginx，每一个主机端口号不一样</p>
+</li>
+<li>
+<p>解决方法：可以是要jinja2模板引擎功能：template</p>
+</li>
+</ul>
+</li>
+</ul>
+<h5>3.2 如何是要jinja2</h5>
+<ul>
+<li>ansible 需要是要jinja2，需要借助：template模块实现</li>
+</ul>
+<pre><code class="language-shell">copy模块：
+    它是把指定文件内容，直接复制给指定目标，可以是覆盖替换，里面内容不会发生任何改变
+    配置文件内的内容不需要发生改变，就可以是要copy
+
+template模块：
+    它会内容做解析：会分析文件，如果你的文件内有变量的，它会帮你把变量转换为对应的数
+值，然后再做覆盖和替换
+    如果这个文件分发且每个设备需要的数据不一样，可以定义变量，用template做解析下发
+</code></pre>
+<h5>3.3 案例</h5>
+<ul>
+<li>准备文件</li>
+</ul>
+<pre><code class="language-shell">vim tmp.conf
+#文件中使用的变量，是ansible的系统变量
+用户名称: {{ ansible_hostname }}
+系统内存: {{ ansible_memtotal_mb  }}MB
+系统空闲内存: {{ ansible_memfree_mb }}MB
+</code></pre>
+<ul>
+<li>编写playbook</li>
+</ul>
+<pre><code class="language-yml">- hosts: webservers
+  tasks:
+    - name: &quot;使用copy模块下发文件&quot;
+      copy: src=/opt/tmp.conf dest=/opt
+
+
+    - name: &quot;使用template模块下发文件&quot;
+      template: src=/opt/tmp.conf dest=/root
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible webservers -m shell -a 'cat /opt/tmp.conf'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+用户名称: {{ ansible_hostname }}
+系统内存: {{ ansible_memtotal_mb  }}MB
+系统空闲内存: {{ ansible_memfree_mb }}MB
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+用户名称: {{ ansible_hostname }}
+系统内存: {{ ansible_memtotal_mb  }}MB
+系统空闲内存: {{ ansible_memfree_mb }}MB
+
+
+[root@localhost opt]# ansible webservers -m shell -a 'cat /root/tmp.conf'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+用户名称: localhost
+系统内存: 972MB
+系统空闲内存: 567MB
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+用户名称: localhost
+系统内存: 1819MB
+系统空闲内存: 1363MB
+</code></pre>
+<h6>案例-修改Nginx的端口号</h6>
+<hr>
+<ul>
+<li>nginx的配置文件</li>
+</ul>
+<pre><code class="language-shell">server {
+    listen       {{ my_port }};
+    server_name  localhost;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+</code></pre>
+<ul>
+<li>playbook文件</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+  vars:
+    - my_port: 6666
+  tasks:
+    - name: &quot;配置安装源&quot;
+      shell: rpm -Uvh https://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+      tags: uvh
+    - name: &quot;安装Nginx&quot;
+      yum: name=nginx state=present
+
+    - name: &quot;下发配置文件，更改Nginx默认端口号&quot;
+      template: src=/opt/default.conf dest=/etc/nginx/conf.d/default.conf
+      notify:
+        - restart_nginx
+
+    - name: &quot;检查服务状态&quot;
+      shell: /usr/sbin/nginx -t
+      register: checknginx
+      changed_when:
+        - checknginx.stderr.find(&quot;successful&quot;)
+        - false
+
+    - name: &quot;启动nginx&quot;
+      service: name=nginx state=started enabled=yes
+
+  handlers:
+    - name: restart_nginx
+      service: name=nginx state=restarted
+</code></pre>
+<h5>3.4  Jinja2模板template说明</h5>
+<ul>
+<li>
+<p>调用系统 ansible-playbook 指令运行yml文件</p>
+</li>
+<li>
+<p>在指令解析playbook的时候</p>
+<ul>
+<li>如果发现了template模块，就自动启动内置Jinja2进行解析</li>
+</ul>
+</li>
+<li>
+<p>Jinja2是ansible内Python功能进行解析</p>
+</li>
+<li>
+<p>解析成功，生成带有文本内容的shell脚本</p>
+</li>
+<li>
+<p>把这个脚本发送给目标，有目标负责运行</p>
+</li>
+</ul>
+<p>案例-安装redis并修改端口号</p>
+<pre><code class="language-shell">#redis 的配置文件
+[root@localhost opt]# vim redis.conf
+#84行
+port {{ my_port }}
+</code></pre>
+<pre><code class="language-shell">#安装redis的playbook
+
 - hosts: webservers
+  vars:
+    - my_port: 7788
+  tasks:
+    - name: &quot;配置安装源&quot;
+      yum:
+        name: epel-release
+        state: present
+
+    - name: &quot;安装redis&quot;
+      yum:
+        name: redis
+        state: latest
+
+    - name: &quot;下发配置文件，改端口号&quot;
+      template:
+        src: /opt/redis.conf
+        dest: /etc/redis.conf
+
+    - name: &quot;启动redis&quot;
+      shell: redis-server /etc/redis.conf &amp;
+</code></pre>
+</div>
+      </article>
+      <article class="file-card collapsed" id="sec-04-03" data-source="Linux 自动化运维/Ansible-playbook.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="false">
+          <div class="card-title-group"><span class="card-icon">⚙</span><div><h3>Ansible-playbook</h3><span class="source-path">Linux 自动化运维/Ansible-playbook.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="Ansible-playbook" data-bookmark-page="Ansible 自动化" data-bookmark-href="04-ansible.html#sec-04-03" data-bookmark-source="Linux 自动化运维/Ansible-playbook.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>14 图</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>一、Playbook介绍</h4>
+<h5>1.1 什么是playbook</h5>
+<pre><code class="language-shell">palybook也是yml语法编写的文本文件，主要是由play和task组成
+
+
+    play：    主要是定义主机、主机组
+                用hosts:定义
+    task：    主要定义对主机或者主机组的任务，可以是一个，也可以是很多个
+                用tasks:定义
+总结：
+    在编写playbook的时候，里面由一个或者是多个play组成；
+    每一个paly可以包含一个或者多个task；    
+</code></pre>
+<h5>1.2  playbook和ad-hoc的区别</h5>
+<blockquote>
+<p>playbook是ad-hoc的一种编排方式</p>
+<p>playbook是可以持续运行的，但ad-hoc只能临时运行一次</p>
+<p>playbook适合复杂的任务，ad-hoc适合执行简单的任务</p>
+<p>playbook能控制任务先后执行顺序</p>
+</blockquote>
+<h5>1.3 playbook的编写要求</h5>
+<pre><code class="language-shell">Paybook是yml语言编写，结构要清晰，可读性强，很多语言都是需要这种语法定义
+这个yml语言的要求非常严格，空格也是有明确要求的
+
+
+================================================================
+要求
+    1.文件中，禁止使用Tab进行缩进，如果使用编辑软件，需要修改配置
+        将tab缩进，替换空格：必须是双数：2、4、6、8……
+    2. 文件编码格式，必须和操作系统匹配，默认utf-8
+        如果使用vi或者vim，它自动和系统匹配
+
+
+缩进：
+    yml和yaml使用固定缩进风格表示内容层级，每个缩进由双数的空格对应
+    通常都是2个空格代表一层
+
+
+冒号：
+    除了以冒号结尾的，所有冒号后面，必须有一个空格,举例： （name: zhangsan）
+
+
+减号：
+    减号代表项，减号后面必须有空格，举例： - name
+</code></pre>
+<ul>
+<li>
+<p>使用vi或者vim编写playbook（最推荐的，因为他会自己匹配编码格式）</p>
+</li>
+<li>
+<p>如果要在windows系统内编辑playbook，保存时候一定要使用utf-8编码格式</p>
+</li>
+</ul>
+<p><img src="assets/media/0115-ba4d2bdb.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-10-05-17-image.png"></p>
+<ul>
+<li>如果使用moba提供的文本工具，也要调整编码格式</li>
+</ul>
+<p><img src="assets/media/0116-258f9471.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-10-07-24-image.png"></p>
+<h5>1.4 playbook案例</h5>
+<ul>
+<li>在被控端创建一个文件</li>
+</ul>
+<pre><code class="language-shell">#使用ad-hoc去创建文件
+ansible webservers -m file -a 'name=/opt/playceshi.txt state=touch'
+</code></pre>
+<pre><code class="language-shell">#使用playbook进行编写文件
+
+[root@localhost opt]# vim  an-1.yml
+#使用playbook创建文件
+#play、task
+#### - hosts: webservers
   tasks:
     - name: 创建一个文件
       file: name=/opt/playceshi.txt state=touch
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-1.yml
 
-# 在不同被控端执行不同操作
-- hosts: 192.168.10.129
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.130]
+ok: [192.168.10.129]
+
+TASK [创建一个文件] ******************************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0  
+192.168.10.130             : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0  
+
+[root@localhost opt]# ansible webservers -m shell -a 'ls /opt'
+192.168.10.129 | CHANGED | rc=0 &gt;&gt;
+playceshi.txt
+192.168.10.130 | CHANGED | rc=0 &gt;&gt;
+playceshi.txt
+</code></pre>
+<ul>
+<li>在两个被控端，执行不同的操作</li>
+</ul>
+<pre><code class="language-shell">- hosts: 192.168.10.129
   tasks:
-    - name: 在129创建文件
+    - name: 在129创建一个文件
       file: name=/opt/129.txt state=touch
+
+
 - hosts: 192.168.10.130
   tasks:
-    - name: 在130创建第一个文件
+    - name: 在130主机创建第一个文件
       file: name=/opt/130-1.txt state=touch
-    - name: 在130创建第二个文件
+    - name: 在130主机创建第二个文件
       file: name=/opt/130-2.txt state=touch
 
-# 执行playbook
-ansible-playbook an-1.yml</code></pre>
 
-        <h4>变量系统</h4>
-        <h5>变量定义方式</h5>
-        <table>
-          <thead><tr><th>方式</th><th>说明</th><th>适用场景</th></tr></thead>
-          <tbody>
-            <tr><td>vars</td><td>在playbook文件内头部定义</td><td>当前文件使用</td></tr>
-            <tr><td>vars_files</td><td>引用外部yml文件定义变量</td><td>所有playbook共用</td></tr>
-            <tr><td>Inventory</td><td>在/etc/ansible/hosts中针对主机/主机组定义</td><td>特定主机数据</td></tr>
-            <tr><td>host_vars</td><td>创建host_vars/目录，文件名=主机IP</td><td>每台主机特有数据</td></tr>
-            <tr><td>group_vars</td><td>创建group_vars/目录，文件名=主机组名</td><td>整组通用数据</td></tr>
-            <tr><td>-e / --extra-vars</td><td>执行playbook时命令行传参</td><td>通用执行操作，优先级最高</td></tr>
-          </tbody>
-        </table>
+[root@localhost opt]# ansible-playbook an-2.yml
 
-        <h5>变量优先级（从高到低）</h5>
-        <pre><code>1. playbook外部定义的变量（-e / --extra-vars）
-2. vars_files 外部定义的变量文件
-3. vars 在playbook文件内定义的变量
-4. host_vars 针对主机定义的变量
-5. Inventory /etc/ansible/hosts 针对个别主机的变量
-6. group_vars 针对主机组定义的变量
-7. Inventory /etc/ansible/hosts 针对主机组定义的变量</code></pre>
+PLAY [192.168.10.129] **********************************************************
 
-        <h5>vars 方式定义变量</h5>
-        <pre><code>- hosts: webservers
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+
+TASK [在129创建一个文件] **************************************************************
+changed: [192.168.10.129]
+
+PLAY [192.168.10.130] **********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.130]
+
+TASK [在130主机创建第一个文件] ***********************************************************
+changed: [192.168.10.130]
+
+TASK [在130主机创建第二个文件] ***********************************************************
+changed: [192.168.10.130]
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0  
+192.168.10.130             : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0  
+</code></pre>
+<h5>1.5 多任务案例</h5>
+<ul>
+<li>
+<p>安装一个最新的httpd</p>
+</li>
+<li>
+<p>启动服务设置开机自启</p>
+</li>
+<li>
+<p>启动防火墙</p>
+</li>
+<li>
+<p>设置防火墙隧道</p>
+</li>
+<li>
+<p>向网站首页，插入内容</p>
+</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+  tasks:
+    - name: &quot;安装最新版的httpd&quot;
+      yum: name=httpd state=latest
+
+    - name: &quot;启动httpd服务，设置开机自启&quot;
+      service: name=httpd state=started enabled=yes
+
+    - name: &quot;开启防火墙&quot;
+      service: name=firewalld state=started
+
+    - name: &quot;创建首页，写入指定内容&quot;
+      copy: content=&quot;这个是我的首页&quot; dest=/var/www/html/in
+dex.html
+
+    - name: &quot;配置防火墙隧道&quot;
+      firewalld: service=http immediate=yes permanent=yes
+state=enabled
+</code></pre>
+<p><a href="http://192.168.10.129:80" target="_blank" rel="noopener noreferrer">http://192.168.10.129:80</a></p>
+<p><a href="http://192.168.10.130:80" target="_blank" rel="noopener noreferrer">http://192.168.10.130:80</a></p>
+<ul>
+<li>服务部署完成后，查询服务首页的结果</li>
+</ul>
+<p><img src="assets/media/0117-163d14b2.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-11-28-33-image.png"></p>
+<h4>二、Ansible variables</h4>
+<h5>2.1  什么是变量</h5>
+<pre><code class="language-shell">一个动态获取数据的对象，在ansible中，提供指定名称定义，然后预存数据
+当指令或者yml操作的时候，可以调用里面的数据
+</code></pre>
+<h5>2.2 变量的定义方式</h5>
+<pre><code class="language-shell">在Ansible内，定义变量有三种方式
+    - 通过命令行传递变量参数定义
+    - 在playbook文件定义变量
+        - 通过vars：    定义变量
+        - 通过vars_files 定义变量
+    - 通过Inventory在主机组或者单个主机中设置变量
+        - 通过hosts_vars:  对主机进行定义
+        - 通过group_vars:  对主机组进行定义
+</code></pre>
+<h5>2.3 优先级</h5>
+<pre><code class="language-shell">playbook内可以定义多种变量，但是传递和执行的时候是有优先级的关系的
+</code></pre>
+<h5>2.4 在playbook中定义变量</h5>
+<h6>2.4.1  vars方式</h6>
+<ul>
+<li>
+<p>在playbook文件中，头部通过vars：关键字 进行变量的定义</p>
+</li>
+<li>
+<p>所有变量的数据，只能在当前文件使用</p>
+</li>
+<li>
+<p>变量名是可以自定义，必须符合标识符命名规则</p>
+<ul>
+<li>
+<p>首字母必须是：字母或者下划线</p>
+</li>
+<li>
+<p>其余部分：可以是字母、数字、下划线</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
   vars:
     - id: 1000
     - age: 120
     - uname: 喜羊羊 美羊羊 沸羊羊
   tasks:
-    - name: "输出变量"
+    - name: &quot;通过debug调试模块，利用msg消息输出变量&quot;
       debug:
         msg:
-          - "用户姓名：{{ uname }}"
-          - "用户年纪：{{ age }}"</code></pre>
+          - &quot;用户姓名：{{ uname }}&quot;
+          - &quot;用户年纪：{{ age }}&quot;
+          - &quot;{{ uname }}{{ age }}{{ id }}&quot;
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-4.yml
 
-        <h5>vars_files 方式定义变量</h5>
-        <pre><code># ceshi.yml 文件内容
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [通过debug调试模块，利用msg消息输出变量] *************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        &quot;用户姓名：喜羊羊 美羊羊 沸羊羊&quot;,
+        &quot;用户年纪：120&quot;,
+        &quot;喜羊羊 美羊羊 沸羊羊 120 1000&quot;
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        &quot;用户姓名：喜羊羊 美羊羊 沸羊羊&quot;,
+        &quot;用户年纪：120&quot;,
+        &quot;喜羊羊 美羊羊 沸羊羊 120 1000&quot;
+    ]
+}
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+192.168.10.130             : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+</code></pre>
+<h5>2.4.2  vars_files 方式</h5>
+<ul>
+<li>
+<p>把变量定义到一个独立.yml文件中，需要使用playbook，通过<strong>vars_files:  文件名</strong>去指定这个文件，同样可以使用变量</p>
+</li>
+<li>
+<p>在这个文件内定义的变量，所有的playbook都可以使用</p>
+</li>
+</ul>
+<hr>
+<ul>
+<li>定义文件（文件内只写变量）</li>
+</ul>
+<pre><code class="language-shell">vim ceshi.yml
+
 v_nginx: 3.2.*
 v_jdk: 11.0.*
 v_mysql: 8.0.*
 baidu_url: http://www.baidu.com
 aliyun_url: http://www.aliyun.com
-
-# playbook中引用
-- hosts: webservers
+</code></pre>
+<pre><code class="language-shell">- hosts: webservers
   vars_files: ./ceshi.yml
   tasks:
-    - name: "输出变量"
+    - name: &quot;输出ceshi.yml定义的变量&quot;
       debug:
-        msg: "JDK版本：{{ v_jdk }}"</code></pre>
+        msg:
+          - &quot;输出jdk版本：{{ v_jdk }}&quot;
+          - &quot;输出nginx版本：{{ v_nginx }}&quot;
+          - &quot;输出baidu的网址： {{ baidu_url }}&quot;
+          - &quot;{{ v_jdk }} {{ baidu_url }}&quot;
+</code></pre>
+<ul>
+<li>文件内同时存在vars和vars_files定义的变量</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+#### vars_files: ./ceshi.yml
+  vars:
+    baidu_url: http://360.com
+  vars_files: ./ceshi.yml
+  tasks:
+    - name: &quot;输出ceshi.yml定义的变量&quot;
+      debug:
+        msg:
+          - &quot;输出jdk版本：{{ v_jdk }}&quot;
+          - &quot;输出nginx版本：{{ v_nginx }}&quot;
+          - &quot;输出baidu的网址： {{ baidu_url }}&quot;
+          - &quot;{{ v_jdk }} {{ baidu_url }}&quot;
+</code></pre>
+<blockquote>
+<p>vars_files &gt;  vars  &gt; playbook</p>
+<p>vars定义的值会被vars_files定义同名变量覆盖</p>
+<p>    每一个playbook自己的vars变量都是自己默认值</p>
+<p>    外部文件vars_files可以定义同名变量，替换覆盖</p>
+</blockquote>
+<h5>2.5 在inventory中定义变量</h5>
+<ul>
+<li>
+<p>Inventory指定就是配置文件：/etc/ansible/hosts    在文件内，追加变量定义</p>
+</li>
+<li>
+<p>定义这些变量，针对特定主机的数据</p>
+</li>
+</ul>
+<h6>2.5.1  修改hosts文件定义变量</h6>
+<pre><code class="language-shell">#先给文件备份
+[root@localhost opt]# cp /etc/ansible/hosts{,.bak}
+cp：是否覆盖&quot;/etc/ansible/hosts.bak&quot;？ y
 
-        <h5>Inventory 中定义变量</h5>
-        <pre><code># 修改 /etc/ansible/hosts，在主机后追加变量
-[webservers]
+#修改文件添加变量
+[root@localhost opt]# vim /etc/ansible/hosts
+[webservers]    #主机组的名字可以自定义
+192.168.10.129  uname=葫芦娃 aurl=http://192.168.10.129
+192.168.10.130  uname=果宝特攻 aurl=http://192.168.10.130
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-6.yml
+……
+TASK [输出inventory变量] **********************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        &quot;uname: 葫芦娃&quot;,
+        &quot;网址： http://192.168.10.129&quot;
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        &quot;uname: 果宝特攻&quot;,
+        &quot;网址： http://192.168.10.130&quot;
+    ]
+}
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+192.168.10.130             : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+</code></pre>
+<ul>
+<li>验证优先级</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+  vars:
+    - uname: vars
+  tasks:
+    - name: &quot;输出inventory变量&quot;
+      debug:
+        msg:
+          - &quot;uname: {{ uname }}&quot;
+          - &quot;网址： {{ aurl }}&quot;
+</code></pre>
+<p><img src="assets/media/0118-47fd2609.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-15-20-02-image.png"></p>
+<blockquote>
+<p>vars_files &gt; vars &gt; inventory</p>
+<p>外部文件定义覆盖内部定义，内部又会覆盖配置文件内定义</p>
+</blockquote>
+<h6>2.5.2 设置inventory的节点变量</h6>
+<pre><code class="language-shell">[root@localhost opt]# vim /etc/ansible/hosts
+[webservers]    #主机组的名字可以自定义
 192.168.10.129  uname=葫芦娃 aurl=http://192.168.10.129
 192.168.10.130  uname=果宝特攻 aurl=http://192.168.10.130
 
-# 针对主机组的变量
+##### 添加针对主机组的变量
 [webservers:vars]
-moba=123456789</code></pre>
+moba=123456789
 
-        <h5>host_vars / group_vars 定义变量</h5>
-        <pre><code># host_vars 目录（文件名=主机IP），和 playbook 在同一目录下
-mkdir host_vars
-# host_vars/192.168.10.129
-hostname: 129
-# host_vars/192.168.10.130
-hostname: 130
 
-# group_vars 目录（文件名=主机组名）
-mkdir group_vars
-# group_vars/webservers
-hostname: zhangsan
-hostage: 3年</code></pre>
-
-        <h5>变量优先级验证实验</h5>
-        <pre><code># 实验1：验证 vars_files > vars
-# 同时存在 vars 和 vars_files 定义同名变量 baidu_url
-- hosts: webservers
-  vars:
-    baidu_url: http://360.com
-  vars_files: ./ceshi.yml      # ceshi.yml 中 baidu_url: http://www.baidu.com
-  tasks:
-    - name: "输出变量"
-      debug:
-        msg: "输出baidu的网址： {{ baidu_url }}"
-# 结果：输出 http://www.baidu.com，说明 vars_files 覆盖了 vars
-
-# 实验2：验证 vars > inventory
-# inventory中定义了 uname=葫芦娃/果宝特攻，playbook中 vars 定义 uname: vars
+##修改前面的yml文件
 - hosts: webservers
   vars:
     - uname: vars
   tasks:
-    - name: "输出变量"
+    - name: &quot;输出inventory变量&quot;
       debug:
-        msg: "uname: {{ uname }}"
-# 结果：两台主机都输出 "uname: vars"，说明 vars 覆盖了 inventory
+        msg:
+          - &quot;uname: {{ uname }}&quot;
+          - &quot;网址： {{ aurl }}&quot;
+          - &quot;手机号码：{{ moba }}&quot;
 
-# 实验3：验证 vars > host_vars
-# host_vars/192.168.10.129 定义 hostname: 129，playbook 中 vars 定义 hostname: zhangsan
+
+#验证结果
+TASK [输出inventory变量] ***********************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        &quot;uname: vars&quot;,
+        &quot;网址： http://192.168.10.129&quot;,
+        &quot;手机号码：123456789&quot;
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        &quot;uname: vars&quot;,
+        &quot;网址： http://192.168.10.130&quot;,
+        &quot;手机号码：123456789&quot;
+    ]
+}
+</code></pre>
+<ul>
+<li>验证优先级</li>
+</ul>
+<pre><code class="language-shell">[webservers]    #主机组的名字可以自定义
+192.168.10.129  uname=葫芦娃 aurl=http://192.168.10.129
+192.168.10.130  uname=果宝特攻 aurl=http://192.168.10.130
+##### [webservers]
+##### alpha.example.org
+##### beta.example.org
+##### 192.168.1.100
+##### 192.168.1.110
+[webservers:vars]
+moba=123456789
+uname=balba
+</code></pre>
+<ul>
+<li>编写文件</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+#### vars:
+#### - uname: vars
+  tasks:
+    - name: &quot;输出inventory变量&quot;
+      debug:
+        msg:
+          - &quot;uname: {{ uname }}&quot;
+          - &quot;网址： {{ aurl }}&quot;
+          - &quot;手机号码：{{ moba }}&quot;
+</code></pre>
+<p><img src="assets/media/0119-c1757443.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-15-33-06-image.png"></p>
+<h6>2.5.3 使用host_vars 定义变量</h6>
+<ul>
+<li>
+<p>把变量创建到指定文件内容，不是写入到hosts配置文件中</p>
+</li>
+<li>
+<p>开发自由度更大，而且不需要改变配置文件，就可以保护配置文件</p>
+</li>
+<li>
+<p>如果有相同的内容，每个文件都必须定义</p>
+</li>
+<li>
+<p>只能定义当前设备：特有的特点</p>
+</li>
+</ul>
+<hr>
+<p>复原你的配置文件</p>
+<pre><code class="language-shell">[root@localhost opt]# cp /etc/ansible/hosts.bak  /etc/ansible/hosts
+</code></pre>
+<hr>
+<ul>
+<li>定义host_vars变量</li>
+</ul>
+<pre><code class="language-shell">#创建host_vars目录，必须叫这个名字
+[root@localhost opt]# mkdir host_vars
+[root@localhost opt]# cd host_vars/
+
+
+#定义webservers主机组内的主机设置变量
+#创建文件时：文件名=主机IP
+[root@localhost opt]# cat host_vars/192.168.10.129
+hostname: 129
+[root@localhost opt]# cat host_vars/192.168.10.130
+hostname: 130
+
+
+#编写运行文件，必须和host_vars目录在同一个目录下
+[root@localhost opt]# vim an-7.yml
 - hosts: webservers
+  tasks:
+    - name: &quot;输出host_vars目录下的变量&quot;
+      debug:
+        msg:
+          - &quot;{{ hostname }}&quot;
+
+
+#验证结果
+[root@localhost opt]# ansible-playbook an-7.yml
+……
+TASK [输出host_vars目录下的变量] *******************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        129
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        130
+    ]
+}
+</code></pre>
+<ul>
+<li>
+<p><img src="assets/media/0120-8c0427e1.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-16-07-02-image.png"></p>
+</li>
+<li>
+<p>验证vars和host_vars的优先级</p>
+</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
   vars:
     - hostname: zhangsan
   tasks:
-    - name: "输出host_vars目录下的变量"
-      debug:
-        msg: "{{ hostname }}"
-# 结果：两台主机都输出 "zhangsan"，说明 vars 覆盖了 host_vars
-
-# 实验4：验证 host_vars > inventory
-# inventory 中 192.168.10.130 hostname=balabala
-- hosts: webservers
-  tasks:
-    - name: "输出host_vars目录下的变量"
-      debug:
-        msg: "{{ hostname }}"
-# 结果：129输出129，130输出130（host_vars），说明 host_vars 覆盖了 inventory
-
-# 实验5：验证 -e 传值 > vars_files
-# ceshi.yml 中定义 server: http，执行时 -e "server=firewalld"
-- hosts: webservers
-  vars_files: ./ceshi.yml
-  tasks:
-    - name: "输出执行时传入的值"
-      debug:
-        msg: "服务： {{ server }}"
-# 执行：ansible-playbook an-8.yml -e "server=firewalld" -e "id=890"
-# 结果：输出 "服务： firewalld"，说明 -e 传值优先级最高，覆盖了 vars_files
-
-# 实验6：验证 group_vars > inventory
-# inventory 中 192.168.10.130 hostage=8，[webservers:vars] hostage=9999
-# group_vars/webservers 定义 hostage: 3年
-# 结果：两台主机都输出 3年，说明 group_vars 覆盖了 inventory
-# 再添加 [webservers:vars] hostage=9999，结果还是 3年，说明 group_vars 优先级高于 [webservers:vars]</code></pre>
-
-        <h4>Register - 注册变量</h4>
-        <p>将任务执行结果保存到变量中，便于后续使用。</p>
-
-<pre><code>- hosts: webservers
-  tasks:
-    - name: "获取信息，赋值到register中"
-      shell: ls /opt
-      register: opt
-
-    - name: "输出命令的执行结果"
+    - name: &quot;输出host_vars目录下的变量&quot;
       debug:
         msg:
-          - "输出命令的执行结果：{{ opt.stdout_lines }}"</code></pre>
+          - &quot;{{ hostname }}&quot;
+</code></pre>
+<p><img src="assets/media/0121-8e035d43.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-16-14-40-image.png"></p>
+<ul>
+<li>验证host_vars和inventory的优先级</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+#### vars:
+#### - hostname: zhangsan
+  tasks:
+    - name: &quot;输出host_vars目录下的变量&quot;
+      debug:
+        msg:
+          - &quot;{{ hostname }}&quot;
 
-        <h4>Register 常用属性</h4>
-        <table>
-          <thead><tr><th>属性</th><th>说明</th></tr></thead>
-          <tbody>
-            <tr><td>changed</td><td>变量是否改变了状态</td></tr>
-            <tr><td>stdout_lines</td><td>保存的执行结果（最常用）</td></tr>
-            <tr><td>failed</td><td>是否有错误</td></tr>
-            <tr><td>cmd</td><td>执行的指令</td></tr>
-            <tr><td>start / end</td><td>指令开始/结束时间</td></tr>
-            <tr><td>delta</td><td>执行耗时</td></tr>
-          </tbody>
-        </table>
+[root@localhost opt]# vim /etc/ansible/hosts
+[webservers]    #主机组的名字可以自定义
+192.168.10.129  #被管理的主机的IP
+192.168.10.130 hostname=balabala
+</code></pre>
+<p><img src="assets/media/0122-b1a96224.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-26-16-18-28-image.png"></p>
+<blockquote>
+<p>优先级总结： vars_files &gt; vars &gt; host_vars &gt; inventory</p>
+</blockquote>
+<ul>
+<li>
+<p>group_vars定义</p>
+<ul>
+<li>
+<p>和host_vars定义方式类似的，都是文件名和文件名定义变量</p>
+</li>
+<li>
+<p>文件夹必须group_vars</p>
+</li>
+<li>
+<p>文件名必须和inventory中定义的主机组一致</p>
+</li>
+<li>
+<p>定义这一组所有的设备都是使用的相同的数据</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# mkdir group_vars
+[root@localhost opt]# vim group_vars/webservers
+[root@localhost opt]# cat group_vars/webservers
+hostname: zhangsan
+hostage: 3年
 
-        <h4>Loop 循环</h4>
-        <pre><code># 基本循环 - 启动多个服务
+
+[root@localhost opt]# cat an-7.yml
+- hosts: webservers
+#### vars:
+#### - hostname: zhangsan
+  tasks:
+    - name: &quot;输出host_vars目录下的变量&quot;
+      debug:
+        msg:
+          - &quot;{{ hostname }}&quot;
+          - &quot;{{ hostage }}&quot;
+</code></pre>
+<p><img src="assets/media/0123-ac3b039c.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-28-09-49-54-image.png"></p>
+<ul>
+<li>对比inventory和group_vars的优先级</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# vim /etc/ansible/hosts
+
+[webservers]    #主机组的名字可以自定义
+192.168.10.129  #被管理的主机的IP
+192.168.10.130 hostage=8
+</code></pre>
+<p><img src="assets/media/0124-35c95017.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-28-09-56-04-image.png"></p>
+<pre><code class="language-shell">[webservers:vars]
+hostage=9999
+</code></pre>
+<p><img src="assets/media/0125-77148924.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-28-09-58-11-image.png"></p>
+<h5>2.6 通过playbook执行时传值</h5>
+<ul>
+<li>
+<p>在执行playbook的时候，通过命令传递参数</p>
+</li>
+<li>
+<p>命令使用：-e或者--extra-vars</p>
+</li>
+<li>
+<p>主要提供通用的执行操作，具体数据由调用的时候提供</p>
+</li>
+<li>
+<p>由于是执行时候赋值，它的优先级是最高的，可以覆盖一切</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat an-8.yml
 - hosts: webservers
   tasks:
-    - name: "启动服务：{{ item }}"
+    - name: &quot;输出执行时传入的值&quot;
+      debug:
+        msg:
+          - &quot;服务： {{ server }}&quot;
+          - &quot;位置： {{ id }}&quot;
+
+
+
+#执行的时候赋值
+#利用-e 给变量设置值
+#每一次最好只指定一个参数
+[root@localhost opt]# ansible-playbook an-8.yml  -e &quot;server=firewalld&quot; -e &quot;id=890&quot;
+</code></pre>
+<p><img src="assets/media/0126-08145c5f.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-28-10-11-16-image.png"></p>
+<ul>
+<li>验证执行传入值和vars_files优先级对比</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+  vars_files: ./ceshi.yml
+  tasks:
+    - name: &quot;输出执行时传入的值&quot;
+      debug:
+        msg:
+          - &quot;服务： {{ server }}&quot;
+          - &quot;位置： {{ id }}&quot;
+
+[opt&gt;] cat ceshi.yml
+v_nginx: 3.2.*
+v_jdk: 11.0.*
+v_mysql: 8.0.*
+baidu_url: http://www.baidu.com
+aliyun_url: http://www.aliyun.com
+server: http
+
+[root@localhost opt]# ansible-playbook an-8.yml  -e &quot;server=firewalld&quot; -e &quot;id=890&quot;
+
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [输出执行时传入的值] ***************************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        &quot;服务： firewalld&quot;,
+        &quot;位置： 890&quot;
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        &quot;服务： firewalld&quot;,
+        &quot;位置： 890&quot;
+    ]
+}
+</code></pre>
+<h5>2.7  优先级排序</h5>
+<pre><code class="language-textile">1.playbook外部定义的变量
+2.vars_files 外部定义的变量文件
+3.vars 在playbook文件内容定义变量
+4.host_vars 针对主机定义变量
+5.Inventory /ect/ansible/hosts文件内容针对个别主机定义变量
+6.group_vars 针对主机组定义的变量
+7.Inventory /ect/ansible/hosts文件内容针对主机组定义变量
+</code></pre>
+<h4>三、Ansible  Register</h4>
+<h5>3.1 什么是Register</h5>
+<ul>
+<li>可以吧tasks任务列表中任务的执行结果，保存到一个变量内，便于后续的使用</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat an-9.yml
+- hosts: webservers
+  tasks:
+    - name: &quot;获取信息，赋值到register中&quot;
+      shell: ls  /opt
+      register: opt
+
+    - name: &quot;输出opt变量的值，调用模块&quot;
+      debug:
+        msg:
+          - &quot;输出opt变量内容： {{ opt }}&quot;
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-9.yml
+
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [获取信息，赋值到register中] *******************************************************
+changed: [192.168.10.130]
+changed: [192.168.10.129]
+
+TASK [输出opt变量的值，调用模块] **********************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        &quot;输出opt变量内容： {'stderr_lines': [], u'changed': True, u'end': u'2024-04-26 04:55:36.361378', 'failed': False, u'stdout': u'129.txt\\nplayceshi.txt', u'cmd': u'ls  /opt', u'rc': 0, u'start': u'2024-04-26 04:55:36.357512', u'stderr': u'', u'delta': u'0:00:00.003866', 'stdout_lines': [u'129.txt', u'playceshi.txt']}&quot;
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        &quot;输出opt变量内容： {'stderr_lines': [], u'changed': True, u'end': u'2024-04-26 04:55:42.749203', 'failed': False, u'stdout': u'130-1.txt\\n130-2.txt\\nplayceshi.txt', u'cmd': u'ls  /opt', u'rc': 0, u'start': u'2024-04-26 04:55:42.745780', u'stderr': u'', u'delta': u'0:00:00.003423', 'stdout_lines': [u'130-1.txt', u'130-2.txt', u'playceshi.txt']}&quot;
+    ]
+}
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+192.168.10.130             : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+</code></pre>
+<hr>
+<p>changed  变量是否改变了状态</p>
+<p>end    指令结束时间</p>
+<p>start     指令开始时间</p>
+<p>delta    执行耗时时间</p>
+<p><mark>stdout_lines    保存的结果</mark></p>
+<p>failed       是否由错误</p>
+<p>cmd    执行的指令</p>
+<pre><code class="language-shell">[root@localhost opt]# cat an-9.yml
+- hosts: webservers
+  tasks:
+    - name: &quot;获取信息，赋值到register中&quot;
+      shell: ls  /opt
+      register: opt
+
+    - name: &quot;输出opt变量的值，调用模块&quot;
+      debug:
+        msg:
+          - &quot;输出opt变量内容： {{ opt }}&quot;
+          - &quot;输出命令的执行结果： {{ opt.stdout_lines }}&quot;
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-9.yml
+
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [获取信息，赋值到register中] *******************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+TASK [输出opt变量的值，调用模块] **********************************************************
+ok: [192.168.10.129] =&gt; {
+    &quot;msg&quot;: [
+        &quot;输出opt变量内容： {'stderr_lines': [], u'changed': True, u'end': u'2024-04-26 05:12:51.329867', 'failed': False, u'stdout': u'129.txt\\nplayceshi.txt', u'cmd': u'ls  /opt', u'rc': 0, u'start': u'2024-04-26 05:12:51.323282', u'stderr': u'', u'delta': u'0:00:00.006585', 'stdout_lines': [u'129.txt', u'playceshi.txt']}&quot;,
+        &quot;输出命令的执行结果： [u'129.txt', u'playceshi.txt']&quot;
+    ]
+}
+ok: [192.168.10.130] =&gt; {
+    &quot;msg&quot;: [
+        &quot;输出opt变量内容： {'stderr_lines': [], u'changed': True, u'end': u'2024-04-26 05:12:57.720320', 'failed': False, u'stdout': u'130-1.txt\\n130-2.txt\\nplayceshi.txt', u'cmd': u'ls  /opt', u'rc': 0, u'start': u'2024-04-26 05:12:57.716619', u'stderr': u'', u'delta': u'0:00:00.003701', 'stdout_lines': [u'130-1.txt', u'130-2.txt', u'playceshi.txt']}&quot;,
+        &quot;输出命令的执行结果： [u'130-1.txt', u'130-2.txt', u'playceshi.txt']&quot;
+    ]
+}
+</code></pre>
+<h4>四、 loop循环</h4>
+<h5>4.1 循环的概念</h5>
+<pre><code class="language-shell">loop:循环属于当前任务的一个功能，归属于- name下面
+循环中，提供一个个数据的项，每一项都要由- 定义
+它会一项项重复执行当前的任务，没执行一次就会提取一项值，交给变量{{ item }}
+注意：当前循环只对当前的任务有效的，任务执行的时相同功能
+</code></pre>
+<h5>4.2  循环启动服务</h5>
+<pre><code class="language-shell">#重复性的操作，启动http、firewalld、mysql……服务
+- hosts: webserver
+  tasks:
+    - name: &quot;启动httpd&quot;
+      service: name=httpd state=started
+    - name: &quot;启动mysql&quot;
+      service: name=mysql state=started
+    - name: &quot;启动firewalld&quot;
+      service: name=firewalld state=started
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# cat an-11.yml
+- hosts: webservers
+  tasks:
+    - name: &quot;启动服务：{{ item }}&quot;
       service: name={{ item }} state=started
       loop:
         - httpd
         - mysql
         - firewalld
-
-# 循环创建文件
-- hosts: webservers
+</code></pre>
+<ul>
+<li>
+<p>练习：利用loop循环创建几个文件</p>
+<ul>
+<li>
+<p>zhangsan.txt</p>
+</li>
+<li>
+<p>lisi.txt</p>
+</li>
+<li>
+<p>wangwu.txt</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
   tasks:
-    - name: "循环创建三个文件"
+    - name: &quot;循环创建三个文件&quot;
       shell: chdir=/opt touch {{ item }}
       loop:
         - zhangsan.txt
         - lisi.txt
         - wangwu.txt
+</code></pre>
+<h5>4.3 循环变量的属性</h5>
+<ul>
+<li>循环的项就是提供数据，它也支持JSON数据格式的</li>
+</ul>
+<pre><code class="language-shell">##JSON数据格式
+{}  利用大括号，表达一个数据
+数据中，利用key：value形式，提供一套一套的属性值
+注意：value必须满足数据格式。除了数值、布尔、字符是要加双引号
 
-# JSON格式循环 - 创建用户组并添加用户
-- hosts: webservers
+
+user={name：&quot;葫芦娃&quot;，age:18,bd:&quot;2024-04-28&quot;}
+
+
+&quot;用户姓名：{{ user.name }}&quot;
+</code></pre>
+<pre><code class="language-shell">- hosts: webservers
   tasks:
-    - name: "创建用户组：{{ item }}"
+    - name: &quot;创建用户组：{{ item }}&quot;
       group: name={{ item }} state=present
       loop:
         - gp1
         - gp2
         - gp3
 
-    - name: "创建用户，设置附加组"
+    - name: &quot;创建用户，设置附加组&quot;
       user: name={{ item.uname }} groups={{ item.groups }} state=present
       loop:
-        - { uname: "yh1", groups: "gp1" }
-        - { uname: "yh2", groups: "gp2" }
-        - { uname: "yh3", groups: "gp3" }</code></pre>
+        - { uname: &quot;yh1&quot;,groups: &quot;gp1&quot; }
+        - { uname: &quot;yh2&quot;,groups: &quot;gp2&quot; }
+        - { uname: &quot;yh3&quot;,groups: &quot;gp3&quot; }
+#两个任务
+#通过循环创建三个用户组
+#添加三个用户，并且设置用户的附加组
+</code></pre>
+<h4>五、Handlers和Notify</h4>
+<ul>
+<li>
+<p>Handlers是一个触发器，同时它也是一个tasks任务</p>
+</li>
+<li>
+<p>Handlers不能直接运行，需要被其他task通知才能运行</p>
+</li>
+<li>
+<p>Notify就是通知，他告诉handlers要执行操作</p>
+</li>
+</ul>
+<pre><code class="language-shell">#我想要被控端运行的httpd服务的端口号是7777
+#主控端下发配置文件到客户端
+#在下发文件后，自动重启httpd
 
-        <h4>Handlers 和 Notify</h4>
-        <p>Handlers是触发器，不能直接运行，需要被task的notify通知才执行。无论有多少task通知同一个handler，handler只在所有task执行完毕后执行一次。</p>
-        <pre><code>- hosts: webservers
+- hosts: webservers
   tasks:
-    - name: "安装http服务"
+    - name: &quot;安装http服务&quot;
       yum: name=httpd state=latest
 
-    - name: "下发配置文件"
+    - name: &quot;下发配置文件&quot;
       copy: src=/opt/httpd.conf dest=/etc/httpd/conf/httpd.conf
       notify:
-        - restart_httpd      # 通知handler
+        - restart_httpd
 
-    - name: "启动httpd服务"
+    - name: &quot;启动httpd服务&quot;
       service: name=httpd state=started
 
   handlers:
-    - name: restart_httpd       # 与notify名称对应
-      service: name=httpd state=restarted</code></pre>
+    - name: restart_httpd
+      service: name=httpd state=restarted
 
-        <h4>Tags 任务标签</h4>
-        <pre><code># tags可以给task打标签，执行时指定或跳过
-- hosts: webservers
+#验证结果
+[root@localhost opt]# ansible-playbook an-14.yml
+
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [安装http服务] ****************************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [下发配置文件] ******************************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+TASK [启动httpd服务] ***************************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+RUNNING HANDLER [restart_httpd] ************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=5    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+192.168.10.130             : ok=5    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+</code></pre>
+<blockquote>
+<p>执行顺序：</p>
+<p>    tasks：定义任务列表，任务执行顺序是一个个执行的</p>
+<p>    handlers： 定义的触发任务，<strong>默认是不执行的</strong></p>
+<p>    handlers执行条件：</p>
+<p>        当tasks列表中，某一个任务定义notify通知handlers，需要明确指明触发器的名称，最个时候，handlers中触发任务，才会在task任务执行完毕后再执行</p>
+</blockquote>
+<h5>handlers的注意事项</h5>
+<ul>
+<li>
+<p>无论有多少task通知相同的handlers，handlers只会在所有的task任务执行完毕后，<strong>执行一次</strong></p>
+</li>
+<li>
+<p>只有task发生了改变，才会停止handlers，没有改变是不通知的</p>
+</li>
+<li>
+<p>不能使用handlers代替task，handlers默认不执行</p>
+</li>
+</ul>
+<h4>六、 tags 任务标签</h4>
+<ul>
+<li>
+<p>默认情况下，ansible在执行playbook的时候，会执行所有的tasks任务</p>
+</li>
+<li>
+<p>任务标签tags就是可以指定palybook中每一个特定的任务</p>
+</li>
+</ul>
+<h5>6.1 tags添加方式</h5>
+<ul>
+<li>
+<p>tags可以task打一个标签：一对一</p>
+</li>
+<li>
+<p>tags可以一个task打多个标签：一对多</p>
+</li>
+<li>
+<p>同时给多个task打一个标签：多对一</p>
+</li>
+</ul>
+<h5>6.2 tags使用</h5>
+<ul>
+<li>
+<p>-t 执行指定tag标签对应的任务，也可以写作为：--tag=&quot;&quot;</p>
+</li>
+<li>
+<p>--skip-tags   跳过指定tags对应的任务，其他都执行</p>
+</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
   tasks:
-    - name: "安装http服务"
+    - name: &quot;安装http服务&quot;
       yum: name=httpd state=latest
       tags:
         - install_http
         - yum_http
 
-    - name: "下发配置文件"
+    - name: &quot;下发配置文件&quot;
       copy: src=/opt/httpd.conf dest=/etc/httpd/conf/httpd.conf
       notify:
         - restart_httpd
       tags:
         - copy
 
-    - name: "启动httpd服务"
+    - name: &quot;启动httpd服务&quot;
+      service: name=httpd state=started
+
+  handlers:
+    - name: restart_httpd
+      service: name=httpd state=restarted
+</code></pre>
+<ul>
+<li>需要跳过安装任务</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-14.yml  --skip-tags=yum_http
+</code></pre>
+<ul>
+<li>单独执行某个任务</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-14.yml  -t yum_http
+或者
+[root@localhost opt]# ansible-playbook an-14.yml  --tag=yum_http 
+</code></pre>
+<pre><code class="language-shell">- hosts: webservers
+  tasks:
+    - name: &quot;安装http服务&quot;
+      yum: name=httpd state=latest
+      tags:
+        - install_http
+        - yum_http
+
+    - name: &quot;下发配置文件&quot;
+      copy: src=/opt/httpd.conf dest=/etc/httpd/conf/httpd.conf
+      notify:
+        - restart_httpd
+      tags:
+        - copy
+        - yum_http
+    - name: &quot;启动httpd服务&quot;
       service: name=httpd state=started
       tags:
         - yum_http
@@ -453,145 +2856,276 @@ hostage: 3年</code></pre>
   handlers:
     - name: restart_httpd
       service: name=httpd state=restarted
-
-# 执行指定tag
-ansible-playbook an-14.yml -t yum_http          # 只执行yum_http标签的任务
-ansible-playbook an-14.yml --tag=yum_http         # 同上
-ansible-playbook an-14.yml --skip-tags=yum_http   # 跳过yum_http标签的任务</code></pre>
-
-        <h4>Include 任务复用</h4>
-        <pre><code># 定义公共任务文件 restart_http.yml（只定义任务，不含hosts）
-- name: "restart_http"
+</code></pre>
+<ul>
+<li>标签多对一的使用</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-14.yml  --tag=yum_http
+</code></pre>
+<h4>七 、任务复用 include</h4>
+<ul>
+<li>在一些时候，大量playbook都是重复性编写；就可以把一些独立或者公用的整理出来，单独的定义。 提供给其他的playbook做调用</li>
+</ul>
+<h5>7.1 多个项目调用相同的task</h5>
+<pre><code class="language-shell">#### 在文件内，定义共有task任务，注意：值定义任务
+#### 可以定义一个或多个
+[root@localhost opt]# cat restart_http.yml
+- name: &quot;restart_http&quot;
   service: name=httpd state=restarted
-
-# 在playbook中引用
+</code></pre>
+<pre><code class="language-shell">[root@localhost opt]# cat an-15.yml
 - hosts: webservers
   tasks:
-    - name: "任务一"
-      shell: echo "任务一执行成功！！！！"
-    - name: "重启http，调用yml文件完成"
-      include: restart_http.yml
+    - name: &quot;任务一&quot;
+      shell: echo &quot;任务一执行成功！！！！&quot;
 
-# 案例：安装不同版本Tomcat
-# main.yml - 主控文件
+    - name: &quot;重启http，调用yml文件完成&quot;
+      include: restart_http.yml
+</code></pre>
+<h5>7.2 案例</h5>
+<ul>
+<li>编写主控文件</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# vim main.yml
 - hosts: webservers
   vars:
     - tom8_ver: 8.5.96
     - tom9_ver: 9.0.78
     - tom_install_dir: /usr/local
+
   tasks:
-    - name: "安装tomcat8+jdk8"
+    - name: &quot;安装tomcat8+jdk8&quot;
       include: setup8.yml
       tags: tom8
-    - name: "安装tomcat9+jdk11"
+
+    - name: &quot;安装tomcat9+jdk11&quot;
       include: setup9.yml
       tags: tom9
-
-# setup8.yml - 任务文件（安装tomcat8+jdk8）
-- name: "安装jdk8"
+</code></pre>
+<ul>
+<li>任务文件：setup8.yml</li>
+</ul>
+<pre><code class="language-shell">- name: &quot;安装jdk8&quot;
   yum: name=java-1.8.0-openjdk state=present
 
-- name: "下发tomcat8的安装包"
+- name: &quot;下发tomcat8的安装包&quot;
   copy: src=/opt/apache-tomcat-{{ tom8_ver }}.tar.gz dest=/opt
 
-- name: "解压缩tomcat8"
+- name: &quot;解压缩tomcat8&quot;
   unarchive: src=/opt/apache-tomcat-{{ tom8_ver }}.tar.gz dest={{ tom_install_dir }} copy=no
 
-- name: "启动tomcat"
+- name: &quot;启动tomcat&quot;
   shell: cd {{ tom_install_dir }} &amp;&amp; mv apache-tomcat-{{ tom8_ver }} tomcat8 &amp;&amp; cd tomcat8/bin &amp;&amp; nohup ./startup.sh &amp;
 
-# setup9.yml - 任务文件（安装tomcat9+jdk11）
-- name: "安装jdk11"
+#### shell: cd /usr/locol/apache-tomcat-8.5.96/bin &amp;&amp; nohup ./startup.sh &amp;
+</code></pre>
+<ul>
+<li>任务文件：setup9.yml</li>
+</ul>
+<pre><code class="language-shell">- name: &quot;安装jdk11&quot;
   yum: name=java-11-openjdk state=present
 
-- name: "下发tomcat9的安装包"
+- name: &quot;下发tomcat9的安装包&quot;
   copy: src=/opt/apache-tomcat-{{ tom9_ver }}.tar.gz dest=/opt
 
-- name: "解压缩tomcat9"
+- name: &quot;解压缩tomcat9&quot;
   unarchive: src=/opt/apache-tomcat-{{ tom9_ver }}.tar.gz dest={{ tom_install_dir }} copy=no
 
-- name: "启动tomcat"
+- name: &quot;启动tomcat&quot;
   shell: cd {{ tom_install_dir }} &amp;&amp; mv apache-tomcat-{{ tom9_ver }} tomcat9 &amp;&amp; cd tomcat9/bin &amp;&amp; nohup ./startup.sh &amp;
 
-# 执行时通过标签选择安装tomcat9+jdk11
-ansible-playbook -t tom9 main.yml</code></pre>
+#### shell: cd /usr/locol/apache-tomcat-8.5.96/bin &amp;&amp; nohup ./startup.sh &amp;
+</code></pre>
+<ul>
+<li>运行主控文件，安装</li>
+</ul>
+<pre><code class="language-shell">#安装toncat9和jdk11
+[root@localhost opt]# ansible-playbook -t tom9 main.yml
 
-        <h4>Playbook 异常处理</h4>
-        <pre><code># 1. ignore_errors - 忽略错误继续执行后续任务
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.10.129]
+ok: [192.168.10.130]
+
+TASK [安装jdk11] *****************************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+TASK [下发tomcat9的安装包] ***********************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+TASK [解压缩tomcat9] **************************************************************
+changed: [192.168.10.129]
+changed: [192.168.10.130]
+
+TASK [启动tomcat] ****************************************************************
+changed: [192.168.10.130]
+changed: [192.168.10.129]
+
+PLAY RECAP *********************************************************************
+192.168.10.129             : ok=5    changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+192.168.10.130             : ok=5    changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+</code></pre>
+<p><a href="http://192.168.10.129:8080/" target="_blank" rel="noopener noreferrer">Apache Tomcat/9.0.78</a></p>
+<p><img src="assets/media/0127-27728436.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-29-11-17-51-image.png"></p>
+<h4>八、Playbook异常处理</h4>
+<ul>
+<li>在playbook执行过程中，会遇到各种错误，由于playbook遇到错误之后，不会再执行后续的任务，不方便调试</li>
+</ul>
+<h5>8.1 执行失败-继续执行后续任务</h5>
+<ul>
+<li>
+<p>ignore_errors:   他是任务的属性，分配给任务，属于- name</p>
+<ul>
+<li>yes：忽略跳过；no：终止（默认）</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat an-16.yml
 - hosts: webservers
   tasks:
-    - name: "错误任务"
+    - name: &quot;错误任务&quot;
       shell: asbdasdasdsd
-      ignore_errors: yes        # 忽略错误，继续执行
+      ignore_errors: yes
 
-    - name: "创建文件"
+
+    - name: &quot;创建文件&quot;
       file: path=/opt/123.txt state=touch
-
-# 2. force_handlers - task失败时强制调用handlers
-- hosts: webservers
-  force_handlers: yes           # 强制执行handlers（定义在hosts下）
+</code></pre>
+<h5>8.2 task任务执行失败后，强制调用handlers</h5>
+<ul>
+<li>
+<p>通常情况下，task任务执行失败后是中断。</p>
+</li>
+<li>
+<p>可以强制调用handlers</p>
+<ul>
+<li>
+<p>force_handlers: yes</p>
+<ul>
+<li>
+<p>默认是no，yes强制开启</p>
+</li>
+<li>
+<p>force_handlers负责管理任务，他定义再- hosts下</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">- hosts: webservers
+  force_handlers: yes
   tasks:
-    - name: "创建文件"
+    - name: &quot;创建文件&quot;
       file: path=/opt/456.txt state=touch
       notify:
         - restart_httpd
-    - name: "安装服务"
+    - name: &quot;安装服务&quot;
       yum: name=wwh state=latest
-      ignore_errors: yes
   handlers:
     - name: restart_httpd
       service: name=httpd state=restarted
-
-# 3. changed_when - 控制任务状态报告
-# 重复创建文件，数据本身没有发生改变，但文件创建时间改变=被控端发生改变通知handlers
-# 利用 changed_when 判断被控端数据没有发生改变，notify不通知了，所以handlers不执行
+</code></pre>
+<h5>8.3 控制task任务状态报告</h5>
+<ul>
+<li>
+<p>很多任务在执行完毕后，本身数据没有发生改变，但是每次执行任务，都会返回黄色</p>
+</li>
+<li>
+<p>changed_when: false  不让他做提醒</p>
+<ul>
+<li>
+<p>针对某一个任务，属于- name</p>
+</li>
+<li>
+<p>这个属性可以自定义</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat an-17.yml
 - hosts: webservers
   force_handlers: yes
   tasks:
-    - name: "创建文件"
+    - name: &quot;创建文件&quot;
       file: path=/opt/456.txt state=touch
       notify:
         - restart_httpd
-      changed_when: false       # 不报告changed状态
+      changed_when: false
 
-    - name: "安装服务"
+    - name: &quot;安装服务&quot;
       yum: name=wwh state=latest
       ignore_errors: yes
   handlers:
     - name: restart_httpd
       service: name=httpd state=restarted
-
-# 4. 管理Nginx，具备检查功能（an-18.yml）
+</code></pre>
+<hr>
+<ul>
+<li>
+<p>正常情况</p>
+<ul>
+<li>task任务执行后，被控端发生改变，notify通知handlers，然后执行handlers内的任务</li>
+</ul>
+</li>
+<li>
+<p>changed_when控制任务状态报告</p>
+<ul>
+<li>
+<p>它有一个检查的判断，来验证数据是否针对没有发生改变</p>
+</li>
+<li>
+<p>重复创建文件，数据本身没有发生改变，但是文件创建时间发生改变=被控端发生给便通知handlers</p>
+</li>
+<li>
+<p>利用 changed_when判断被控端数据没有发生改变，notify不通知了，所以handlers不执行</p>
+</li>
+</ul>
+</li>
+<li>
+<p>强制执行handlers是在你的task执行失败的强制调用handlers</p>
+</li>
+<li>
+<p>管理Nginx，具备检查功能</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat an-18.yml
 - hosts: webservers
   tasks:
-    - name: "配置安装源"
+    - name: &quot;配置安装源&quot;
       shell: rpm -Uvh https://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
       tags:
         - uvh
 
-    - name: "安装Nginx"
+    - name: &quot;安装Nginx&quot;
       yum: name=nginx state=present
 
-    - name: "下发配置文件，更改Nginx默认端口号"
+    - name: &quot;下发配置文件，更改Nginx默认端口号&quot;
       template: src=/opt/default.conf dest=/etc/nginx/conf.d/default.conf
       notify:
         - restart_nginx
 
-    - name: "检查服务状态"
+    - name: &quot;检查服务状态&quot;
       shell: /usr/sbin/nginx -t
       register: checknginx
       changed_when:
-        - checknginx.stderr.find("successful")
+        - checknginx.stderr.find(&quot;successful&quot;)
         - false
 
-    - name: "启动nginx"
+    - name: &quot;启动nginx&quot;
       service: name=nginx state=started enabled=yes
 
   handlers:
     - name: restart_nginx
       service: name=nginx state=restarted
-
-# Nginx 配置文件 default.conf（listen 8989）
+</code></pre>
+<ul>
+<li>配置文件内容</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat default.conf
 server {
     listen       8989;
     server_name  localhost;
@@ -635,208 +3169,19 @@ server {
     #    deny  all;
     #}
 }
-
-# 执行
-ansible-playbook an-18.yml</code></pre>
-      </div>
-    </div>
-
-    <!-- Ansible 进阶版 -->
-    <div class="file-card" id="sec-ansible-advanced">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#128640;</span>
-        <h3>Ansible 进阶版（Delegate 委派 / Jinja2 模板引擎 / 密码加密）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>命令参数属性化</h4>
-        <p>将模块的指令参数作为模块的属性，提高可读性。</p>
-        <pre><code># 紧凑写法
-- name: "创建用户"
-  user: name=hlxjg password="{{ '123456' | password_hash('sha512') }}"
-
-# 属性化写法（推荐）
-- name: "创建用户"
-  user:
-    name: hlxjg
-    password: "{{ '123456' | password_hash('sha512') }}"
-
-# 密码加密 - 使用password_hash过滤器
-# ad-hoc方式
-ansible webservers -m user -a 'name=ctds password={{ "123456" | password_hash("sha512") }}'
-
-# 给用户提权
-ansible webservers -m lineinfile -a 'path=/etc/sudoers insertafter="^root" line="ctds  ALL=(ALL) ALL"'</code></pre>
-
-        <h4>Delegate 委派</h4>
-        <p>将原本需要在被控端执行的任务委派给其他主机运行。</p>
-
-        <h5>委派给其他主机</h5>
-        <pre><code># 在129机器执行任务，将其中一个任务委派给130执行
-- hosts: 192.168.10.129
-  tasks:
-    - name: "添加一个host"
-      shell: echo "www.baidu.com" >> /etc/hosts
-
-    - name: "委派到130主机执行"
-      shell: echo "www.wwh.com" >> /etc/hosts
-      delegate_to: 192.168.10.130    # 委派到130执行
-
-    - name: "再次追加数据"
-      shell: echo "www.zhuijia.com" >> /etc/hosts</code></pre>
-
-        <h5>委派给主控机（run_once）</h5>
-        <pre><code># 在主控机创建用户、生成密钥，然后下发到被控端
-- hosts: webservers
-  vars:
-    - username: wwh
-  tasks:
-    - name: "委派给主控端，创建用户并生成密钥"
-      user:
-        name: "{{ username }}"
-        generate_ssh_key: yes
-        ssh_key_bits: 2048
-        ssh_key_file: /opt/id_rsa
-      register: userinfo
-      delegate_to: localhost
-      run_once: true                    # 只运行一次
-
-    - name: "在被控端创建用户"
-      user:
-        name: "{{ username }}"
-        password: "{{ 'abc123' | password_hash('sha512') }}"
-
-    - name: "在被控端给用户提权"
-      lineinfile:
-        path: /etc/sudoers
-        insertafter: "^root"
-        line: "{{ username }} ALL=(ALL) ALL"
-
-    - name: "被控端创建用户组"
-      group:
-        name: "{{ username }}"
-        state: present
-        system: yes
-
-    - name: "用户家目录下创建.ssh"
-      file:
-        path: "/home/{{ username }}/.ssh"
-        state: directory
-        owner: "{{ username }}"
-        group: "{{ username }}"
-        mode: 0770
-
-    - name: "下发主控端生成的密钥给被控端"
-      copy:
-        content: "{{ userinfo.ssh_public_key }}"
-        dest: "/home/{{ username }}/.ssh/auto_keys"
-        owner: "{{ username }}"
-        group: "{{ username }}"
-        mode: 0660</code></pre>
-
-        <h4>Jinja2 模板引擎</h4>
-        <p>Jinja2是Python的全功能模板引擎，配合template模块实现配置文件中变量的解析替换。</p>
-
-        <h5>copy vs template 对比</h5>
-        <table>
-          <thead><tr><th>模块</th><th>行为</th><th>适用场景</th></tr></thead>
-          <tbody>
-            <tr><td>copy</td><td>直接复制文件内容，不做任何解析</td><td>配置文件内容不需要改变</td></tr>
-            <tr><td>template</td><td>解析文件中的变量，转换为对应值后复制</td><td>每个设备需要不同数据</td></tr>
-          </tbody>
-        </table>
-
-        <h5>template 模块案例</h5>
-        <pre><code># 1. 准备模板文件 tmp.conf（使用ansible系统变量）
-vim tmp.conf
-用户名称: {{ ansible_hostname }}
-系统内存: {{ ansible_memtotal_mb }}MB
-系统空闲内存: {{ ansible_memfree_mb }}MB
-
-# 2. 编写playbook
-- hosts: webservers
-  tasks:
-    - name: "使用copy模块（不会解析变量）"
-      copy: src=/opt/tmp.conf dest=/opt
-
-    - name: "使用template模块（会解析变量）"
-      template: src=/opt/tmp.conf dest=/root
-
-# copy结果：文件内容不变（原样输出{{ ansible_hostname }}等）
-# template结果：变量被替换为实际值（如 localhost、972MB等）</code></pre>
-
-        <h5>Nginx 端口配置模板案例</h5>
-        <pre><code># nginx配置文件 default.conf（使用变量）
-server {
-    listen       {{ my_port }};
-    server_name  localhost;
-
-    location / {
-        root   /usr/share/nginx/html;
-        index  index.html index.htm;
-    }
-
-    error_page   500 502 503 504  /50x.html;
-    location = /50x.html {
-        root   /usr/share/nginx/html;
-    }
-}
-
-# playbook
-- hosts: webservers
-  vars:
-    - my_port: 6666
-  tasks:
-    - name: "配置安装源"
-      shell: rpm -Uvh https://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
-      tags: uvh
-    - name: "安装Nginx"
-      yum: name=nginx state=present
-    - name: "下发配置文件，更改Nginx默认端口号"
-      template: src=/opt/default.conf dest=/etc/nginx/conf.d/default.conf
-      notify:
-        - restart_nginx
-    - name: "检查服务状态"
-      shell: /usr/sbin/nginx -t
-      register: checknginx
-      changed_when:
-        - checknginx.stderr.find("successful")
-        - false
-    - name: "启动nginx"
-      service: name=nginx state=started enabled=yes
-  handlers:
-    - name: restart_nginx
-      service: name=nginx state=restarted</code></pre>
-
-        <h5>Redis 端口配置模板案例</h5>
-        <pre><code># redis配置文件 redis.conf（第84行修改端口）
-port {{ my_port }}
-
-# playbook
-- hosts: webservers
-  vars:
-    - my_port: 7788
-  tasks:
-    - name: "配置安装源"
-      yum:
-        name: epel-release
-        state: present
-    - name: "安装redis"
-      yum:
-        name: redis
-        state: latest
-    - name: "下发配置文件，改端口号"
-      template:
-        src: /opt/redis.conf
-        dest: /etc/redis.conf
-    - name: "启动redis"
-      shell: redis-server /etc/redis.conf &amp;</code></pre>
-      </div>
-    </div>
-
-    </div>
+</code></pre>
+<ul>
+<li>执行任务</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# ansible-playbook an-18.yml
+</code></pre>
+<ul>
+<li>验证结果</li>
+</ul>
+<p><img src="assets/media/0128-e0e42eda.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-29-15-44-37-image.png"></p>
+</div>
+      </article></main>
   </div>
-  </div>
-<script src="common.js"></script>
+  <script src="common.js"></script>
 </body>
 </html>

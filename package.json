@@ -1,0 +1,13 @@
+{
+  "name": "cloud-knowledge-summary",
+  "version": "2.0.0",
+  "private": true,
+  "description": "从云计算课程原始 Markdown 笔记生成离线知识库",
+  "scripts": {
+    "build": "node tools/build-site.js",
+    "verify": "node tools/build-site.js --verify"
+  },
+  "devDependencies": {
+    "markdown-it": "14.3.0"
+  }
+}

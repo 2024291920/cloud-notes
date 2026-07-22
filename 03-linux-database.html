@@ -3,550 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>03 Linux 数据库 - 云计算运维课程笔记</title>
+  <meta name="description" content="MySQL 安装、基础操作、备份恢复与主从复制">
+  <title>03 Linux 数据库 - 云计算运维课程知识库</title>
   <link rel="stylesheet" href="common.css">
-
 </head>
-<body>
+<body data-generated="true">
   <div class="topbar">
-    
     <span class="title"><span class="num" style="background:linear-gradient(90deg,#10b981,#059669)">03</span>Linux 数据库</span>
-    <div class="search-box-wrap"><input class="search-box" type="text" placeholder="搜索本页... (Ctrl+K)"></div>
-    <div class="nav-btns">
-      <a href="02-linux-service.html">&#8592;</a>
-      <a href="04-ansible.html">&#8594;</a>
-    </div>
+    <div class="search-box-wrap"><input class="search-box" type="search" placeholder="搜索本页… (Ctrl+K)" aria-label="搜索本页"></div>
+    <div class="nav-btns"><a href="02-linux-service.html" title="上一主题">←</a><a href="04-ansible.html" title="下一主题">→</a></div>
   </div>
-  <div class="page-header">
+  <header class="page-header">
     <h1>03 Linux 数据库</h1>
-    <p class="desc">涵盖MySQL数据库安装、基础操作（DML/DQL/索引类型/连接查询）、主从复制搭建部署、数据库备份管理（温备份/冷备份/增量备份）等知识点</p>
-  </div>
+    <p class="desc">MySQL 安装、基础操作、备份恢复与主从复制</p>
+  </header>
   <div class="page-wrap">
-    <nav class="sidebar" id="sidebar">
-      <div class="side-title">本页导航</div>
-      <ul>
-        <li><a href="#sec-mysql-install">MySQL 数据库安装（移除MariaDB / 配置源 / 首次登录 / 远程访问）</a></li>
-        <li><a href="#sec-db-basics">数据库基础操作（DML / DQL / 索引类型 / 连接查询）</a></li>
-        <li><a href="#sec-master-slave">主从复制搭建部署（IO/SQL 线程原理 / 异步半同步复制 / 部署步骤）</a></li>
-        <li><a href="#sec-db-backup">数据库备份管理（MyISAM vs InnoDB / 温备份 mysqldump / 冷备份 tar / 增量备份 binlog）</a></li>
-</ul>
+    <nav class="sidebar" id="sidebar" aria-label="本页笔记目录">
+      <div class="side-title">本页导航 <span>4</span></div>
+      <ul><li><a href="#sec-03-01" title="数据库备份管理">数据库备份管理</a></li><li><a href="#sec-03-02" title="数据库的基础操作">数据库的基础操作</a></li><li><a href="#sec-03-03" title="主从复制搭建部署">主从复制搭建部署</a></li><li><a href="#sec-03-04" title="Mysql 数据库的安装">Mysql 数据库的安装</a></li></ul>
     </nav>
-    <div class="content">
-
-    <!-- MySQL 安装 -->
-    <div class="file-card" id="sec-mysql-install">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#128451;</span>
-        <h3>MySQL 数据库安装（移除MariaDB / 配置源 / 首次登录 / 远程访问）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>第一步：移除默认安装的 MariaDB</h4>
-        <pre><code># 查看已安装的mariadb
-rpm -qa | grep mariadb
-# 输出示例: mariadb-libs-5.5.68-1.el7.x86_64
-
-# 卸载mariadb
-yum remove -y mariadb-libs-5.5.68-1.el7.x86_64</code></pre>
-
-        <h4>第二步：配置 MySQL 8.x 安装源</h4>
-        <pre><code># 导入MySQL官方密钥
-rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
-
-# 配置MySQL yum仓库
-rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm</code></pre>
-
-        <h4>第三步：安装 MySQL</h4>
-        <pre><code>yum -y install mysql-community-server</code></pre>
-
-        <h4>第四步：启动服务</h4>
-        <pre><code>systemctl start mysqld
-systemctl enable mysqld
-systemctl status mysqld</code></pre>
-
-        <h4>第五步：首次登录</h4>
-        <pre><code># 查看临时密码
-grep 'temporary password' /var/log/mysqld.log
-
-# 使用临时密码登录
-mysql -u root -p
-# 输入临时密码
-# Server version: 8.0.36
-
-# 如果临时密码失效，使用以下方案：
-# 1. 编辑配置文件
-vim /etc/my.cnf
-# 在 [mysqld] 下方添加：
-# skip-grant-tables    # 忽略密码验证
-
-# 2. 重启服务
-systemctl restart mysqld
-
-# 3. 无密码登录
-mysql -u root -p    # 直接回车
-
-# 4. 刷新权限并设置密码
-mysql> flush privileges;
-mysql> alter user 'root'@'localhost' identified by 'Abc123456!';
-
-# 5. 去掉配置文件中的 skip-grant-tables，重启服务
-systemctl restart mysqld</code></pre>
-
-        <h4>第六步：修改登录密码</h4>
-        <pre><code># 密码要求：英文大小写 + 数字 + 特殊符号，至少8位
-mysql> alter user 'root'@'localhost' identified by 'Abc123456!';</code></pre>
-
-        <h4>第七步：配置远程访问</h4>
-        <pre><code># 创建远程登录用户
-mysql> create user 'root'@'%' identified with mysql_native_password by 'Bbc123456!';
-
-# 授予远程登录权限
-mysql> grant all on *.* to 'root'@'%';
-
-# 验证远程登录
-mysql -uroot -h 192.168.10.128 -pBbc123456!
-
-# 查看数据库列表（远程登录后）
-mysql> show databases;
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema |
-| mysql              |
-| performance_schema |
-| sys                |
-+--------------------+</code></pre>
-      </div>
-    </div>
-
-    <!-- 数据库基础操作 -->
-    <div class="file-card" id="sec-db-basics">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#128202;</span>
-        <h3>数据库基础操作（DML / DQL / 索引类型 / 连接查询）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>数据类型</h4>
-        <table>
-          <thead><tr><th>类型分类</th><th>数据类型</th><th>说明</th></tr></thead>
-          <tbody>
-            <tr><td rowspan="4">整数型</td><td>tinyint</td><td>0-255</td></tr>
-            <tr><td>smallint</td><td>-32768 ~ 32767</td></tr>
-            <tr><td>int</td><td>10位以内</td></tr>
-            <tr><td>bigint</td><td>10位以上</td></tr>
-            <tr><td rowspan="3">浮点型</td><td>float(m,d)</td><td>单精度浮点，m为整数位，d为小数位</td></tr>
-            <tr><td>double(m,d)</td><td>双精度浮点</td></tr>
-            <tr><td>decimal(m,d)</td><td>M最大65，D最大30</td></tr>
-            <tr><td rowspan="3">字符类</td><td>char(m)</td><td>固定长度，不足自动填充空格，查询快但浪费空间</td></tr>
-            <tr><td>varchar(m)</td><td>可变长度，节省空间但查询稍慢</td></tr>
-            <tr><td>text</td><td>默认varchar(max)大小，适合大段内容</td></tr>
-          </tbody>
-        </table>
-
-        <h4>数据库操作（DDL）</h4>
-        <pre><code># 创建数据库
-mysql> create database cateye;
-mysql> create database cateye1 character set 'utf8';  # 指定编码
-
-# 查看数据库列表
-mysql> show databases;
-
-# 删除数据库（先备份，确认无用）
-mysql> drop database cateye;
-
-# 进入数据库
-mysql> use cateye1;
-
-# 查询当前所在数据库
-mysql> select database();</code></pre>
-
-        <h4>表的管理（DDL）</h4>
-        <pre><code># 创建表
-mysql> create table yw15(
-    -> id int,
-    -> username varchar(20),
-    -> age int,
-    -> reatetime timestamp
-    -> );
-
-# 查看表列表
-mysql> show tables;
-
-# 查看表结构
-mysql> desc yw15;
-
-# 删除表
-mysql> drop table 表名;
-
-# 添加一列
-mysql> alter table yw15 add job varchar(50);               # 末尾添加
-mysql> alter table yw15 add iq int after id;                # 在id后添加
-mysql> alter table yw15 add upasswd int first;              # 添加到首列
-
-# 修改列名
-mysql> alter table bbb change name username char(30);
-
-# 修改列类型
-mysql> alter table bbb modify age bigint;
-
-# 删除一列
-mysql> alter table bbb drop column passwd;
-
-# 修改表名
-mysql> alter table bbb rename as wh;
-
-# 创建表时指定引擎和约束
-mysql> create table class(
-    -> cid int not null auto_increment,
-    -> cname varchar(20),
-    -> primary key(cid)
-    -> ) engine=innodb;</code></pre>
-
-        <h4>DML - 数据操作</h4>
-        <pre><code># 插入数据 INSERT
-mysql> insert into bbb values ('zhangsan',20,'北京颐和园','文物修复师','123456');
-mysql> insert into bbb values ('lisi',null,null,'cos','12345');  # null表示无数据
-
-# 批量插入
-mysql> insert into bbb values
-    -> ('喜羊羊',18,'羊村一号','羊村守护者','123'),
-    -> ('沸羊羊',18,'羊村二号','健身房猛男','123'),
-    -> ('灰太狼',30,'狼堡','小灰灰的爸爸','456');
-
-# 更新数据 UPDATE（没有条件的更新不要执行！）
-mysql> update bbb set job='大堂经理' where age=20;
-mysql> update bbb set passwd=123456 where name='机械羊';
-mysql> update bbb set passwd=' ';            # 清空某列数据
-
-# 删除数据 DELETE（没有条件的删除不要执行！）
-mysql> delete from wh where username='喜羊羊';
-mysql> delete from wh where username in ('zhangsan','lisi');
-mysql> delete from wh where age<10;</code></pre>
-
-        <h4>DQL - 数据查询</h4>
-        <pre><code># 检索所有信息
-mysql> select * from wh;
-
-# 检索指定列
-mysql> select username,age from wh;
-
-# 统计类查询
-mysql> select count(*) from wh;                    # 总行数
-mysql> select min(age) from wh;                    # 最小值
-mysql> select max(age) from wh;                    # 最大值
-mysql> select sum(age) from wh;                    # 总和
-mysql> select avg(age) from wh;                    # 平均值（排除null）
-mysql> select count(*),min(age),max(age),sum(age),avg(age) from wh;
-
-# 模糊查询
-mysql> select * from wh where username like '张%';  # %通配符
-mysql> select * from wh where username like '___';  # _占位符
-
-# 空查询
-mysql> select * from wh where age is null;           # 过滤为null
-mysql> select * from wh where age is not null;       # 过滤不为null
-mysql> select * from wh where age is null or age='';  # 两种空状态
-
-# 运算符
-# 算数: () * / + - %
-# 比较: < <= > >= <> !=(5.6+) =
-# 逻辑: not and or
-mysql> select * from wh where age>10 and age<30;
-
-# 排序查询
-mysql> select * from gn order by age desc;            # 降序
-mysql> select * from gn order by iq asc, age asc;     # 多条件排序</code></pre>
-
-        <h4>连接查询</h4>
-        <pre><code># 内连接 - 只有对应的数据才显示
-mysql> select * from class,student where class.cid=student.cid;
-
-# 内连接（JOIN写法）
-mysql> select class.cname, student.sname
-    -> from class
-    -> inner join student on class.cid = student.cid;
-
-# 左外连接 - 以左表为主，无匹配显示NULL
-mysql> select class.cname, student.sname
-    -> from class
-    -> left join student on class.cid = student.cid;
-
-# 右外连接 - 以右表为主，无匹配显示NULL
-mysql> select class.cname, student.sname
-    -> from class
-    -> right join student on class.cid = student.cid;</code></pre>
-
-        <h4>索引</h4>
-        <table>
-          <thead><tr><th>索引类型</th><th>特点</th><th>创建方式</th></tr></thead>
-          <tbody>
-            <tr><td>主键索引</td><td>唯一 + 非空 + 自动排序，一张表只能一个</td><td>primary key / alter table add primary key</td></tr>
-            <tr><td>唯一索引</td><td>值唯一，允许空值，一个表可多个</td><td>unique / create unique index</td></tr>
-            <tr><td>普通索引</td><td>无特殊限制，仅加速查询</td><td>index / create index</td></tr>
-            <tr><td>组合索引</td><td>多个列组合，遵循最左前缀原则</td><td>create index idx_name on table(col1,col2)</td></tr>
-          </tbody>
-        </table>
-        <pre><code># 查看索引
-mysql> show index from class;
-
-# 主键索引
-mysql> alter table a add primary key(cid);
-mysql> alter table a drop primary key;
-
-# 唯一索引
-mysql> create unique index un_iq on a(iq);
-mysql> drop index un_iq on a;
-
-# 普通索引
-mysql> create index I_name on a(name);
-mysql> alter table a add index index_pass(name);
-mysql> drop index I_name on a;
-
-# 组合索引
-mysql> create index index_group on a(name,iq);
-mysql> drop index index_group on a;
-
-# 创建索引原则
-# 1. 表数据超过300条应建索引
-# 2. 唯一性差的字段不建议建索引
-# 3. 更新频繁的字段不适合建索引
-# 4. 经常出现在where子句中的字段应建索引</code></pre>
-
-        <h4>用户管理</h4>
-        <pre><code># 创建用户（8位以上，英文大小+数字+特殊符号）
-mysql> create user 'aaa'@'localhost' identified by 'Bbc123456!';
-
-# 授权
-mysql> grant insert,select,update on abc.* to 'aaa'@'localhost';
-mysql> grant all on *.* to 'root'@'%';
-
-# 查看权限
-mysql> show grants for 'aaa'@'localhost';
-
-# 回收权限
-mysql> revoke select on abc.* from 'aaa'@'localhost';
-mysql> revoke all on *.* from 'aaa'@'localhost';
-
-# 删除用户
-mysql> drop user 'aaa'@'localhost';</code></pre>
-      </div>
-    </div>
-
-    <!-- 主从复制搭建部署 -->
-    <div class="file-card" id="sec-master-slave">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#128274;</span>
-        <h3>主从复制搭建部署（IO/SQL 线程原理 / 异步半同步复制 / 部署步骤）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>主从复制工作原理</h4>
-        <pre><code>主从复制流程：
-
-1. 主库需要开启二进制日志（binlog），并授权给从库访问
-2. 从库开启一个 IO 线程，与主库建立连接，读取主库 binlog 日志内容，
-   将读取到的日志写入到 relay.log（中继日志）
-   如果主从数据一致，IO线程休眠，直到主库产生新内容才同步
-3. 从库开启一个 SQL 线程，读取 relay.log 中的内容并在从库执行，
-   从而实现主从复制</code></pre>
-
-        <h4>主从复制类型</h4>
-        <table>
-          <thead><tr><th>类型</th><th>说明</th><th>优缺点</th></tr></thead>
-          <tbody>
-            <tr><td>异步复制（默认）</td><td>主库执行完毕后直接返回结果给客户端，不等待从库</td><td>效率高但容易出现数据不一致</td></tr>
-            <tr><td>同步复制</td><td>主库等待所有从库复制且执行成功后才返回结果</td><td>数据一致但效率和性能受影响</td></tr>
-            <tr><td>半同步复制</td><td>主库等待至少一个从库写入relay日志后返回结果</td><td>兼顾性能和数据安全</td></tr>
-          </tbody>
-        </table>
-
-        <p>复制模式：基于语句复制（默认）、基于行的复制、混合类型复制。</p>
-
-        <h4>部署步骤</h4>
-        <h5>环境准备</h5>
-        <pre><code># 角色分配
-192.168.10.128    主库
-192.168.10.129    从库
-
-# 两台机器关闭防火墙、内核
-systemctl stop firewalld
-systemctl disable firewalld
-setenforce 0
-vim /etc/selinux/config    # SELINUX=disabled
-
-# 两台服务器搭建MySQL服务</code></pre>
-
-        <h5>解决主从数据不一致问题</h5>
-        <pre><code># 主库备份所有数据
-mysqldump -uroot -pAbc123456! --all-databases > /opt/mysql-all.sql
-
-# 传输备份到从库
-scp /opt/mysql-all.sql root@192.168.10.129:/opt
-
-# 从库导入数据
-mysql> source /opt/mysql-all.sql</code></pre>
-
-        <h5>配置主库（128）</h5>
-        <pre><code># 1. 修改配置文件开启二进制日志
-vim /etc/my.cnf
-# 添加：
-log-bin=mysql-bin
-server-id=1    # 服务ID，主从不能一样
-
-# 2. 重启服务
-systemctl restart mysqld
-
-# 3. 创建从库用户并授权
-mysql> create user 'tongbu'@'%' identified with mysql_native_password by 'Bbc123456!';
-mysql> grant replication slave on *.* to 'tongbu'@'%' with grant option;
-
-# 4. 查看主库状态
-mysql> show master status;
-+------------------+----------+
-| File             | Position |
-+------------------+----------+
-| mysql-bin.000005 |      682 |
-+------------------+----------+
-# 记录 File 和 Position 的值</code></pre>
-
-        <h5>配置从库（129）</h5>
-        <pre><code># 1. 修改配置文件
-vim /etc/my.cnf
-# 添加：
-server-id=2    # 主从不能一样！！！
-
-# 2. 重启服务
-systemctl restart mysqld
-
-# 3. 配置同步操作
-mysql> change master to
-    -> master_host='192.168.10.128',
-    -> master_user='tongbu',
-    -> master_password='Bbc123456!',
-    -> master_log_file='mysql-bin.000005',
-    -> master_log_pos=682;
-
-# 4. 开启同步功能
-mysql> start slave;
-
-# 5. 查看同步状态（关键两个参数必须为Yes）
-mysql> show slave status \G
-Slave_IO_Running: Yes
-Slave_SQL_Running: Yes</code></pre>
-
-        <h5>验证主从复制</h5>
-        <pre><code># 在主库创建数据库
-mysql> create database Bceshizhucong;
-
-# 在从库查询，应该能看到该数据库
-mysql> show databases;</code></pre>
-
-        <h5>故障排查 - IO线程未启动</h5>
-alt="
-loading="lazy"></p>
-      <pre><code># 1. 检查防火墙内核是否关闭
-# 2. 检查配置是否正确
-
-# 排查步骤：
-# 从库关闭同步
-mysql> stop slave;
-
-# 主库开启新日志
-mysql> flush logs;
-
-# 主库重新查看状态
-mysql> show master status;
-# 记录新的 File 和 Position
-
-# 从库重新配置
-mysql> change master to
-    -> master_host='192.168.10.128',
-    -> master_user='tongbu',
-    -> master_password='Bbc123456!',
-    -> master_log_file='mysql-bin.000006',
-    -> master_log_pos=157;
-
-# 从库重新开启同步
-mysql> start slave;
-mysql> show slave status \G</code></pre>
-      </div>
-    </div>
-
-    <!-- 数据库备份管理 -->
-    <div class="file-card" id="sec-db-backup">
-      <div class="card-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="card-icon">&#128190;</span>
-        <h3>数据库备份管理（MyISAM vs InnoDB / 温备份 mysqldump / 冷备份 tar / 增量备份 binlog）</h3>
-        <span class="toggle-icon">&#9660;</span>
-      </div>
-      <div class="card-body">
-        <h4>为什么要备份</h4>
-        <p>备份的目的：解决数据库的灾难恢复，实现容灾。</p>
-        <p>数据丢失原因：开发人员bug、操作失误、天灾人祸、设备老化、黑客攻击等。</p>
-
-        <h4>备份方式分类</h4>
-        <table>
-          <thead><tr><th>分类</th><th>方式</th><th>说明</th></tr></thead>
-          <tbody>
-            <tr><td>物理备份</td><td>冷备份</td><td>关闭数据库进行备份：tar打包</td></tr>
-            <tr><td>物理备份</td><td>热备份</td><td>数据库正常运行时备份：hotcopy</td></tr>
-            <tr><td>物理备份</td><td>温备份</td><td>数据库锁定时备份：mysqldump</td></tr>
-            <tr><td>逻辑备份</td><td>完全备份</td><td>全部数据备份</td></tr>
-            <tr><td>逻辑备份</td><td>差异备份</td><td>备份与上次备份不同的数据</td></tr>
-            <tr><td>逻辑备份</td><td>增量备份</td><td>备份上次备份后新增的内容</td></tr>
-          </tbody>
-        </table>
-
-        <h4>MyISAM vs InnoDB 对比</h4>
-        <table>
-          <thead><tr><th>特性</th><th>MyISAM</th><th>InnoDB</th></tr></thead>
-          <tbody>
-            <tr><td>默认版本</td><td>MySQL 5.5之前</td><td>MySQL 5.5之后</td></tr>
-            <tr><td>事务支持</td><td>不支持</td><td>支持（ACID）</td></tr>
-            <tr><td>锁定级别</td><td>表级锁定</td><td>行级锁定</td></tr>
-            <tr><td>外键</td><td>不支持</td><td>支持</td></tr>
-            <tr><td>读写阻塞</td><td>读写相互阻塞</td><td>读写分离不阻塞</td></tr>
-            <tr><td>缓存</td><td>只缓存索引</td><td>索引和数据都可缓存</td></tr>
-            <tr><td>存储文件</td><td>.frm(结构) + .MYD(数据) + .MYI(索引)</td><td>.frm(结构) + .ibd(索引+数据)</td></tr>
-            <tr><td>适用场景</td><td>以读为主、少量更新、无事务要求</td><td>频繁更新、有事务要求的场景</td></tr>
-          </tbody>
-        </table>
-        <pre><code># 查看支持的引擎
-mysql> show engines;
-
-# 查看当前默认引擎
-mysql> show variables like '%storage_engines%';
-
-# 查看某个表的引擎
-mysql> show table status from abc where name='class';
-
-# 修改表的存储引擎
-mysql> alter table class engine=MyISAM;
-
-# 创建表时指定引擎
-mysql> create table asd(NAME int) engine=MyISAM;
-
-# 临时修改默认引擎
-mysql> set default_storage_engine=MyISAM;
-
-# 永久修改默认引擎
-vim /etc/my.cnf
-# [mysqld]
-# default_storage_engine=MyISAM
-systemctl restart mysqld
-# 注意：修改不会对已存在的表生效</code></pre>
-
-        <h4>克隆表</h4>
-        <p>通常在开发环境项目测试运行成功后，需要重新部署生产环境时使用。</p>
-        <pre><code># 克隆表结构（无数据）
-mysql> create table yong like gn;
+    <main class="content">
+      <article class="file-card" id="sec-03-01" data-source="Linux 数据库/数据库备份管理.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="true">
+          <div class="card-title-group"><span class="card-icon">▤</span><div><h3>数据库备份管理</h3><span class="source-path">Linux 数据库/数据库备份管理.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="数据库备份管理" data-bookmark-page="Linux 数据库" data-bookmark-href="03-linux-database.html#sec-03-01" data-bookmark-source="Linux 数据库/数据库备份管理.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>纯文本</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>一、数据库引擎</h4>
+<p>mysql数据库，有多种引擎，不同的引擎提供的功能和操作是不一样的</p>
+<ul>
+<li>查询当前数据库支持的引擎</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show engines;
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+| Engine             | Support | Comment                                                        | Transactions | XA   | Savepoints |
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+| ndbcluster         | NO      | Clustered, fault-tolerant tables                               | NULL         | NULL | NULL       |
+| FEDERATED          | NO      | Federated MySQL storage engine                                 | NULL         | NULL | NULL       |
+| MEMORY             | YES     | Hash based, stored in memory, useful for temporary tables      | NO           | NO   | NO         |
+| InnoDB             | DEFAULT | Supports transactions, row-level locking, and foreign keys     | YES          | YES  | YES        |
+| PERFORMANCE_SCHEMA | YES     | Performance Schema                                             | NO           | NO   | NO         |
+| MyISAM             | YES     | MyISAM storage engine                                          | NO           | NO   | NO         |
+| ndbinfo            | NO      | MySQL Cluster system information storage engine                | NULL         | NULL | NULL       |
+| MRG_MYISAM         | YES     | Collection of identical MyISAM tables                          | NO           | NO   | NO         |
+| BLACKHOLE          | YES     | /dev/null storage engine (anything you write to it disappears) | NO           | NO   | NO         |
+| CSV                | YES     | CSV storage engine                                             | NO           | NO   | NO         |
+| ARCHIVE            | YES     | Archive storage engine                                         | NO           | NO   | NO         |
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+11 rows in set (0.00 sec)
+</code></pre>
+<h4>1.1 MyISAM</h4>
+<pre><code class="language-shell">Mysql5.5版本之前的数据库的默认引擎
+    特点：
+        1.不支持事务机制
+        2.支持表级别的锁定
+        3.数据单独写入或是读取的时候，访问速度比较快，占用系统资源少
+        4.读写的相互阻塞，读的时候不能写，写的时候不能读
+        5.只能缓存索引，不能缓存数据
+        6.每个使用myisam引擎的表，同时会创建三个文件
+            *.frm    存储表结构信息
+            *.MYD    存放表的数据
+            *.MYI    存放索引信息
+
+
+适用场景：
+    MyISAM适合用于数据库主要以读或者写为主的操作
+    只有少量的更新或删除
+    对事务完整性和并发要求不高的生产环境
+</code></pre>
+<h5>1.2 InnoDB</h5>
+<pre><code class="language-shell">Mysql5.5版本之后的数据库的默认引擎
+    特点：
+        1.支持事务机制
+        2.支持行级锁定，但是在扫描的时候，显示的是表级锁定
+        3.支持外键，来保证数据的完整性和正确性
+        4.提高缓存：索引和数据都可以缓存       
+        5.读写分离，相互是不阻塞
+        6.Innodb引擎的数据库，会创建两个文件
+            *.frm    存放表结构
+            *.ibd    存放索引和数据
+
+适用场景：
+    适合数据会频繁更新以及操作的场景，且对事务有一点要求    
+</code></pre>
+<ul>
+<li>
+<p>事务机制特性（ACID）</p>
+<ul>
+<li>
+<p>A-原子性</p>
+</li>
+<li>
+<p>C-一致性</p>
+</li>
+<li>
+<p>I-隔离性</p>
+</li>
+<li>
+<p>D-持久性</p>
+</li>
+</ul>
+</li>
+<li>
+<p>查询当前数据库正在使用引擎</p>
+</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show variables like '%storage_engines%';
++--------------------------+-------+
+| Variable_name            | Value |
++--------------------------+-------+
+| disabled_storage_engines |       |
++--------------------------+-------+
+1 row in set (0.00 sec)
+</code></pre>
+<ul>
+<li>查询某个表正在使用的引擎</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show table status from abc where name='class';
++-------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+---------------------+------------+--------------------+----------+----------------+---------+
+| Name  | Engine | Version | Row_format | Rows | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time         | Update_time         | Check_time | Collation          | Checksum | Create_options | Comment |
++-------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+---------------------+------------+--------------------+----------+----------------+---------+
+| class | InnoDB |      10 | Dynamic    |    7 |           2340 |       16384 |               0 |            0 |         0 |              8 | 2024-04-19 11:05:50 | 2024-04-19 11:15:44 | NULL       | utf8mb4_0900_ai_ci |     NULL |                |         |
++-------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+---------------------+------------+--------------------+----------+----------------+---------+
+1 row in set (0.01 sec)
+</code></pre>
+<ul>
+<li>修改已存在表的存储引擎</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; alter table class engine=MyISAM;
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql&gt; show table status from abc where name='class';
++-------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+---------------------+------------+--------------------+----------+----------------+---------+
+| Name  | Engine | Version | Row_format | Rows | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time         | Update_time         | Check_time | Collation          | Checksum | Create_options | Comment |
++-------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+---------------------+------------+--------------------+----------+----------------+---------+
+| class | MyISAM |      10 | Dynamic    |    7 |           2340 |       16384 |               0 |            0 |         0 |              8 | 2024-04-22 10:21:38 | 2024-04-19 11:15:44 | NULL       | utf8mb4_0900_ai_ci |     NULL |                |         |
++-------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+---------------------+---------------------+------------+--------------------+----------+----------------+---------+
+1 row in set (0.00 sec)
+</code></pre>
+<ul>
+<li>创建表的时候指定存储引擎</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; create table asd(NAME int) engine=MyISAM;
 Query OK, 0 rows affected (0.00 sec)
 
-mysql> select * from yong;
+mysql&gt; show table status from abc where name='asd' \G
+*************************** 1. row ***************************
+           Name: asd
+         Engine: MyISAM
+        Version: 10
+     Row_format: Fixed
+           Rows: 0
+ Avg_row_length: 0
+    Data_length: 0
+Max_data_length: 1970324836974591
+   Index_length: 1024
+      Data_free: 0
+ Auto_increment: 1
+    Create_time: 2024-04-22 10:48:36
+    Update_time: 2024-04-22 10:48:36
+     Check_time: NULL
+      Collation: utf8mb4_0900_ai_ci
+       Checksum: NULL
+ Create_options:
+        Comment:1 row 
+in set (0.00 sec)
+</code></pre>
+<ul>
+<li>临时修改存储引擎</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; set default_storage_engine=MyISAM;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; set default_storage_engine=Innodb;
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<ul>
+<li>永久修改存储引擎</li>
+</ul>
+<pre><code class="language-shell">[root@localhost ~]# vim /etc/my.cnf
+[mysqld]
+default_storage_engine=MyISAM
+
+[root@localhost ~]# systemctl  restart mysqld
+</code></pre>
+<blockquote>
+<p>修改默认引擎不会对以及存在的表产生影响，只针对后面新创建的表</p>
+</blockquote>
+<h4>二、克隆</h4>
+<h6>克隆表-结构</h6>
+<pre><code class="language-shell">克隆表：表结构（无数据）
+场景：
+    通常在开发环境，项目以及测试运行成功
+    需要重新部署生产环境的内容
+    这个时候，批量的克隆一下表结构
+
+#克隆gn表结构并且重命名为yong
+mysql&gt; create table yong like gn;
+Query OK, 0 rows affected (0.00 sec)
+
+
+#重新表内数据，发现为空
+mysql&gt; select * from yong;
 Empty set (0.00 sec)
 
-mysql> desc yong;
+
+mysql&gt; desc yong;
 +-------+----------+------+-----+---------+-------+
 | Field | Type     | Null | Key | Default | Extra |
 +-------+----------+------+-----+---------+-------+
@@ -558,11 +220,15 @@ mysql> desc yong;
 +-------+----------+------+-----+---------+-------+
 5 rows in set (0.00 sec)
 
-# 跨库克隆（克隆表结构到其他库）
-mysql> create table cateye1.yonghu like abc.gn;
+
+
+#跨库克隆
+#当前数据库的表，克隆到其他库内
+#当前数据库的表，可以不写库名，官方写法是库.表
+mysql&gt; create table cateye1.yonghu like abc.gn;
 Query OK, 0 rows affected (0.01 sec)
 
-mysql> desc cateye1.yonghu;
+mysql&gt; desc cateye1.yonghu;
 +-------+----------+------+-----+---------+-------+
 | Field | Type     | Null | Key | Default | Extra |
 +-------+----------+------+-----+---------+-------+
@@ -574,14 +240,15 @@ mysql> desc cateye1.yonghu;
 +-------+----------+------+-----+---------+-------+
 5 rows in set (0.00 sec)
 
-mysql> select * from cateye1.yonghu;
-Empty set (0.00 sec)</code></pre>
-        <pre><code># 克隆表数据
-mysql> insert into yong select * from gn;
+mysql&gt; select * from cateye1.yonghu;
+Empty set (0.00 sec)
+</code></pre>
+<h6>克隆表-数据</h6>
+<pre><code class="language-shell">mysql&gt; insert into yong select * from gn;
 Query OK, 4 rows affected (0.00 sec)
 Records: 4  Duplicates: 0  Warnings: 0
 
-mysql> select * from yong;
+mysql&gt; select * from yong;
 +----------+------+--------+--------+------+
 | name     | age  | hobby  | addr   | iq   |
 +----------+------+--------+--------+------+
@@ -592,12 +259,12 @@ mysql> select * from yong;
 +----------+------+--------+--------+------+
 4 rows in set (0.00 sec)
 
-# 跨库克隆数据
-mysql> insert into cateye1.yonghu select * from gn;
+
+mysql&gt; insert into cateye1.yonghu select * from gn;
 Query OK, 4 rows affected (0.01 sec)
 Records: 4  Duplicates: 0  Warnings: 0
 
-mysql> select * from cateye1.yonghu;
+mysql&gt; select * from cateye1.yonghu;
 +----------+------+--------+--------+------+
 | name     | age  | hobby  | addr   | iq   |
 +----------+------+--------+--------+------+
@@ -606,104 +273,1937 @@ mysql> select * from cateye1.yonghu;
 | wangwu   |   10 | 吃饭   | 饭桌   |   80 |
 | ww       |   17 | ccc    | wewew  |   60 |
 +----------+------+--------+--------+------+
-4 rows in set (0.00 sec)</code></pre>
+4 rows in set (0.00 sec)
+</code></pre>
+<h4>三、数据库用户管理</h4>
+<pre><code class="language-shell">数据库用户：
+    root：最大的管理员，用户所有权限（负责运维、开发经理）
 
-        <h4>温备份 - mysqldump</h4>
-        <pre><code># mysqldump将库/表导出为SQL脚本，恢复时重新执行
 
-# 备份单个库
-mysqldump -uroot -p --databases abc > /opt/abc.sql
+开发或者项目
+    由负责人创建用户，分配给工作人员使用，设置相关权限
+</code></pre>
+<h6>创建普通用户</h6>
+<pre><code class="language-shell">#语法格式
+#密码：8位以上包含英文大小、数字、特殊符号
+#这个用户，可以连接数据库，但是只能连接并不能看到相关数据
+create user '用户名'@'localhost' identified by '密码'；
 
-# 备份多个库
-mysqldump -uroot -p --databases abc cateye1 > /opt/abc-cateye.sql
+#创建用户aaa
+mysql&gt; create user 'aaa'@'localhost' identified by 'Bbc123456!';
+Query OK, 0 rows affected (0.01 sec)
+</code></pre>
+<h6>给用户授权</h6>
+<ul>
+<li>预览用户权限</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show grants for 'aaa'@'localhost';
++-----------------------------------------+
+| Grants for aaa@localhost                |
++-----------------------------------------+
+| GRANT USAGE ON *.* TO `aaa`@`localhost` |
++-----------------------------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<ul>
+<li>授权</li>
+</ul>
+<pre><code class="language-shell">#### 权限列表：insert、update、select、alter、（drop一般不给）（delete酌情添加）
+#### *.*   库.表   
+#### 语法格式
+    grant 权限列表 on 数据库.数据表 to '用户名'@'localhost';
 
-# 备份所有库
-mysqldump -uroot -pAbc123456! --all-databases > /opt/all.sql
 
-# 备份指定表
-mysqldump -uroot -pAbc123456! abc gn > /opt/gn.sql
+mysql&gt; grant insert on abc.* to 'aaa'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
 
-# 还原数据库（在MySQL内执行）
-mysql> drop database abc;
-mysql> source /opt/abc.sql;
+mysql&gt; show grants for 'aaa'@'localhost';
++----------------------------------------------+
+| Grants for aaa@localhost                     |
++----------------------------------------------+
+| GRANT USAGE ON *.* TO `aaa`@`localhost`      |
+| GRANT INSERT ON `abc`.* TO `aaa`@`localhost` |
++----------------------------------------------+
+2 rows in set (0.00 sec)
 
-# 还原所有库
-mysql -uroot -p < /opt/all.sql</code></pre>
 
-        <h4>冷备份 - tar</h4>
-        <pre><code># 确定数据目录
-cat /etc/my.cnf | egrep datadir
-# datadir=/var/lib/mysql
+#同时赋予用户多个权限
+mysql&gt; grant insert,select,update on abc.* to 'aaa'@'localhost';
+Query OK, 0 rows affected (0.01 sec)
+mysql&gt; show grants for 'aaa'@'localhost';
++--------------------------------------------------------------+
+| Grants for aaa@localhost                                     |
++--------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `aaa`@`localhost`                      |
+| GRANT SELECT, INSERT, UPDATE ON `abc`.* TO `aaa`@`localhost` |
++--------------------------------------------------------------+
+2 rows in set (0.00 sec)
+</code></pre>
+<h6>回收权限</h6>
+<pre><code class="language-shell">#### 语法格式
+  revoke 权限列表 on 数据库.数据表 from '用户名'@'localhost';
 
-# 打包备份（含日期）
-tar zcvf /opt/mysql$(date +%F).tar.gz /var/lib/mysql
 
-# 模拟数据丢失
-mkdir /opt/mysql
-mv /var/lib/mysql/* /opt/mysql
+mysql&gt; revoke select on abc.* from 'aaa'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
 
-# 还原数据
-mkdir linshi
-tar zvxf mysql2024-04-22.tar.gz -C linshi/
-mv /opt/linshi/var/lib/mysql/* /var/lib/mysql
-systemctl restart mysqld</code></pre>
+mysql&gt; revoke all on *.* from 'aaa'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
 
-        <h4>热备份 - cp</h4>
-        <pre><code># 拷贝源文件
-cp -a /var/lib/mysql/* /opt/mysql
+mysql&gt; show grants for 'aaa'@'localhost';
++-----------------------------------------+
+| Grants for aaa@localhost                |
++-----------------------------------------+
+| GRANT USAGE ON *.* TO `aaa`@`localhost` |
++-----------------------------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<h6>删除用户</h6>
+<pre><code class="language-shell">mysql&gt; drop user 'aaa'@'localhost';
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<h4>四、数据库备份</h4>
+<h5>4.1 为什么要备份？</h5>
+<pre><code class="language-shell">备份的目的：解决数据库的灾难恢复，实现容灾
+数据丢失原因：
+    开发人员有没有出来号的bug
+    负责人和设备：操作失误、天灾人户、设备老化、黑客攻击……
+</code></pre>
+<h5>4.2 备份的方式</h5>
+<ul>
+<li>
+<p>物理备份</p>
+<ul>
+<li>
+<p>把操作系统的物理文件备份</p>
+<ul>
+<li>
+<p>冷备份：把数据库关停进行备份：tar</p>
+</li>
+<li>
+<p>热备份：让数据库正常运行进行备份：backup\hotcopy</p>
+</li>
+<li>
+<p>温备份：数据库锁定的时候进行备份：mysqldump</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>逻辑备份</p>
+<ul>
+<li>
+<p>完全备份：全部</p>
+</li>
+<li>
+<p>差异备份：备份以上次备份不同数据</p>
+</li>
+<li>
+<p>增量备份：对比上一次备份后新增的内容，进行备份</p>
+</li>
+</ul>
+</li>
+</ul>
+<h5>4.3 温备份 mysqldump</h5>
+<pre><code class="language-shell">利用mysql自带的备份攻击，把指定的库、指定表导出生产一个sql脚本
+实际上就是一个记事本，后缀名.sql
+把表格、数据等信息生成执行语句，下次需要恢复数据的时候，全部执行一次
+</code></pre>
+<pre><code class="language-shell">#导出abc库到/opt/abc.sql
+[root@localhost ~]# mysqldump -uroot -p --databases abc &gt; /opt/abc.sql
+Enter password:
+[root@localhost ~]# ls /opt/
+a  abc.sql
 
-# 模拟数据丢失
-mv /var/lib/mysql/* linshi/
 
-# 还原数据
-cp -a mysql/* /var/lib/mysql/
-systemctl restart mysqld</code></pre>
 
-        <h4>增量备份 - binlog</h4>
-        <p>增量备份基于完全备份，需要开启二进制日志。</p>
-        <pre><code># 1. 先做完全备份
-mysqldump -uroot -pAbc123456! --all-databases > /opt/mysql_all.sql
+#导出abc和cateye1两个库到/opt/abc-cateye1.sql
+[root@localhost ~]# mysqldump -uroot -p --databases abc  cateye1&gt; /opt/abc-cateye.sql
+Enter password:
 
-# 2. 开启二进制日志
-vim /etc/my.cnf
-# 添加：log-bin=mysql-bin
-systemctl restart mysqld
+[root@localhost opt]# ls
+abc-cateye.sql  abc.sql
 
-# 3. 同步时间
-yum -y install ntpdate
-ntpdate ntp1.aliyun.com
 
-# 4. 生成新的日志文件（开始增量记录）
-mysqladmin -uroot -pAbc123456! flush-logs
 
-# 5. 查看日志内容
-mysqlbinlog /var/lib/mysql/mysql-bin.000001
+#备份所有仓库到/opt/all.sql
+[root@localhost opt]# mysqldump -uroot -pAbc123456! --all-databases &gt;/opt/all.sql
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+[root@localhost opt]# ls
+abc-cateye.sql  abc.sql  all.sql
 
-# 6. 基于时间点恢复
-# 恢复到指定时间点（执行该时间前的所有命令）
-mysqlbinlog --no-defaults --stop-datetime='2024-04-23 11:17:57' \
-  /var/lib/mysql/mysql-bin.000003 | mysql -uroot -pAbc123456!
 
-# 从指定时间点开始恢复
-mysqlbinlog --no-defaults --start-datetime='2024-04-23 11:34:16' \
-  /var/lib/mysql/mysql-bin.000003 | mysql -uroot -pAbc123456!
+#导出abc仓库内gn表数据到/opt/gn.sql
+[root@localhost opt]# mysqldump -uroot -pAbc123456! abc gn &gt;/opt/gn.cql
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+</code></pre>
+<ul>
+<li>还原数据库内容</li>
+</ul>
+<pre><code class="language-shell">#删除数据库
+mysql&gt; drop database abc;
+Query OK, 8 rows affected (0.02 sec)
 
-# 限制时间段恢复（同时指定start和stop）
-mysqlbinlog --no-defaults \
-  --start-datetime='2024-04-23 11:00:00' \
-  --stop-datetime='2024-04-23 12:00:00' \
-  /var/lib/mysql/mysql-bin.000003 | mysql -uroot -pAbc123456!
 
-# 开启新日志的方式：
-# 1. 手动执行：mysqladmin -uroot -p flush-logs
-# 2. 重启mysql服务
-# 3. 日志文件达到存储上限</code></pre>
-      </div>
-    </div>
+#还原数据库
+mysql&gt; source /opt/abc.sql
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| abc                |
+| cateye1            |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+6 rows in set (0.00 sec)
 
-    </div>
+
+
+-----------删除并且还原表-----------------
+</code></pre>
+<h5>4.4 冷备份</h5>
+<pre><code class="language-shell">把指定数据文件打包成.tar.gz
+恢复的时候，直接解压还原回去就可以
+</code></pre>
+<ul>
+<li>确定源文件位置</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cat /etc/my.cnf | egrep datadir
+datadir=/var/lib/mysql
+</code></pre>
+<ul>
+<li>打包备份</li>
+</ul>
+<pre><code class="language-shell">#$(date +%F)   表示加上打包日期，加号前面有个空格
+[root@localhost opt]# tar zcvf /opt/mysql$(date +%F).tar.gz /var/lib/mysql
+
+
+[root@localhost opt]# ls
+abc-cateye.sql  abc.sql  all.sql  gn.cql  mysql2024-04-22.tar.gz
+</code></pre>
+<hr>
+<ul>
+<li>模拟数据丢失</li>
+</ul>
+<pre><code class="language-shell">#将/var/lib/mysql/移动 /opt/mysql，模拟数据丢失
+[root@localhost opt]# mkdir /opt/mysql
+[root@localhost opt]# mv /var/lib/mysql/* /opt/mysql
+</code></pre>
+<ul>
+<li>还原数据</li>
+</ul>
+<pre><code class="language-shell">#创建一个临时目录，将压缩包内的内容解压到此处
+[root@localhost opt]# mkdir linshi
+[root@localhost opt]# tar zvxf mysql2024-04-22.tar.gz -C linshi/
+#将解压后的内容移动到/var/lib/mysql目录下
+[root@localhost opt]# mv /opt/linshi/var/lib/mysql/* /var/lib/mysql
+
+#重启服务，让源文件生效
+[root@localhost opt]# systemctl  restart mysqld
+</code></pre>
+<h5>4.5 热备份 CP</h5>
+<pre><code class="language-shell">#利用cp命令拷贝源文件
+[root@localhost opt]# cp -a /var/lib/mysql/* /opt/mysql
+
+#模拟数据丢失
+[root@localhost opt]# mv /var/lib/mysql/* linshi/
+
+#数据丢失后测试登录，无法登录
+[root@localhost opt]# mysql -uroot -pAbc123456!
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (111)
+[root@localhost opt]# systemctl  restart mysqld
+
+#还原数据
+[root@localhost opt]# cp -a mysql/* /var/lib/mysql/
+
+#还原数据后需要重启生效
+[root@localhost opt]# systemctl  restart mysqld
+</code></pre>
+<h5>4.6  增量备份</h5>
+<ul>
+<li>增量备份是基于完全备份来做的</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# mysqldump  -uroot -pAbc123456! --all-databases &gt; /opt/mysql_all.sql
+</code></pre>
+<ul>
+<li>
+<p>增量备份需要用到二进制日志</p>
+</li>
+<li>
+<p>需要修改配置文件开启二进制日志</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# cp /etc/my.cnf{,.bak}
+[root@localhost opt]# vim /etc/my.cnf
+#文件末行添加
+log-bin=mysql-bin
+
+[root@localhost opt]# systemctl restart mysqld
+[root@localhost opt]# ls /var/lib/mysql
+……
+mysql-bin.000001  
+mysql-bin.index  
+……
+</code></pre>
+<ul>
+<li>
+<p>开启新日志的条件</p>
+<ul>
+<li>
+<p>手动执行命令开启新的日志文件</p>
+</li>
+<li>
+<pre><code class="language-shell">[root@localhost opt]# mysqladmin -uroot -pAbc123456! flush-logs
+</code></pre>
+</li>
+<li>
+<p>重启mysql服务也会开启新的日志文件</p>
+</li>
+<li>
+<p>日志文件存储到上限后开启新的日志文件</p>
+</li>
+</ul>
+</li>
+<li>
+<p>查看日志</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# mysqlbinlog /var/lib/mysql/mysql-bin.000001
+</code></pre>
+<ul>
+<li>同步时间</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# yum -y install ntpdate
+
+#向aliyun同步时间
+[root@localhost opt]# ntpdate ntp1.aliyun.com
+23 Apr 10:45:00 ntpdate[103239]: step time server 120.25.115.20 offset 55204.381326 sec
+
+[root@localhost opt]# date
+2024年 04月 23日 星期二 10:45:05 CST
+</code></pre>
+<ul>
+<li>生产一个新的日志文件</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# systemctl  restart mysqld
+[root@localhost opt]# mysqlbinlog /var/lib/mysql/mysql-bin.000003
+</code></pre>
+<ul>
+<li>进入数据库后创建一个新的库</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; create database ceshi;
+Query OK, 1 row affected (0.00 sec)
+
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| abc                |
+| cateye1            |
+| ceshi              |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+7 rows in set (0.00 sec)
+
+
+[root@localhost opt]# mysql -uroot -pAbc123456! -e 'drop  database ceshi;'
+</code></pre>
+<ul>
+<li>查询二进制日志获取时间点</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# mysqlbinlog /var/lib/mysql/mysql-bin.000003
+</code></pre>
+<ul>
+<li>恢复到指定时间</li>
+</ul>
+<pre><code class="language-shell">#恢复到指定时间点
+--stop-datetime 到那个时间结束
+
+#查询数据库列表，现在是没有ceshi库
+[root@localhost opt]# mysql -uroot -pAbc123456! -e 'show databases;'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++--------------------+
+| Database           |
++--------------------+
+| A                  |
+| abc                |
+| cateye1            |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+
+#基于时间点进行恢复
+#恢复到指定时间：把指定时间前的所有命令全部执行一遍，时间点后的都不会执行
+[root@localhost opt]# mysqlbinlog  --no-defaults --stop-datetime='2024-04-23 11:17:57' /var/lib/mysql/mysql-bin.000003 | mysql -uroot -pAbc123456!
+mysql: [Warning] Using a password on the command line interface can be insecure.
+
+#恢复之后再查询
+[root@localhost opt]# mysql -uroot -pAbc123456! -e 'show databases;'            mysql: [Warning] Using a password on the command line interface can be insecure.
++--------------------+
+| Database           |
++--------------------+
+| A                  |
+| abc                |
+| cateye1            |
+| ceshi              |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+</code></pre>
+<ul>
+<li>从指定时间点开始恢复</li>
+</ul>
+<pre><code class="language-shell">#从指定时间点进行恢复--start-datetime
+[root@localhost opt]# 
+mysqlbinlog --no-defaults --start-datetime='2024-04-23 11:34:16' /var/lib/mysql/mysql-bin.000003 | mysql -uroot -pAbc123456!
+
+[root@localhost opt]# mysql -uroot -pAbc123456! -e 'show databases;'            mysql: [Warning] Using a password on the command line interface can be insecure.
++--------------------+
+| Database           |
++--------------------+
+| A                  |
+| abc                |
+| cateye1            |
+| ceshi              |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+
+
+</code></pre>
+<hr>
+<p>基于时间恢复，已知可以从指定时间开始，也可以到指定时间结束</p>
+<p>问题：能不能限制从哪里开始到哪里结束？限制指定时间段进行恢复</p>
+<pre><code class="language-shell">
+</code></pre>
+</div>
+      </article>
+      <article class="file-card collapsed" id="sec-03-02" data-source="Linux 数据库/数据库的基础操作.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="false">
+          <div class="card-title-group"><span class="card-icon">▤</span><div><h3>数据库的基础操作</h3><span class="source-path">Linux 数据库/数据库的基础操作.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="数据库的基础操作" data-bookmark-page="Linux 数据库" data-bookmark-href="03-linux-database.html#sec-03-02" data-bookmark-source="Linux 数据库/数据库的基础操作.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>纯文本</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>一、数据库操作</h4>
+<h5>1.1 创建数据库</h5>
+<pre><code class="language-shell">mysql&gt; create database cateye;
+Query OK, 1 row affected (0.00 sec)
+
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| cateye             |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+#atabase cateye1 chara   指定编码格式，防止出现数据乱码问题
+mysql&gt; create database cateye1 character set 'utf8';
+Query OK, 1 row affected, 1 warning (0.00 sec)
+
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| cateye             |
+| cateye1            |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+6 rows in set (0.01 sec)
+</code></pre>
+<h5>1.2 移除数据库</h5>
+<ul>
+<li>
+<p>在移除数据库之前，需要做好以下连个准备</p>
+<ul>
+<li>
+<p>数据库的内容已经备份</p>
+</li>
+<li>
+<p>确定这个数据库无用</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">格式：drop  database  数据库名；
+mysql&gt; drop database cateye;
+Query OK, 0 rows affected (0.01 sec)
+</code></pre>
+<h5>1.3 查询数据库列表</h5>
+<pre><code class="language-shell">mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| cateye1            |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.01 sec)
+</code></pre>
+<p>mysql&gt;database&gt;table&gt;(数据类型)数据</p>
+<h5>1.4 进入仓库</h5>
+<pre><code class="language-shell">mysql&gt; use cateye1;
+Database changed
+
+#查询当前数据库
+mysql&gt; select database();
++------------+
+| database() |
++------------+
+| cateye1    |
++------------+
+1 row in set (0.00 sec)
+</code></pre>
+<h4>二、 数据类型</h4>
+<pre><code class="language-shell">数据库：帮助实现数据持久化存储功能
+数据在存储的时候，需要刻录硬盘，同时还要支持在内存上操作
+不同的数据，格式不一样
+目的：是为了最大化节约系统资源，提高同类型之间的数据运算效率
+
+=================================================================
+
+整数型
+    tinyint    整数：0-255
+    samllint    整数：-32768~32767
+    int        整数：10位以内
+    bigint     整数：10位以上
+
+浮点型
+    float（m，d）    非整数：单精度浮点
+                m代表整数，d代表小数位数：比如：如果设置长度为10，m写3，d纪要写7
+    double（m,d）    双精度浮点数
+    decimal（m,d）   M最大为65，D最大30
+
+字符类
+    char（m）    固定长度，内容不足，自动填充空格    
+                缺点：浪费磁盘空间
+                优点：查询操作速度快
+    varchar（m） 可变长度，内容不足，按照实际大小
+                 优点：节省磁盘空间
+                 缺点：查询操作速度慢
+     text        默认时varcha（max）大小，可变长度，适合用于大段的内容
+</code></pre>
+<h4>三、 表的管理</h4>
+<h5>3.1 创建表格</h5>
+<pre><code class="language-shell">create table 表名 (列名 数据类型（约束），列名2 数据类型（约束）……);
+</code></pre>
+<pre><code class="language-shell">#一行完成定义
+mysql&gt; create table yw15(`id` int,`username` varchar(20),`age` int,`reatetime` timestamp);
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<pre><code class="language-shell">mysql&gt; create table a(id int,username varchar(10));
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; show tables;
++-------------------+
+| Tables_in_cateye1 |
++-------------------+
+| a                 |
+| yw15              |
++-------------------+
+2 rows in set (0.00 sec)
+</code></pre>
+<pre><code class="language-shell">#创建的时候，换行写
+mysql&gt; create table yw(
+    -&gt; id int,
+    -&gt; usename varchar(20),
+    -&gt; age int,
+    -&gt; createtime timestamp
+    -&gt; );
+Query OK, 0 rows affected (0.01 sec)
+</code></pre>
+<h5>3.2 查询表</h5>
+<pre><code class="language-shell">mysql&gt; show tables;
++-------------------+
+| Tables_in_cateye1 |
++-------------------+
+| a                 |
+| yw                |
+| yw15              |
++-------------------+
+3 rows in set (0.00 sec)
+</code></pre>
+<h5>3.3 移除表</h5>
+<pre><code class="language-shell">drop table 表名;
+</code></pre>
+<h5>3.4  查询表结构</h5>
+<pre><code class="language-shell">mysql&gt; desc yw15;
++-----------+-------------+------+-----+---------+-------+
+| Field     | Type        | Null | Key | Default | Extra |
++-----------+-------------+------+-----+---------+-------+
+| id        | int         | YES  |     | NULL    |       |
+| username  | varchar(20) | YES  |     | NULL    |       |
+| age       | int         | YES  |     | NULL    |       |
+| reatetime | timestamp   | YES  |     | NULL    |       |
++-----------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+
+| Field       字段，就是列名  
+| Type          数据的类型  
+| Null         是否允许为空
+| Key         约束
+| Default     默认值
+| Extra        说明
+</code></pre>
+<h5>3.5  添加一列</h5>
+<pre><code class="language-shell">       修改   表格   表名 添加 列名 类型；
+mysql&gt; alter table yw15 add job varchar(50);
+Query OK, 0 rows affected (0.04 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc yw15;
++-----------+-------------+------+-----+---------+-------+
+| Field     | Type        | Null | Key | Default | Extra |
++-----------+-------------+------+-----+---------+-------+
+| id        | int         | YES  |     | NULL    |       |
+| username  | varchar(20) | YES  |     | NULL    |       |
+| age       | int         | YES  |     | NULL    |       |
+| reatetime | timestamp   | YES  |     | NULL    |       |
+| job       | varchar(50) | YES  |     | NULL    |       |
++-----------+-------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>添加一个字段到某一个字段后面</li>
+</ul>
+<pre><code class="language-shell">#在id下面添加一个叫做iq的字段
+mysql&gt; alter table yw15 add iq int after id;
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc yw15;
++-----------+-------------+------+-----+---------+-------+
+| Field     | Type        | Null | Key | Default | Extra |
++-----------+-------------+------+-----+---------+-------+
+| id        | int         | YES  |     | NULL    |       |
+| iq        | int         | YES  |     | NULL    |       |
+| username  | varchar(20) | YES  |     | NULL    |       |
+| age       | int         | YES  |     | NULL    |       |
+| reatetime | timestamp   | YES  |     | NULL    |       |
+| job       | varchar(50) | YES  |     | NULL    |       |
++-----------+-------------+------+-----+---------+-------+
+6 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>添加字段到首列</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; alter table yw15 add upasswd int first;
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc yw15;
++-----------+-------------+------+-----+---------+-------+
+| Field     | Type        | Null | Key | Default | Extra |
++-----------+-------------+------+-----+---------+-------+
+| upasswd   | int         | YES  |     | NULL    |       |
+| id        | int         | YES  |     | NULL    |       |
+| iq        | int         | YES  |     | NULL    |       |
+| username  | varchar(20) | YES  |     | NULL    |       |
+| age       | int         | YES  |     | NULL    |       |
+| reatetime | timestamp   | YES  |     | NULL    |       |
+| job       | varchar(50) | YES  |     | NULL    |       |
++-----------+-------------+------+-----+---------+-------+
+7 rows in set (0.00 sec)
+</code></pre>
+<h5>3.6 插入数据 insert</h5>
+<pre><code class="language-shell">#对应表格，插入数据
+#在插入数据时，提供的数据必须和表格一一对应，没有的：null
+#数值类型：直接写，字符、日期需要单引号
+#语法格式
+    insert into 表名 values(值1，值2，值3,……);
+
+
+mysql&gt; insert into bbb values ('zhangsan',20,'北京颐和园','文物修复师','123456');
+Query OK, 1 row affected (0.01 sec)
+mysql&gt; select * from bbb;
++----------+------+-----------------+-----------------+--------+
+| name     | age  | addr            | job             | passwd |
++----------+------+-----------------+-----------------+--------+
+| zhangsan |   20 | 北京颐和园      | 文物修复师      | 123456 |
++----------+------+-----------------+-----------------+--------+
+1 row in set (0.00 sec)
+
+
+
+mysql&gt; insert into bbb values ('lisi',null,null,'cos','12345');
+Query OK, 1 row affected (0.01 sec)
+
+mysql&gt; select * from bbb;
++----------+------+-----------------+-----------------+--------+
+| name     | age  | addr            | job             | passwd |
++----------+------+-----------------+-----------------+--------+
+| zhangsan |   20 | 北京颐和园      | 文物修复师      | 123456 |
+| lisi     | NULL | NULL            | cos             | 12345  |
++----------+------+-----------------+-----------------+--------+
+2 rows in set (0.00 sec)
+</code></pre>
+<h5>3.7  批量插入</h5>
+<pre><code class="language-shell">mysql&gt; insert into bbb values
+    -&gt; ('喜羊羊',18,'羊村一号','羊村守护者','123'),
+    -&gt; ('沸羊羊',18,'羊村二号','健身房猛男','123'),
+    -&gt; ('灰太狼',30,'狼堡','小灰灰的爸爸','456');
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql&gt; select * from bbb;
++-----------+------+-----------------+--------------------+--------+
+| name      | age  | addr            | job                | passwd |
++-----------+------+-----------------+--------------------+--------+
+| zhangsan  |   20 | 北京颐和园      | 文物修复师         | 123456 |
+| lisi      | NULL | NULL            | cos                | 12345  |
+| 喜羊羊    |   18 | 羊村一号        | 羊村守护者         | 123    |
+| 沸羊羊    |   18 | 羊村二号        | 健身房猛男         | 123    |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       | 456    |
++-----------+------+-----------------+--------------------+--------+
+5 rows in set (0.00 sec)
+</code></pre>
+<h5>3.8 更新数据 update</h5>
+<pre><code class="language-shell">#### 没有条件的更新语句，不要执行！！！！！！！！
+
+#语法格式
+    update 表名 set 列名=值，列名=值2……
+
+#推荐
+    update 表名 set 列名=值 where 列=值；
+
+#修改age为20人的职位为大堂经理
+mysql&gt; update bbb set job='大堂经理' where age=20;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql&gt; select * from bbb;
++-----------+------+-----------------+--------------------+----------+
+| name      | age  | addr            | job                | passwd   |
++-----------+------+-----------------+--------------------+----------+
+| zhangsan  |   20 | 北京颐和园      | 大堂经理           | 123456   |
+| lisi      | NULL | NULL            | cos                | 12345    |
+| 喜羊羊    |   18 | 羊村一号        | 羊村守护者         | 123      |
+| 沸羊羊    |   18 | 羊村二号        | 健身房猛男         | 123      |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       | 456      |
+| 喜羊羊    |   18 | 羊村一号        | 羊村守护者         | 123      |
+| 沸羊羊    |   18 | 羊村二号        | 健身房猛男         | 123      |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       | 456      |
+| 美羊羊    |   18 | 羊村三号        | 美容师             | 9999     |
+| 暖羊羊    |   19 | 羊村四号        | 大厨               | 888      |
+| 慢羊羊    |   50 | 羊村8号         | 村长               | 12345678 |
+| 机械羊    | NULL | 机械村1号       | 街舞大师           | rtyuio   |
+| 小灰灰    |    9 | 狼堡            | 宝宝               | 1212     |
++-----------+------+-----------------+--------------------+----------+
+13 rows in set (0.00 sec)
+</code></pre>
+<hr>
+<p>假设现在机械羊他登录的时候忘记密码，联系工作人员把密码重置，设置为初始密码123456</p>
+<pre><code class="language-shell">mysql&gt; update bbb set passwd=123456 where name='机械羊';
+</code></pre>
+<hr>
+<ul>
+<li>清空表内某一列的数据</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; update bbb set passwd=' ';
+Query OK, 13 rows affected (0.00 sec)
+Rows matched: 13  Changed: 13  Warnings: 0
+
+mysql&gt; select * from bbb;
++-----------+------+-----------------+--------------------+--------+
+| username  | age  | addr            | job                | passwd |
++-----------+------+-----------------+--------------------+--------+
+| zhangsan  |   20 | 北京颐和园      | 大堂经理           |        |
+| lisi      | NULL | NULL            | cos                |        |
+| 喜羊羊    |   18 | 羊村一号        | 保安               |        |
+| 沸羊羊    |   18 | 羊村二号        | 保安               |        |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       |        |
+| 喜羊羊    |   18 | 羊村一号        | 保安               |        |
+| 沸羊羊    |   18 | 羊村二号        | 保安               |        |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       |        |
+| 美羊羊    |   18 | 羊村三号        | 保安               |        |
+| 暖羊羊    |   19 | 羊村四号        | 大厨               |        |
+| 慢羊羊    |   50 | 羊村8号         | 村长               |        |
+| 机械羊    | NULL | 谷歌            | 街舞大师           |        |
+| 小灰灰    |    9 | 狼堡            | 宝宝               |        |
++-----------+------+-----------------+--------------------+--------+
+13 rows in set (0.00 sec)
+</code></pre>
+<h5>3.9  修改表内的字段</h5>
+<pre><code class="language-shell">#修改列明name变成了username
+mysql&gt; alter table bbb change name username char(30);
+Query OK, 13 rows affected (0.01 sec)
+Records: 13  Duplicates: 0  Warnings: 0
+
+mysql&gt; select * from bbb;
++-----------+------+-----------------+--------------------+----------+
+| username  | age  | addr            | job                | passwd   |
++-----------+------+-----------------+--------------------+----------+
+| zhangsan  |   20 | 北京颐和园      | 大堂经理           | 123456   |
+| lisi      | NULL | NULL            | cos                | 12345    |
+| 喜羊羊    |   18 | 羊村一号        | 保安               | 123      |
+| 沸羊羊    |   18 | 羊村二号        | 保安               | 123      |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       | 456      |
+| 喜羊羊    |   18 | 羊村一号        | 保安               | 123      |
+| 沸羊羊    |   18 | 羊村二号        | 保安               | 123      |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       | 456      |
+| 美羊羊    |   18 | 羊村三号        | 保安               | 9999     |
+| 暖羊羊    |   19 | 羊村四号        | 大厨               | 888      |
+| 慢羊羊    |   50 | 羊村8号         | 村长               | 12345678 |
+| 机械羊    | NULL | 谷歌            | 街舞大师           | 123      |
+| 小灰灰    |    9 | 狼堡            | 宝宝               | 1212     |
++-----------+------+-----------------+--------------------+----------+
+13 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>单独修改表内某一列的类型</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; alter table bbb modify age bigint;
+Query OK, 13 rows affected (0.01 sec)
+Records: 13  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc bbb;
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| username | char(30)    | YES  |     | NULL    |       |
+| age      | bigint      | YES  |     | NULL    |       |
+| addr     | varchar(50) | YES  |     | NULL    |       |
+| job      | char(20)    | YES  |     | NULL    |       |
+| passwd   | char(10)    | YES  |     | NULL    |       |
++----------+-------------+------+-----+---------+-------+
+5 rows in set (0.01 sec)
+</code></pre>
+<ul>
+<li>删除表内的某一列\字段</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; alter table bbb drop column passwd;
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; select * from bbb;
++-----------+------+-----------------+--------------------+
+| username  | age  | addr            | job                |
++-----------+------+-----------------+--------------------+
+| zhangsan  |   20 | 北京颐和园      | 大堂经理           |
+| lisi      | NULL | NULL            | cos                |
+| 喜羊羊    |   18 | 羊村一号        | 保安               |
+| 沸羊羊    |   18 | 羊村二号        | 保安               |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       |
+| 喜羊羊    |   18 | 羊村一号        | 保安               |
+| 沸羊羊    |   18 | 羊村二号        | 保安               |
+| 灰太狼    |   30 | 狼堡            | 小灰灰的爸爸       |
+| 美羊羊    |   18 | 羊村三号        | 保安               |
+| 暖羊羊    |   19 | 羊村四号        | 大厨               |
+| 慢羊羊    |   50 | 羊村8号         | 村长               |
+| 机械羊    | NULL | 谷歌            | 街舞大师           |
+| 小灰灰    |    9 | 狼堡            | 宝宝               |
++-----------+------+-----------------+--------------------+
+13 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>修改表名</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; alter table bbb rename as wh;
+Query OK, 0 rows affected (0.00 sec)
+
+
+mysql&gt; select * from wh;
++-----------+------+-----------------+
+| username  | age  | addr            |
++-----------+------+-----------------+
+| zhangsan  |   20 | 北京颐和园      |
+| lisi      | NULL | NULL            |
+| 喜羊羊    |   18 | 羊村一号        |
+| 沸羊羊    |   18 | 羊村二号        |
+| 灰太狼    |   30 | 狼堡            |
+| 喜羊羊    |   18 | 羊村一号        |
+| 沸羊羊    |   18 | 羊村二号        |
+| 灰太狼    |   30 | 狼堡            |
+| 美羊羊    |   18 | 羊村三号        |
+| 暖羊羊    |   19 | 羊村四号        |
+| 慢羊羊    |   50 | 羊村8号         |
+| 机械羊    | NULL | 谷歌            |
+| 小灰灰    |    9 | 狼堡            |
++-----------+------+-----------------+
+13 rows in set (0.00 sec)
+</code></pre>
+<h5>3.10 删除数据 delete</h5>
+<pre><code class="language-shell">#没有条件的删除语句，不要执行！！！！
+#语法格式
+    delete from 表名 where 条件；
+    delet from 表名；  （没有执行条件，不要执行）
+
+mysql&gt; delete from wh where username='喜羊羊';
+Query OK, 2 rows affected (0.00 sec)
+
+mysql&gt; select * from wh;
++-----------+------+-----------------+
+| username  | age  | addr            |
++-----------+------+-----------------+
+| zhangsan  |   20 | 北京颐和园      |
+| lisi      | NULL | NULL            |
+| 沸羊羊    |   18 | 羊村二号        |
+| 灰太狼    |   30 | 狼堡            |
+| 沸羊羊    |   18 | 羊村二号        |
+| 灰太狼    |   30 | 狼堡            |
+| 美羊羊    |   18 | 羊村三号        |
+| 暖羊羊    |   19 | 羊村四号        |
+| 慢羊羊    |   50 | 羊村8号         |
+| 机械羊    | NULL | 谷歌            |
+| 小灰灰    |    9 | 狼堡            |
++-----------+------+-----------------+
+11 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>批量删除表内的数据</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; delete from wh where username in ('zhangsan','lisi');
+Query OK, 2 rows affected (0.00 sec)
+
+mysql&gt; select * from wh;
++-----------+------+--------------+
+| username  | age  | addr         |
++-----------+------+--------------+
+| 沸羊羊    |   18 | 羊村二号     |
+| 灰太狼    |   30 | 狼堡         |
+| 沸羊羊    |   18 | 羊村二号     |
+| 灰太狼    |   30 | 狼堡         |
+| 美羊羊    |   18 | 羊村三号     |
+| 暖羊羊    |   19 | 羊村四号     |
+| 慢羊羊    |   50 | 羊村8号      |
+| 机械羊    | NULL | 谷歌         |
+| 小灰灰    |    9 | 狼堡         |
++-----------+------+--------------+
+9 rows in set (0.00 sec)
+
+
+#删除表内age小于10的数据
+mysql&gt; delete from wh where age&lt;10;
+Query OK, 1 row affected (0.00 sec)
+
+mysql&gt; select * from wh;
++-----------+------+--------------+
+| username  | age  | addr         |
++-----------+------+--------------+
+| 沸羊羊    |   18 | 羊村二号     |
+| 灰太狼    |   30 | 狼堡         |
+| 沸羊羊    |   18 | 羊村二号     |
+| 灰太狼    |   30 | 狼堡         |
+| 美羊羊    |   18 | 羊村三号     |
+| 暖羊羊    |   19 | 羊村四号     |
+| 慢羊羊    |   50 | 羊村8号      |
+| 机械羊    | NULL | 谷歌         |
++-----------+------+--------------+
+8 rows in set (0.00 sec)
+</code></pre>
+<h5>3.11 检索查询 select</h5>
+<ul>
+<li>检索所有信息</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; select * from wh;
++----------+------+--------------+
+| username | age  | addr         |
++----------+------+--------------+
+| 张三     |   30 | 煎饼果子     |
+| 李四     |   20 | 杂粮煎饼     |
+| 王五     |   20 | 汉堡阁       |
++----------+------+--------------+
+3 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>检索表格，显示指定列的数据</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; select age  from wh;
++------+
+| age  |
++------+
+|   30 |
+|   20 |
+|   20 |
++------+
+3 rows in set (0.00 sec)
+
+mysql&gt; select username,age  from wh;
++----------+------+
+| username | age  |
++----------+------+
+| 张三     |   30 |
+| 李四     |   20 |
+| 王五     |   20 |
++----------+------+
+3 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>查询当前所在的位置</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; select database();
++------------+
+| database() |
++------------+
+| cateye1    |
++------------+
+1 row in set (0.00 sec)
+</code></pre>
+<h5>3.12  统计类查询</h5>
+<pre><code class="language-shell">统计数据库表示数据信息用：
+        count(*)        数据的总行数
+        min(列名)        指定列的最小值
+        max(列名)        指定列的最大值
+        sum(列名)        指定列的总和
+        avg(列名)        指定列的平均值（排除null）
+
+
+#统计当前数据库内有多少个用户
+mysql&gt; select count(*) from mysql.user;
++----------+
+| count(*) |
++----------+
+|        5 |
++----------+
+1 row in set (0.01 sec)
+
+
+允许在一个语句内，同时使用多个统计操作，每个之间使用逗号隔开
+
+#统计一个表内： 总行数    最小值    最大值    总和     平均值
+mysql&gt; select count(*),min(age),max(age),sum(age),avg(age) from wh;
++----------+----------+----------+----------+----------+
+| count(*) | min(age) | max(age) | sum(age) | avg(age) |
++----------+----------+----------+----------+----------+
+|        3 |       20 |       30 |       70 |  23.3333 |
++----------+----------+----------+----------+----------+
+1 row in set (0.00 sec)
+</code></pre>
+<h5>3.13 模糊查询</h5>
+<blockquote>
+<p>注意：</p>
+<p>    模糊查询，数据库是没有做优化的，运行效率是很慢</p>
+<p>    数据量比较少，可以做模糊查询的</p>
+<p>    数据量比较大，不建议使用模糊查询</p>
+<p>    建议配置Redis、elasticaearch服务器</p>
+</blockquote>
+<pre><code class="language-shell">#### %  通配符，表示的可有可无
+#检索所有姓张的数据
+mysql&gt; select * from wh where username like '张%';
++-----------+------+--------------+
+| username  | age  | addr         |
++-----------+------+--------------+
+| 张三      |   30 | 煎饼果子     |
+| 张什么    |   22 | 臭豆腐       |
++-----------+------+--------------+
+2 rows in set (0.01 sec)
+
+
+
+#### ——   下划线，占位符，表示必须要有一个字符（中文、英文）
+#查询名字是三位的用户信息
+mysql&gt; select * from wh where username like '___';
++-----------+------+-----------+
+| username  | age  | addr      |
++-----------+------+-----------+
+| 张什么    |   22 | 臭豆腐    |
++-----------+------+-----------+
+1 row in set (0.00 sec)
+</code></pre>
+<h5>3.14  空查询</h5>
+<pre><code class="language-shell">数据库内，有两种空的状态
+    null   所有的数据类型都支持的，表示的是没有格式化，不存在
+    ''     针对字符类型，操作过的、有数据的，但是没有内容
+
+#过滤用户年纪为空
+mysql&gt; select * from wh where age is null;
++-----------+------+-----------+
+| username  | age  | addr      |
++-----------+------+-----------+
+| 喜羊羊    | NULL | 烤冷面    |
++-----------+------+-----------+
+1 row in set (0.00 sec)
+
+#过滤用户年纪不为空
+mysql&gt; select * from wh where age is not null;
++-----------+------+--------------+
+| username  | age  | addr         |
++-----------+------+--------------+
+| 张三      |   30 | 煎饼果子     |
+| 李四      |   20 | 杂粮煎饼     |
+| 王五      |   20 | 汉堡阁       |
+| 张什么    |   22 | 臭豆腐       |
++-----------+------+--------------+
+4 rows in set (0.00 sec)
+
+
+
+#### 检索那些一行没有年纪
+mysql&gt; select * from wh where age is null  or  age='';
++-----------+------+-----------+
+| username  | age  | addr      |
++-----------+------+-----------+
+| 喜羊羊    | NULL | 烤冷面    |
++-----------+------+-----------+
+1 row in set (0.00 sec)
+</code></pre>
+<h5>3.15 运算符</h5>
+<pre><code class="language-shell">where 语法后面，提供的一个判断，成立就提取这个值，不成立跳过
+
+算数 （） * / + - %
+
+比较  &lt; &lt;= &gt; &gt;= 
+    &lt;&gt;     不等于
+    !=(5.6版本以上才能使用)    不等于
+     =    等于
+逻辑
+    not    取反
+    and    和
+    or    或者
+
+#过滤用户年纪大于10并且小于30
+mysql&gt; select * from wh where age&gt;10 and age&lt;30;
++-----------+------+--------------+
+| username  | age  | addr         |
++-----------+------+--------------+
+| 李四      |   20 | 杂粮煎饼     |
+| 王五      |   20 | 汉堡阁       |
+| 张什么    |   22 | 臭豆腐       |
++-----------+------+--------------+
+3 rows in set (0.00 sec)
+</code></pre>
+<hr>
+<ul>
+<li>
+<p>创建一个仓库：abc</p>
+<ul>
+<li>
+<p>创建一个表：gn</p>
+<ul>
+<li>
+<p>姓名、年纪、爱好、工作、家庭住址、智商</p>
+</li>
+<li>
+<p>向表内插入五行数据：zhangsan、lisi、wangwu、zhaoliu、liuqi</p>
+</li>
+<li>
+<p>查询表结构</p>
+</li>
+<li>
+<p>查询表信息</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; create database abc;
+Query OK, 1 row affected (0.00 sec)
+
+mysql&gt; use abc
+Database changed
+mysql&gt; create table gn(name char(10),age int,hobby char(20),addr char(30),iq int);
+Query OK, 0 rows affected (0.01 sec)
+
+mysql&gt; desc gn;
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | YES  |     | NULL    |       |
+| age   | int      | YES  |     | NULL    |       |
+| hobby | char(20) | YES  |     | NULL    |       |
+| addr  | char(30) | YES  |     | NULL    |       |
+| iq    | int      | YES  |     | NULL    |       |
++-------+----------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+mysql&gt; insert into gn values ('zhangsan',20,'钓鱼','河边',80), ('lisi',30,'做饭','厨房',90), ('wangwu',40,'吃饭','饭桌',80);
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc gn;
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | YES  |     | NULL    |       |
+| age   | int      | YES  |     | NULL    |       |
+| hobby | char(20) | YES  |     | NULL    |       |
+| addr  | char(30) | YES  |     | NULL    |       |
+| iq    | int      | YES  |     | NULL    |       |
++-------+----------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+mysql&gt; select * from gn;
++----------+------+--------+--------+------+
+| name     | age  | hobby  | addr   | iq   |
++----------+------+--------+--------+------+
+| zhangsan |   20 | 钓鱼   | 河边   |   80 |
+| lisi     |   30 | 做饭   | 厨房   |   90 |
+| wangwu   |   40 | 吃饭   | 饭桌   |   80 |
++----------+------+--------+--------+------+
+3 rows in set (0.00 sec)
+</code></pre>
+<h5>3.16  查询结果排序</h5>
+<pre><code class="language-shell">#在执行select查询语句的时候，可以指定列进行排序
+使用order by 列名 asc\desc 进行咆哮
+asc  升序 
+desc  降序
+
+
+#### 查询表内的年纪，按照降序进行排列
+mysql&gt; select * from gn order by age desc;
++----------+------+--------+--------+------+
+| name     | age  | hobby  | addr   | iq   |
++----------+------+--------+--------+------+
+| wangwu   |   40 | 吃饭   | 饭桌   |   80 |
+| lisi     |   30 | 做饭   | 厨房   |   90 |
+| zhangsan |   20 | 钓鱼   | 河边   |   80 |
++----------+------+--------+--------+------+
+3 rows in set (0.00 sec)
+
+#综合多个条件进行排序
+#首先：先全部按照iq做升序排列
+#当iq是一样的时候，再按照age做升序排列
+mysql&gt; select * from gn order by iq asc,age asc;
++----------+------+--------+--------+------+
+| name     | age  | hobby  | addr   | iq   |
++----------+------+--------+--------+------+
+| ww       |   17 | ccc    | wewew  |   60 |
+| wangwu   |   10 | 吃饭   | 饭桌   |   80 |
+| zhangsan |   20 | 钓鱼   | 河边   |   80 |
+| lisi     |   30 | 做饭   | 厨房   |   90 |
++----------+------+--------+--------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<h5>3.17  连接查询</h5>
+<pre><code class="language-shell">mysql 数据库，是关系型数据库
+    表 和 表 之间,数据是有对应的关系
+利用这个关系，就可以同时连接多张表，查询需要的数据
+必须指定表和表之间，数据的对应关系
+
+
+这个操作就是属于连接查询，连接查询主要分为两类
+    内连接
+        只有对应的数据，才能显示
+    外连接：是把表分了主次
+        左外连接：以左边的表为主，去匹配右边表的内容。没有对应内容显示NULL
+        右外连接：以右边的表为主，去匹配左边表的内容。没有对应内容显示NULL
+</code></pre>
+<ul>
+<li>准备class表</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; create table class(cid int not null auto_increment,cname varchar(20),primary key(cid)) engine=innodb;
+int   数据类型
+not null   不允许为空
+auto_increment    自增
+primary key(cid))  主键：要求cid里面的数据必须是唯一，不能重复
+engine=innodb;    引擎类型
+
+
+
+mysql&gt; desc class;
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| cid   | int         | NO   | PRI | NULL    | auto_increment |
+| cname | varchar(20) | YES  |     | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+2 rows in set (0.00 sec)
+
+
+mysql&gt; insert into class(cname) values('一年级一班');
+Query OK, 1 row affected (0.00 sec)
+
+mysql&gt; select * from class;
++-----+-----------------+
+| cid | cname           |
++-----+-----------------+
+|   1 | 一年级一班      |
++-----+-----------------+
+1 row in set (0.00 sec)
+
+
+
+mysql&gt; insert into class(cname) values('三年级一班'),('四年级一班');
+Query OK, 2 rows affected (0.00 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql&gt; select * from class;
++-----+------------------+
+| cid | cname            |
++-----+------------------+
+|   1 | 一年级一班       |
+|   2 | 二年级一班       |
+|   3 | 三年级一班       |
+|   4 | 四年级一班       |
+|   5 | 三年级2班        |
+|   6 | 四年级一2班      |
+|   7 | 五年纪7班        |
++-----+------------------+
+7 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>创建一个student</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; create table student(cid int not null auto_increment,sname varchar(20),primary key(cid)) engine=innodb;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; desc student;
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| cid   | int         | NO   | PRI | NULL    | auto_increment |
+| sname | varchar(20) | YES  |     | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+2 rows in set (0.00 sec)
+
+mysql&gt; insert into student(sname) values('喜羊羊'),('懒洋洋'),('沸羊羊'),('暖羊羊'),('慢羊羊'),('灰太狼'),('机械羊'),('刀羊羊'),('小灰灰');
+Query OK, 9 rows affected (0.00 sec)
+Records: 9  Duplicates: 0  Warnings: 0
+
+mysql&gt; select * from student;
++-----+-----------+
+| cid | sname     |
++-----+-----------+
+|   1 | 喜羊羊    |
+|   2 | 懒洋洋    |
+|   3 | 沸羊羊    |
+|   4 | 暖羊羊    |
+|   5 | 慢羊羊    |
+|   6 | 灰太狼    |
+|   7 | 机械羊    |
+|   8 | 刀羊羊    |
+|   9 | 小灰灰    |
++-----+-----------+
+9 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>内连接</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; select * from class,student where class.cid=student.cid;
++-----+------------------+-----+-----------+
+| cid | cname            | cid | sname     |
++-----+------------------+-----+-----------+
+|   1 | 一年级一班       |   1 | 喜羊羊    |
+|   2 | 二年级一班       |   2 | 懒洋洋    |
+|   3 | 三年级一班       |   3 | 沸羊羊    |
+|   4 | 四年级一班       |   4 | 暖羊羊    |
+|   5 | 三年级2班        |   5 | 慢羊羊    |
+|   6 | 四年级一2班      |   6 | 灰太狼    |
+|   7 | 五年纪7班        |   7 | 机械羊    |
++-----+------------------+-----+-----------+
+7 rows in set (0.00 sec)
+</code></pre>
+<h4>四、索引</h4>
+<blockquote>
+<p>索引的特点</p>
+<p>    帮助mysql快速查询更新数据库表内的数据</p>
+<p>    无需对整个 表进行匹配扫描，通过物理地址找到相应的数据</p>
+<p>    针对某些字段继续建立索引，并非对所有的字段都建立索引</p>
+<p>索引的优点</p>
+<p>    当表内的数据量很大或者查询的涉及到了很多个表，使用索引，可以提高查询速率，降低数据库的IO成本</p>
+<p>    通过索引对数据进行排序，可以降低数据库的排序成本，降低了CPU的消耗</p>
+<p>    通过去建立唯一索引，来保证数据库种每一行数据的唯一性</p>
+<p>    还能加快表与表之间的连接</p>
+<p>索引的缺点</p>
+<p>    建立索引会增加数据库的存储空间</p>
+<p>    当对表的数据进行insert、update、delete的时候，索引也要动态的维护，因为更新数据库表的时候，mysql不仅仅要保存数据，还需要保存索引文件</p>
+<p>索引的分类</p>
+<p>普通索引：没有唯一性，一个表内可以有多个普通索引</p>
+<p>唯一索引：值必须是唯一的，可以写空值，一个表内可以创建多个唯一索引</p>
+<p>主键索引：一个特殊的唯一索引，主键索引要求每个值都是唯一的，不允许有空值，且一个表只能由一个主键索引</p>
+<p>组合索引：不具备唯一性，一个表内可以有多个</p>
+<p>创建索引的原则</p>
+<p>    表中的数据超过300条应该有索引</p>
+<p>    表中唯一性比较差的字段不建议创建索引</p>
+<p>    数据表中更新太频繁的字段不适合做索引</p>
+<p>    经常出现在where字句中的字段，特别是大表的字段，应该建立索引</p>
+<p>    要保证表内某一个字段的唯一性，可以建立索引</p>
+</blockquote>
+<h6>索引的分类</h6>
+<pre><code class="language-textile">主键索引:
+    它和主键primary key绑定的，一张表只能创建一个
+    它自带：非空+唯一+自动升序
+唯一索引：
+    它单独创建， unique，数据必须是唯一的，允许为空，一个表内可以有多个
+普通索引：
+    它单独创建，index，只是和表格数据对应，没有任何特效
+组合索引：
+    它是多个列同时放在一起的索引，只是和表格数据对应
+</code></pre>
+<h5>4.1 实操</h5>
+<ul>
+<li>查询索引</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show index from class;
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| class |          0 | PRIMARY  |            1 | cid         | A         |           7 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+1 row in set (0.00 sec)
+</code></pre>
+<ul>
+<li>主键索引</li>
+</ul>
+<pre><code class="language-shell">作用：要求数据必须是唯一，非空，自动排序
+    主键索引的名字：primary key
+
+#创建表创建索引
+mysql&gt; create table a(cid int primary key);
+Query OK, 0 rows affected (0.01 sec)
+
+mysql&gt; desc a;
++-------+------+------+-----+---------+-------+
+| Field | Type | Null | Key | Default | Extra |
++-------+------+------+-----+---------+-------+
+| cid   | int  | NO   | PRI | NULL    |       |
++-------+------+------+-----+---------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt; alter table a drop primary key;
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc a;
++-------+------+------+-----+---------+-------+
+| Field | Type | Null | Key | Default | Extra |
++-------+------+------+-----+---------+-------+
+| cid   | int  | NO   |     | NULL    |       |
++-------+------+------+-----+---------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt; alter table a add primary key(cid);
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; desc a;
++-------+------+------+-----+---------+-------+
+| Field | Type | Null | Key | Default | Extra |
++-------+------+------+-----+---------+-------+
+| cid   | int  | NO   | PRI | NULL    |       |
++-------+------+------+-----+---------+-------+
+1 row in set (0.00 sec)
+</code></pre>
+<ul>
+<li>唯一索引</li>
+</ul>
+<pre><code class="language-shell">作用：限制指定列数据必须是唯一，允许空值
+
+
+#添加唯一索引
+mysql&gt; alter table a add unique(cid);
+
+#创建唯一索引，更推荐
+mysql&gt; create unique index  un_iq on a(iq);
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; show index from a;
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| a     |          0 | cid      |            1 | cid         | A         |           0 |     NULL |   NULL |      | BTREE      |         |               | YES     | NULL       |
+| a     |          0 | un_iq    |            1 | iq          | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+2 rows in set (0.00 sec)
+
+
+#删除索引
+#这种方式删除索引，如果索引名和字段是一样，靠删除删除字段删除索引
+mysql&gt; alter table a drop cid;
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+
+#删除创建的索引
+mysql&gt; drop index un_iq on a;
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+</code></pre>
+<ul>
+<li>普通索引</li>
+</ul>
+<pre><code class="language-shell">作用：就是把指定列的数据，单独解压保存
+
+#添加索引
+mysql&gt; alter table a add index index_pass(name);
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+#创建索引，更推荐
+mysql&gt; create index I_name on a(name);
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 1
+
+mysql&gt; show index from a;
++-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table | Non_unique | Key_name   | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| a     |          1 | index_pass |            1 | name        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| a     |          1 | I_name     |            1 | name        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
++-------+------------+------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+2 rows in set (0.00 sec)
+
+
+#删除索引
+mysql&gt; drop index I_name on a;
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+</code></pre>
+<ul>
+<li>普通组合索引</li>
+</ul>
+<pre><code class="language-shell">#创建组合索引
+mysql&gt; create index index_group on a(name,iq);
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+#添加组合索引
+mysql&gt; alter table a add index index_group1(iq,name);
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; show index from a;
++-------+------------+--------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| Table | Non_unique | Key_name     | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment | Visible | Expression |
++-------+------------+--------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+| a     |          1 | index_group  |            1 | name        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| a     |          1 | index_group  |            2 | iq          | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| a     |          1 | index_group1 |            1 | iq          | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
+| a     |          1 | index_group1 |            2 | name        | A         |           0 |     NULL |   NULL | YES  | BTREE      |         |               | YES     | NULL       |
++-------+------------+--------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+---------+------------+
+
+#删除索引
+mysql&gt; drop index index_group on a;
+Query OK, 0 rows affected (0.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+</code></pre>
+</div>
+      </article>
+      <article class="file-card collapsed" id="sec-03-03" data-source="Linux 数据库/主从复制搭建部署.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="false">
+          <div class="card-title-group"><span class="card-icon">▤</span><div><h3>主从复制搭建部署</h3><span class="source-path">Linux 数据库/主从复制搭建部署.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="主从复制搭建部署" data-bookmark-page="Linux 数据库" data-bookmark-href="03-linux-database.html#sec-03-03" data-bookmark-source="Linux 数据库/主从复制搭建部署.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>3 图</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>一、主从复制的工作原理</h4>
+<p><img src="assets/media/0107-22ec876b.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-23-14-09-51-image.png"></p>
+<blockquote>
+<p>1.首先主库需要开启二进制日志，需要授权给从库访问
+2.从库会先开启一个IO线程，利用IO线程和主库建立连接，并且读取主库bin.log日志内容，将读取到的日志内容写入到relay.log；如果此时主库和从库数据一致，此时IO线程会休眠，直到主库产生新的内容才会同步
+3.从库会再次一个sql线程，sql线程会读取relay.log日志内的内容并且在从库执行一般，从而实现主从复制</p>
+</blockquote>
+<h4>二、主从复制的类型</h4>
+<blockquote>
+<p>类型</p>
+<p>    1.基于语句复制（默认）</p>
+<p>    2.基于行的复制</p>
+<p>    3.混合类型的复制</p>
+<p>操作</p>
+<p>    1.异步复制（默认）</p>
+<p>        数据库的主库不会把bin日志内容主动推送给每一个从库</p>
+<p>        执行完毕之后直接返回结果给客户端</p>
+<p>        它是不管从库是否已经接收并且处理好</p>
+<p>        效率很高，但是容易出现问题</p>
+<p>            1.主库操作没有推送到仓库</p>
+<p>            2.会出现两个库数据不一样</p>
+<p>    2.同步复制</p>
+<p>        当主库执行完成一个事务后，会等待所有的从库复制且执行成功才会返回信息给客户端</p>
+<p>        效率和性能都会收到影响</p>
+<p>    3.半同步</p>
+<p>        当主库执行完一个事务后，会等待至少一个从库写入到relay日志内，然后返回结果给客户端</p>
+</blockquote>
+<h4>三、部署主从复制</h4>
+<h5>3.1  基础环境的准备</h5>
+<ul>
+<li>
+<p>教师机（角色分配）</p>
+<ul>
+<li>
+<p>192.168.10.128 主库</p>
+</li>
+<li>
+<p>192.168.10.129 从库</p>
+</li>
+</ul>
+</li>
+<li>
+<p>两台机器关闭防火墙、内核</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# systemctl  stop firewalld
+[root@localhost opt]# setenforce  0
+[root@localhost opt]# systemctl  disable firewalld
+Removed symlink /etc/systemd/system/multi-user.target.wants/firewalld.service.
+Removed symlink /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service.
+[root@localhost opt]# vim /etc/selinux/config
+</code></pre>
+<ul>
+<li>两台服务器搭建mysql服务(参考前面的笔记)</li>
+</ul>
+<hr>
+<blockquote>
+<p>解决主从数据库数据不一致</p>
+<p>当前主库有数据，从库新建的，当前主从数据不一致</p>
+<p>（如果不想解决，可以跳过）</p>
+<pre><code class="language-shell">#主库利用mysqldump将数据做备份
+[root@localhost opt]# 
+mysqldump -uroot -pAbc123456! --all-databases &gt; /opt/mysql-all.sql
+
+
+#传输备份到仓库
+[root@localhost opt]# scp /opt/mysql-all.sql root@192.168.10.129:/opt
+The authenticity of host '192.168.10.129 (192.168.10.129)' can't be established.
+ECDSA key fingerprint is SHA256:ZBtxfgOxQ/1Wph9AVesxFOpoZRPQe5mRhnwNQXnin00.
+ECDSA key fingerprint is MD5:d5:e6:c3:4d:99:1b:d2:d7:d0:99:5a:3c:f9:38:2a:e7.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.10.129' (ECDSA) to the list of known hosts.
+root@192.168.10.129's password:
+mysql-all.sql                                 100% 1272KB  91.4MB/s   00:00
+
+
+
+#从库导入数据
+mysql&gt; source /opt/mysql-all.sql
+</code></pre>
+</blockquote>
+<hr>
+<p>如果你是直接克隆虚拟机，克隆128的虚拟机</p>
+<ul>
+<li>
+<p>首先需要修改IP</p>
+</li>
+<li>
+<p>然后编辑/etc/my.cnf关闭二进制日志</p>
+</li>
+<li>
+<p>然后重启mysql服务</p>
+</li>
+</ul>
+<h5>3.2 配置主库（128）</h5>
+<ul>
+<li>
+<p>开启二进制日志</p>
+</li>
+<li>
+<p>修改配置文件开启二进制日志</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@localhost opt]# vim /etc/my.cnf
+log-bin=mysql-bin
+server-id=1     #服务ID，主库和从库不能一样
+
+#重启服务
+[root@localhost opt]# systemctl  restart mysqld
+</code></pre>
+<ul>
+<li>创建从库使用的用户，并且授权</li>
+</ul>
+<pre><code class="language-shell">#创建远程使用的用户
+mysql&gt; create user 'tongbu'@'%' identified with mysql_native_password by 'Bbc123456!';
+
+#授予权限
+#replication slave 将复制权限给从库
+mysql&gt; grant replication slave on *.* to 'tongbu'@'%' with grant option;
+</code></pre>
+<ul>
+<li>预览状态</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show master status;
++------------------+----------+--------------+------------------+-------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++------------------+----------+--------------+------------------+-------------------+
+| mysql-bin.000005 |      682 |              |                  |                   |
++------------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+#| Position数值是随机的，不一样没有关系
+</code></pre>
+<h5>3.3 从库配置（129）</h5>
+<ul>
+<li>更改配置文件</li>
+</ul>
+<pre><code class="language-shell">[root@localhost ~]# cp /etc/my.cnf{,.bak}
+[root@localhost ~]# vim /etc/my.cnf
+#文件末行添加
+server-id=2    #主库从库不能一样！！！！！！！！！！
+
+[root@localhost ~]# systemctl  restart mysqld
+</code></pre>
+<ul>
+<li>配置同步操作</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; change master to master_host='192.168.10.128',master_user='tongbu',master_password='Bbc123456!',master_log_file='mysql-bin.000005',master_log_pos=682;
+
+---------
+master_host='master的IP',
+master_user='登录master的用户',
+master_password='登录master用户的密码',
+master_log_file='指定同步的日志文件',
+master_log_pos=指定同步的日志文件的位置;
+</code></pre>
+<ul>
+<li>开启从库同步功能</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; start slave;
+</code></pre>
+<ul>
+<li>查询主从复制功能</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; show slave status \G
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for source to send event
+                  Master_Host: 192.168.10.128
+                  Master_User: tongbu
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: mysql-bin.000005
+          Read_Master_Log_Pos: 682
+               Relay_Log_File: localhost-relay-bin.000002
+                Relay_Log_Pos: 326
+        Relay_Master_Log_File: mysql-bin.000005
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+……
+</code></pre>
+<ul>
+<li>验证主从复制</li>
+</ul>
+<pre><code class="language-shell">#在主库创建一个仓库
+mysql&gt; create database Bceshizhucong;
+Query OK, 1 row affected (0.01 sec)
+
+
+#在从库查询
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| A                  |
+| abc                |
+| cateye1            |
+| ceshi              |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+8 rows in set (0.00 sec)
+</code></pre>
+<hr>
+<p>问题：执行同步的时候，IO线程没有启动成功，参考下面的解决方案</p>
+<p><img src="assets/media/0108-770922d7.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-23-16-22-05-image.png"><img src="assets/media/0109-cc293178.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-23-16-22-16-image.png"></p>
+<ul>
+<li>
+<p>检查防火墙内核是否关闭</p>
+</li>
+<li>
+<p>检查写的内容是否有问题</p>
+</li>
+</ul>
+<pre><code class="language-shell">#在从库（129）关闭同步服务
+mysql&gt; stop slave;
+
+
+#主库（128）开启新的日志文件
+mysql&gt; flush logs;
+
+
+#主库查询master状态
+mysql&gt; show master status;
++------------------+----------+--------------+------------------+-------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++------------------+----------+--------------+------------------+-------------------+
+| mysql-bin.000006 |      157 |              |                  |                   |
++------------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+
+
+#从库（129）执行同步操作
+mysql&gt; change master to master_log_file='mysql-bin.000006',
+    -&gt; master_log_pos=157;
+如果你不确定之前添加的用户名、密码、ip信息是否写错，那么参考下面写法：
+mysql&gt; change master to master_host='192.168.10.128',master_user='tongbu',master_password='Bbc123456!',master_log_file='mysql-bin.000006',master_log_pos=157;
+
+
+
+#然后再次查询
+mysql&gt; show slave status \G
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for source to send event
+                  Master_Host: 192.168.10.128
+                  Master_User: tongbu
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: mysql-bin.000006
+          Read_Master_Log_Pos: 157
+               Relay_Log_File: localhost-relay-bin.000002
+                Relay_Log_Pos: 326
+        Relay_Master_Log_File: mysql-bin.000006
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+</code></pre>
+</div>
+      </article>
+      <article class="file-card collapsed" id="sec-03-04" data-source="Linux 数据库/Mysql 数据库的安装.md">
+        <div class="file-card-header" role="button" tabindex="0" aria-expanded="false">
+          <div class="card-title-group"><span class="card-icon">▤</span><div><h3>Mysql 数据库的安装</h3><span class="source-path">Linux 数据库/Mysql 数据库的安装.md</span></div></div>
+          <div class="card-meta"><button class="bookmark-btn" type="button" data-bookmark-title="Mysql 数据库的安装" data-bookmark-page="Linux 数据库" data-bookmark-href="03-linux-database.html#sec-03-04" data-bookmark-source="Linux 数据库/Mysql 数据库的安装.md" title="收藏笔记" aria-label="收藏笔记">☆</button><span>1 图</span><span class="toggle-icon">▼</span></div>
+        </div>
+        <div class="file-card-body"><h4>安装Mysql数据库</h4>
+<h5>1.1 移除默认安装的mysql</h5>
+<pre><code class="language-shell">[root@localhost ~]# rpm -qa | grep mariadb
+mariadb-libs-5.5.68-1.el7.x86_64
+[root@localhost ~]# yum remove -y mariadb-libs-5.5.68-1.el7.x86_64
+</code></pre>
+<h5>1.2 配置mysql8.x安装源</h5>
+<ul>
+<li>配置密钥</li>
+</ul>
+<pre><code class="language-shell">#使用rpm命令，导入密钥
+#密钥是官方提供，网址也是官方网址
+[root@localhost ~]# rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+</code></pre>
+<ul>
+<li>配置yum仓库</li>
+</ul>
+<pre><code class="language-shell">[root@localhost ~]# rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm
+获取https://dev.mysql.com/get/mysql80-community-release-el7-11.noarch.rpm
+警告：/var/tmp/rpm-tmp.p5QRol: 头V4 RSA/SHA256 Signature, 密钥 ID 3a79bd29: NOKEY
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:mysql80-community-release-el7-11 ################################# [100%]
+</code></pre>
+<h5>1.3 安装mysql</h5>
+<pre><code class="language-shell">[root@localhost ~]# yum -y install mysql-community-server
+</code></pre>
+<h5>1.4 启动服务</h5>
+<pre><code class="language-shell">[root@localhost ~]# systemctl  start mysqld
+[root@localhost ~]# systemctl  enable mysqld
+[root@localhost ~]# systemctl  status mysqld
+</code></pre>
+<h5>1.5 登录数据库<img src="assets/media/0110-d030f27f.png" alt="" loading="lazy" decoding="async" data-source-name="2024-04-17-13-42-52-image.png"></h5>
+<pre><code class="language-shell">[root@localhost ~]# mysql -u root -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.36
+
+Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql&gt;
+</code></pre>
+<hr>
+<p>如果临时密码失效，可以采用下面的方案</p>
+<pre><code class="language-shell">[root@localhost ~]# vim /etc/my.cnf
+在【mysql】下方添加
+skip-grant-tables  #忽略密码验证
+[root@localhost ~]# mysql -u root -p
+Enter password: #直接回车就可以登录进去
+
+mysql&gt; flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+
+按照下面的命令设置一个密码，密码修改完成后，去配置文件内删除skip-grant-tables 
+然后 再次重启mysql服务
+</code></pre>
+<h5>1.6  修改数据库的登录密码</h5>
+<ul>
+<li>密码要求：英文大小写、数字、特殊符号，至少8位</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; alter user 'root'@'localhost' identified by 'Abc123456!';
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<h5>1.7 清屏</h5>
+<pre><code class="language-shell">ctrl + L  
+或者
+mysql&gt; system clear
+</code></pre>
+<h5>1.8 退出数据库</h5>
+<pre><code class="language-shell">exit
+</code></pre>
+<h4>二、配置远程访问mysql数据库</h4>
+<pre><code class="language-shell">#设置允许root用户远程登录
+mysql&gt; create user 'root'@'%' identified with mysql_native_password by 'Bbc123456!';
+</code></pre>
+<ul>
+<li>验证远程登录结果</li>
+</ul>
+<pre><code class="language-shell">[root@localhost shell]# mysql -uroot -h 192.168.10.128 -pBbc123456!
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 12
+Server version: 8.0.36 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| performance_schema |
++--------------------+
+2 rows in set (0.00 sec)
+</code></pre>
+<ul>
+<li>给远程登录账号添加权限，并且验证</li>
+</ul>
+<pre><code class="language-shell">mysql&gt; grant all on *.* to 'root'@'%';
+
+
+[root@localhost shell]# mysql -uroot -h 192.168.10.128 -pBbc123456!
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 18
+Server version: 8.0.36 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.00 sec)
+</code></pre>
+</div>
+      </article></main>
   </div>
-  </div>
-<script src="common.js"></script>
+  <script src="common.js"></script>
 </body>
 </html>
