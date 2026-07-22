@@ -787,6 +787,137 @@ a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
   border-color: var(--accent) !important;
 }
 
+/* === Edit Mode === */
+.edit-mode-btn {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.2rem;
+  z-index: 9000;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 2rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.edit-mode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99,102,241,0.45);
+}
+
+.edit-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9001;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  background: rgba(30,31,46,0.95);
+  backdrop-filter: blur(8px);
+  flex-wrap: wrap;
+  animation: editBarSlide 0.25s ease;
+}
+@keyframes editBarSlide {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.edit-toolbar button {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 0.4rem;
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.edit-toolbar button:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.3);
+}
+.edit-toolbar .edit-save {
+  background: rgba(34,197,94,0.25);
+  border-color: rgba(34,197,94,0.4);
+}
+.edit-toolbar .edit-save:hover {
+  background: rgba(34,197,94,0.4);
+}
+.edit-toolbar .edit-danger {
+  background: rgba(239,68,68,0.2);
+  border-color: rgba(239,68,68,0.35);
+}
+.edit-toolbar .edit-danger:hover {
+  background: rgba(239,68,68,0.35);
+}
+.edit-toolbar .edit-exit {
+  background: rgba(255,255,255,0.12);
+}
+.edit-sep {
+  width: 1px;
+  height: 1.4rem;
+  background: rgba(255,255,255,0.15);
+  margin: 0 0.2rem;
+}
+
+body.edit-active .file-card-body.editing,
+body.edit-active .card-body.editing {
+  outline: 2px dashed rgba(99,102,241,0.4);
+  outline-offset: 2px;
+  min-height: 3rem;
+}
+body.edit-active .file-card-body.editing:focus,
+body.edit-active .card-body.editing:focus {
+  outline-color: #6366f1;
+  background: rgba(99,102,241,0.03);
+}
+
+.edit-tip {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  z-index: 9999;
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.6rem;
+  background: rgba(30,31,46,0.95);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+.edit-tip.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@media (max-width: 900px) {
+  .edit-mode-btn {
+    bottom: 4rem;
+    right: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+  .edit-toolbar {
+    gap: 0.2rem;
+    padding: 0.4rem 0.5rem;
+  }
+  .edit-toolbar button {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.72rem;
+  }
+}
+
 /* === Print Styles (Enhanced) === */
 @media print {
   @page {

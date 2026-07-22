@@ -747,4 +747,329 @@
     }
   })();
 
+  // === 18. 页面编辑模式 ===
+  (function initEditMode() {
+    var ADMIN_PASSWORD = 'admin123';
+    var STORAGE_KEY = 'cloud-notes-edits-' + location.pathname.split('/').pop();
+    var isEditMode = false;
+    var isUnlocked = false;
+
+    // --- 编辑按钮 ---
+    var editBtn = document.createElement('button');
+    editBtn.className = 'edit-mode-btn';
+    editBtn.innerHTML = '✏️ 编辑';
+    editBtn.title = '点击进入编辑模式';
+    document.body.appendChild(editBtn);
+
+    // --- 编辑工具栏 ---
+    var toolbar = document.createElement('div');
+    toolbar.className = 'edit-toolbar';
+    toolbar.style.display = 'none';
+    toolbar.innerHTML = `
+      <button data-action="text" title="插入文字">📝 文字</button>
+      <button data-action="h4" title="插入标题">📑 标题</button>
+      <button data-action="code" title="插入代码">💻 代码</button>
+      <button data-action="image" title="插入图片">🖼️ 图片</button>
+      <button data-action="video" title="插入视频">🎬 视频</button>
+      <button data-action="list" title="插入列表">📋 列表</button>
+      <span class="edit-sep"></span>
+      <button data-action="save" class="edit-save" title="保存到本地">💾 保存</button>
+      <button data-action="export" title="导出HTML文件">📤 导出</button>
+      <button data-action="reset" class="edit-danger" title="清除所有编辑">🗑️ 重置</button>
+      <span class="edit-sep"></span>
+      <button data-action="exit" class="edit-exit" title="退出编辑">✖ 退出</button>
+    `;
+    document.body.appendChild(toolbar);
+
+    // --- 密码验证 ---
+    function tryUnlock() {
+      var pwd = prompt('请输入管理员密码：');
+      if (pwd === null) return false;
+      if (pwd === ADMIN_PASSWORD) {
+        isUnlocked = true;
+        return true;
+      }
+      alert('密码错误！');
+      return false;
+    }
+
+    // --- 进入/退出编辑模式 ---
+    function enterEdit() {
+      if (!isUnlocked && !tryUnlock()) return;
+      isEditMode = true;
+      editBtn.style.display = 'none';
+      toolbar.style.display = 'flex';
+      document.body.classList.add('edit-active');
+
+      // 所有卡片body设为可编辑
+      var bodies = document.querySelectorAll('.file-card-body, .card-body');
+      bodies.forEach(function(b) {
+        b.setAttribute('contenteditable', 'true');
+        b.classList.add('editing');
+      });
+
+      // 展开所有卡片
+      var cards = document.querySelectorAll('.file-card, .card');
+      cards.forEach(function(c) {
+        c.classList.remove('collapsed');
+        var body = c.querySelector('.file-card-body, .card-body');
+        if (body) body.style.display = '';
+      });
+
+      // 加载本地存储的编辑
+      loadEdits();
+    }
+
+    function exitEdit() {
+      isEditMode = false;
+      editBtn.style.display = 'block';
+      toolbar.style.display = 'none';
+      document.body.classList.remove('edit-active');
+
+      var bodies = document.querySelectorAll('.file-card-body, .card-body');
+      bodies.forEach(function(b) {
+        b.removeAttribute('contenteditable');
+        b.classList.remove('editing');
+      });
+    }
+
+    editBtn.onclick = enterEdit;
+
+    // --- 工具栏操作 ---
+    toolbar.onclick = function(e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      var action = btn.dataset.action;
+      if (!action) return;
+
+      if (action === 'exit') { exitEdit(); return; }
+      if (action === 'save') { saveEdits(); return; }
+      if (action === 'export') { exportHTML(); return; }
+      if (action === 'reset') { resetEdits(); return; }
+
+      // 需要选区的内容插入
+      var sel = window.getSelection();
+      var range;
+      if (sel.rangeCount > 0 && sel.toString().length >= 0) {
+        range = sel.getRangeAt(0);
+      }
+
+      switch(action) {
+        case 'text':
+          insertAtCursor('<p style="color:#6b7280">[在此输入文字]</p>');
+          break;
+        case 'h4':
+          insertAtCursor('<h4>新标题</h4>');
+          break;
+        case 'code':
+          insertAtCursor('<pre><code># 在此输入代码\nls -la</code></pre>');
+          break;
+        case 'list':
+          insertAtCursor('<ul><li>列表项1</li><li>列表项2</li></ul>');
+          break;
+        case 'image':
+          insertImage();
+          break;
+        case 'video':
+          insertVideo();
+          break;
+      }
+    };
+
+    // --- 在光标处插入HTML ---
+    function insertAtCursor(html) {
+      var sel = window.getSelection();
+      var range;
+      if (sel.rangeCount > 0) {
+        range = sel.getRangeAt(0);
+        // 确保在可编辑区域内
+        var container = range.commonAncestorContainer;
+        var editable = container.closest ? container.closest('[contenteditable]') : null;
+        if (!editable) {
+          // 默认插入到第一个可编辑区域末尾
+          editable = document.querySelector('[contenteditable]');
+          if (!editable) return;
+          range = document.createRange();
+          range.selectNodeContents(editable);
+          range.collapse(false);
+        }
+        range.deleteContents();
+        var frag = range.createContextualFragment(html);
+        range.insertNode(frag);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        var ed = document.querySelector('[contenteditable]');
+        if (ed) ed.insertAdjacentHTML('beforeend', html);
+      }
+    }
+
+    // --- 插入图片 ---
+    function insertImage() {
+      var choice = confirm('确定 = 通过URL插入图片\n取消 = 上传本地图片文件');
+      if (choice) {
+        var url = prompt('请输入图片URL：');
+        if (url) {
+          insertAtCursor('<p class="img-p"><img src="' + url + '" alt="图片" style="max-width:100%;border-radius:6px;border:1px solid #e2e8f0;margin:0.5rem 0"></p>');
+        }
+      } else {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = function() {
+          var file = input.files[0];
+          if (!file) return;
+          if (file.size > 3 * 1024 * 1024) {
+            alert('图片不能超过3MB，建议压缩后再上传');
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function() {
+            insertAtCursor('<p class="img-p"><img src="' + reader.result + '" alt="图片" style="max-width:100%;border-radius:6px;border:1px solid #e2e8f0;margin:0.5rem 0"></p>');
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      }
+    }
+
+    // --- 插入视频 ---
+    function insertVideo() {
+      var choice = confirm('确定 = 通过URL插入视频(Bilibili/YouTube等嵌入)\n取消 = 上传本地视频文件');
+      if (choice) {
+        var url = prompt('请输入视频嵌入URL（如B站分享嵌入代码中的src链接）：');
+        if (url) {
+          insertAtCursor('<p class="img-p"><video controls style="max-width:100%;border-radius:6px;margin:0.5rem 0"><source src="' + url + '"></video></p>');
+        }
+      } else {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        input.onchange = function() {
+          var file = input.files[0];
+          if (!file) return;
+          if (file.size > 20 * 1024 * 1024) {
+            alert('视频不能超过20MB');
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function() {
+            insertAtCursor('<p class="img-p"><video controls style="max-width:100%;border-radius:6px;margin:0.5rem 0"><source src="' + reader.result + '"></video></p>');
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      }
+    }
+
+    // --- 保存编辑到localStorage ---
+    function saveEdits() {
+      var cards = document.querySelectorAll('.file-card, .card');
+      var data = {};
+      cards.forEach(function(c, i) {
+        var id = c.id || ('card-' + i);
+        var body = c.querySelector('.file-card-body, .card-body');
+        if (body) data[id] = body.innerHTML;
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        showTip('已保存到本地浏览器');
+      } catch(e) {
+        if (e.name === 'QuotaExceededError') {
+          alert('存储空间不足！图片或视频太大，请使用导出功能保存。');
+        } else {
+          alert('保存失败：' + e.message);
+        }
+      }
+    }
+
+    // --- 加载本地编辑 ---
+    function loadEdits() {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        var data = JSON.parse(raw);
+        var cards = document.querySelectorAll('.file-card, .card');
+        cards.forEach(function(c, i) {
+          var id = c.id || ('card-' + i);
+          if (data[id]) {
+            var body = c.querySelector('.file-card-body, .card-body');
+            if (body) body.innerHTML = data[id];
+          }
+        });
+        showTip('已加载本地编辑内容');
+      } catch(e) {
+        console.error('Load edits error:', e);
+      }
+    }
+
+    // --- 导出HTML ---
+    function exportHTML() {
+      // 先保存编辑内容到HTML
+      var clone = document.documentElement.cloneNode(true);
+      // 移除编辑模式的属性
+      clone.querySelectorAll('[contenteditable]').forEach(function(el) {
+        el.removeAttribute('contenteditable');
+        el.classList.remove('editing');
+      });
+      // 移除编辑工具栏和按钮
+      var oldBtn = clone.querySelector('.edit-mode-btn');
+      if (oldBtn) oldBtn.remove();
+      var oldTb = clone.querySelector('.edit-toolbar');
+      if (oldTb) oldTb.remove();
+      clone.classList.remove('edit-active');
+
+      var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = location.pathname.split('/').pop();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showTip('已导出HTML文件，请发送给我同步');
+    }
+
+    // --- 重置编辑 ---
+    function resetEdits() {
+      if (!confirm('确定清除所有本地编辑？页面将恢复原始内容。')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    // --- 提示气泡 ---
+    function showTip(msg) {
+      var tip = document.createElement('div');
+      tip.className = 'edit-tip';
+      tip.textContent = msg;
+      document.body.appendChild(tip);
+      setTimeout(function() {
+        tip.classList.add('show');
+      }, 10);
+      setTimeout(function() {
+        tip.classList.remove('show');
+        setTimeout(function() { tip.remove(); }, 300);
+      }, 2000);
+    }
+
+    // 页面加载时自动恢复编辑内容（游客模式也显示已编辑内容）
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        var data = JSON.parse(raw);
+        var cards = document.querySelectorAll('.file-card, .card');
+        cards.forEach(function(c, i) {
+          var id = c.id || ('card-' + i);
+          if (data[id]) {
+            var body = c.querySelector('.file-card-body, .card-body');
+            if (body) body.innerHTML = data[id];
+          }
+        });
+      } catch(e) {}
+    }
+  })();
+
 })();
